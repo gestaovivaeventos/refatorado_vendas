@@ -4,7 +4,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Meta, MetasMap } from '@/types/vendas.types';
-import { SPREADSHEET_IDS, SHEET_NAMES, GOOGLE_API_KEY } from '@/config/app.config';
 
 interface UseMetasDataReturn {
   data: MetasMap;
@@ -27,12 +26,16 @@ export function useMetasData(): UseMetasDataReturn {
     setError(null);
 
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_IDS.METAS}/values/${SHEET_NAMES.METAS}!A:Z?key=${GOOGLE_API_KEY}`;
+      // Usar API route local para evitar CORS
+      const url = '/api/metas';
+      
+      console.log('[useMetasData] Buscando dados via API route...');
       
       const response = await fetch(url);
       
       if (!response.ok) {
-        throw new Error('Falha ao buscar dados de metas');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Falha ao buscar dados de metas');
       }
 
       const data = await response.json();

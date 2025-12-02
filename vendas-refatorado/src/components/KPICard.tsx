@@ -1,16 +1,19 @@
 /**
  * Componente KPICard - Card de indicador principal
+ * Estilo baseado no dashboard original de vendas
  */
 
 import React from 'react';
 import { formatCurrency, formatPercent } from '@/utils/formatacao';
-import { getColorForPercentage, getSolidColorForPercentage } from '@/utils/calculos';
+import { getSolidColorForPercentage } from '@/utils/calculos';
+import { COLORS } from '@/config/app.config';
 
 interface KPICardProps {
   titulo: string;
   valorRealizado: number;
   valorMeta: number;
   formatarComoMoeda?: boolean;
+  labelMeta?: string; // Ex: "META TOTAL", "META VENDAS", "META PÓS VENDAS"
 }
 
 export default function KPICard({
@@ -18,41 +21,56 @@ export default function KPICard({
   valorRealizado,
   valorMeta,
   formatarComoMoeda = true,
+  labelMeta = 'META',
 }: KPICardProps) {
   const percent = valorMeta > 0 ? valorRealizado / valorMeta : 0;
   const progressWidth = Math.min(percent * 100, 100);
-  const progressColor = getColorForPercentage(percent);
   const percentColor = getSolidColorForPercentage(percent);
+  
+  // Cor da barra de progresso baseada no percentual
+  const progressBarColor = percent >= 1 
+    ? COLORS.SUCCESS 
+    : percent >= 0.5 
+      ? COLORS.PRIMARY 
+      : COLORS.DANGER;
 
   return (
-    <div className="kpi-card">
+    <div 
+      className="rounded-lg p-5 flex flex-col gap-2"
+      style={{
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03))',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+      }}
+    >
       {/* Título */}
-      <span className="kpi-card-title">{titulo}</span>
+      <span className="text-text-muted text-xs font-semibold uppercase tracking-wider">
+        {titulo}
+      </span>
       
       {/* Valor Realizado */}
-      <span className="kpi-card-value">
+      <span className="text-text-primary text-3xl font-bold">
         {formatarComoMoeda ? formatCurrency(valorRealizado) : valorRealizado.toLocaleString('pt-BR')}
       </span>
       
-      {/* Detalhes: Percentual e Meta */}
-      <span className="kpi-card-details">
+      {/* Percentual + Meta */}
+      <span className="text-sm">
         <span className="font-bold" style={{ color: percentColor }}>
           {formatPercent(percent)}
         </span>
-        {' de '}
-        <span>
+        <span className="text-text-muted">
+          {' de '}
           {formatarComoMoeda ? formatCurrency(valorMeta) : valorMeta.toLocaleString('pt-BR')}
+          {' '}{labelMeta}
         </span>
-        {' META'}
       </span>
       
       {/* Barra de Progresso */}
-      <div className="progress-bar-bg">
+      <div className="w-full h-1.5 bg-dark-tertiary rounded-full overflow-hidden mt-1">
         <div 
-          className="progress-bar-fg" 
+          className="h-full rounded-full transition-all duration-500"
           style={{ 
             width: `${progressWidth}%`,
-            background: progressColor,
+            backgroundColor: progressBarColor,
           }}
         />
       </div>

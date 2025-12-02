@@ -4,6 +4,7 @@ export { default as Sidebar } from './Sidebar';
 export { default as Card } from './Card';
 export { default as KPICard } from './KPICard';
 export { default as IndicadorCard } from './IndicadorCard';
+export { default as IndicadoresOperacionais } from './IndicadoresOperacionais';
 export { default as Loading } from './Loading';
 export { default as SectionTitle } from './SectionTitle';
 export { default as ChartSelector } from './ChartSelector';

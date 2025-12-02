@@ -4,7 +4,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Adesao } from '@/types/vendas.types';
-import { SPREADSHEET_IDS, SHEET_NAMES, GOOGLE_API_KEY } from '@/config/app.config';
 import { parseDate } from '@/utils/periodo';
 
 interface UseSalesDataReturn {
@@ -28,12 +27,17 @@ export function useSalesData(): UseSalesDataReturn {
     setError(null);
 
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_IDS.SALES}/values/${SHEET_NAMES.ADESOES}?key=${GOOGLE_API_KEY}`;
+      // Usar API route local para evitar CORS
+      const url = '/api/sales';
+      
+      console.log('[useSalesData] Buscando dados via API route...');
       
       const response = await fetch(url);
       
       if (!response.ok) {
-        throw new Error('Falha ao buscar dados de vendas');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('[useSalesData] Erro na resposta:', response.status, errorData);
+        throw new Error(errorData.message || `Falha ao buscar dados de vendas: ${response.status}`);
       }
 
       const data = await response.json();
@@ -67,8 +71,12 @@ export function useSalesData(): UseSalesDataReturn {
 
       // Verificar colunas essenciais
       if (indices.unidade === -1 || indices.data === -1 || indices.valor === -1) {
+        console.error('[useSalesData] Headers encontrados:', headers);
+        console.error('[useSalesData] Índices:', indices);
         throw new Error('Colunas essenciais não encontradas na planilha');
       }
+
+      console.log('[useSalesData] Processando', rows.length - 1, 'linhas...');
 
       // Processar dados
       const processedData: Adesao[] = rows.slice(1)
@@ -95,6 +103,7 @@ export function useSalesData(): UseSalesDataReturn {
         })
         .filter(Boolean) as Adesao[];
 
+      console.log('[useSalesData] Dados processados:', processedData.length, 'registros válidos');
       setDados(processedData);
 
     } catch (err: any) {
