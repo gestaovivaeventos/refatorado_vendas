@@ -204,13 +204,13 @@ export default function CumulativeYearChart({
   return (
     <div className="bg-dark-secondary rounded-xl p-4">
       {/* Título */}
-      <h2 className="section-title text-center">
+      <h2 className="section-title text-left">
         {titulo}
       </h2>
 
       {/* Seletor de anos */}
       {anosDisponiveis.length > 0 && (
-        <div className="flex justify-center flex-wrap gap-2 mb-4">
+        <div className="flex justify-start flex-wrap gap-2 mb-4">
           {anosDisponiveis.map(ano => (
             <button
               key={ano}

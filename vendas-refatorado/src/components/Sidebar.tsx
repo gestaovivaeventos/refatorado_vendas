@@ -3,7 +3,7 @@
  */
 
 import React, { useState } from 'react';
-import { ChevronRight, BarChart3, TrendingUp, Target } from 'lucide-react';
+import { ChevronRight, BarChart3, TrendingUp, Target, Home } from 'lucide-react';
 import { PAGES } from '@/config/app.config';
 
 interface SidebarProps {
@@ -40,7 +40,7 @@ export default function Sidebar({
       <aside
         className="fixed left-0 top-0 bottom-0 bg-dark-secondary overflow-y-auto transition-all duration-300 z-50"
         style={{
-          width: isCollapsed ? '0px' : '280px',
+          width: isCollapsed ? '0px' : '300px',
           borderRight: isCollapsed ? 'none' : '2px solid #343A40',
         }}
       >
@@ -49,7 +49,7 @@ export default function Sidebar({
           onClick={() => onCollapseChange(!isCollapsed)}
           className="fixed z-50 w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200"
           style={{
-            left: isCollapsed ? '10px' : '270px',
+            left: isCollapsed ? '10px' : '290px',
             top: '80px',
             background: 'linear-gradient(to bottom, #FF7A33 0%, #FF6600 50%, #E55A00 100%)',
             boxShadow: '0 4px 12px rgba(255, 102, 0, 0.4)',
@@ -74,46 +74,41 @@ export default function Sidebar({
               href="https://central-dashs-viva-html.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full p-3 mb-4 text-center rounded-lg transition-all duration-200 text-sm font-medium"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-gray-400 border border-transparent hover:bg-white/5"
               style={{
-                background: 'linear-gradient(180deg, #3a3f44 0%, #2e3236 100%)',
-                color: '#e9ecef',
-                border: '1px solid rgba(0,0,0,0.45)',
+                fontFamily: 'Poppins, sans-serif',
+                fontSize: '0.95rem',
+                fontWeight: 500,
               }}
             >
-              Central de Dashboards
-              <br />
-              VIVA Eventos
+              <Home size={20} strokeWidth={2} />
+              <span>Central de Dashboards</span>
             </a>
 
             <hr className="border-dark-tertiary my-4" />
 
             {/* Navegação de Páginas */}
-            <nav className="flex flex-col gap-2 mb-6">
+            <nav className="flex flex-col gap-1.5 mb-6">
               {PAGES.map((page) => (
                 <button
                   key={page.id}
                   onClick={() => onPaginaChange(page.id)}
                   className={`
-                    flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
+                    group flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
                     ${paginaAtiva === page.id
-                      ? 'text-white font-semibold'
-                      : 'text-gray-400 hover:bg-white/5'
+                      ? 'bg-orange-500/10 border border-orange-500 text-orange-500'
+                      : 'text-gray-400 border border-transparent hover:bg-white/5'
                     }
                   `}
-                  style={
-                    paginaAtiva === page.id
-                      ? {
-                          background: 'linear-gradient(180deg, #ff8a33 0%, #FF6600 50%, #e65500 100%)',
-                          boxShadow: '0 4px 12px rgba(255, 102, 0, 0.3)',
-                        }
-                      : {
-                          background: 'linear-gradient(180deg, #3a3f44 0%, #2e3236 100%)',
-                          border: '1px solid rgba(0,0,0,0.45)',
-                        }
-                  }
+                  style={{
+                    fontFamily: 'Poppins, sans-serif',
+                    fontSize: '0.95rem',
+                    fontWeight: paginaAtiva === page.id ? 600 : 500,
+                  }}
                 >
-                  {getIcon(page.id)}
+                  {React.cloneElement(getIcon(page.id), {
+                    strokeWidth: paginaAtiva === page.id ? 2.5 : 2
+                  })}
                   <span>{page.label}</span>
                 </button>
               ))}

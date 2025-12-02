@@ -24,7 +24,7 @@ import {
   CORES_FASES_PERDAS,
   getCorFase,
 } from '@/components/charts';
-import { RankingTable, DataTable, CaptacoesTable } from '@/components/tables';
+import { RankingTable, DataTable, CaptacoesTable, DadosDetalhadosTable, IndicadoresOperacionaisTable } from '@/components/tables';
 import { MotivosPerdaDescarteTable } from '@/components/MotivosPerdaDescarteTable';
 import { DataTable as GenericDataTable } from '@/components/DataTable';
 import { useSalesData } from '@/hooks/useSalesData';
@@ -68,27 +68,31 @@ const MESES_NOMES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'se
 export default function Dashboard() {
   const router = useRouter();
   
-  // Estados
-  const [paginaAtiva, setPaginaAtiva] = useState<PaginaAtiva>('metas');
+  // Função para obter página da URL
+  const getPaginaFromPath = (path: string): PaginaAtiva => {
+    if (path.includes('/indicadores')) return 'indicadores';
+    if (path.includes('/funil')) return 'funil';
+    return 'metas';
+  };
+  
+  // Estados - inicializa com base no router.asPath (funciona no SSR)
+  const [paginaAtiva, setPaginaAtiva] = useState<PaginaAtiva>(() => getPaginaFromPath(router.asPath));
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [filtros, setFiltros] = useState<FiltrosState>(INITIAL_FILTERS);
   const [tipoGraficoVVR, setTipoGraficoVVR] = useState<'total' | 'vendas' | 'posvendas'>('total');
+  const [tipoTabelaDados, setTipoTabelaDados] = useState<'total' | 'vendas' | 'posvendas'>('total');
 
-  // Sincronizar página com URL
+  // Sincronizar página com URL na montagem (para garantir após hidratação)
   useEffect(() => {
-    const path = router.asPath;
-    if (path.includes('/indicadores')) {
-      setPaginaAtiva('indicadores');
-    } else if (path.includes('/funil')) {
-      setPaginaAtiva('funil');
-    } else if (path === '/' || path.includes('/metas')) {
-      setPaginaAtiva('metas');
-      // Redirecionar / para /metas
-      if (path === '/') {
-        router.replace('/metas', undefined, { shallow: true });
-      }
+    const paginaCorreta = getPaginaFromPath(router.asPath);
+    if (paginaAtiva !== paginaCorreta) {
+      setPaginaAtiva(paginaCorreta);
     }
-  }, [router.asPath]);
+    if (router.asPath === '/') {
+      router.replace('/metas', undefined, { shallow: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Handler para mudança de página com atualização de URL
   const handlePaginaChange = useCallback((novaPagina: string) => {
@@ -508,14 +512,33 @@ export default function Dashboard() {
     return result;
   }, [salesData, filtros.unidades, opcoesFiltros.unidades]);
 
-  // Dados para ranking de unidades
+  // Label do período para a tabela
+  const periodoLabelTabela = useMemo(() => {
+    if (!periodo) return '';
+    const formatMes = (date: Date) => {
+      const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+      return `${meses[date.getMonth()]}/${String(date.getFullYear()).slice(2)}`;
+    };
+    return `${formatMes(periodo.startDate)} - ${formatMes(periodo.endDate)}`;
+  }, [periodo]);
+
+  // Dados para ranking de unidades (por tipo: total, vendas, posvendas)
   const rankingUnidades = useMemo(() => {
     if (dadosFiltrados.length === 0) return [];
+
+    const normalizeText = (text: string | undefined | null) => 
+      (text || '').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
     const porUnidade: Record<string, { valorRealizado: number; valorMeta: number }> = {};
     
     dadosFiltrados.forEach((item) => {
       const unidade = item.nm_unidade || 'Não informado';
+      const tipoVenda = normalizeText(item.venda_posvenda);
+      
+      // Filtrar por tipo selecionado
+      if (tipoTabelaDados === 'vendas' && tipoVenda !== 'VENDA') return;
+      if (tipoTabelaDados === 'posvendas' && tipoVenda !== 'POS VENDA') return;
+      
       if (!porUnidade[unidade]) {
         porUnidade[unidade] = { valorRealizado: 0, valorMeta: 0 };
       }
@@ -533,7 +556,16 @@ export default function Dashboard() {
         const key = `${unidade}-${ano}-${String(mes).padStart(2, '0')}`;
         const meta = metasData.get(key);
         if (meta) {
-          porUnidade[unidade].valorMeta = (meta.meta_vvr_total || 0) * multiplicador;
+          // Usar meta específica por tipo
+          let metaValor = 0;
+          if (tipoTabelaDados === 'vendas') {
+            metaValor = meta.meta_vvr_vendas || 0;
+          } else if (tipoTabelaDados === 'posvendas') {
+            metaValor = meta.meta_vvr_posvendas || 0;
+          } else {
+            metaValor = meta.meta_vvr_total || 0;
+          }
+          porUnidade[unidade].valorMeta = metaValor * multiplicador;
         }
       });
     }
@@ -541,13 +573,149 @@ export default function Dashboard() {
     return Object.entries(porUnidade)
       .map(([nome, dados]) => ({
         nome,
+        periodo: periodoLabelTabela,
         valorRealizado: dados.valorRealizado,
         valorMeta: dados.valorMeta,
         percentual: dados.valorMeta > 0 ? dados.valorRealizado / dados.valorMeta : 0,
       }))
       .sort((a, b) => b.percentual - a.percentual)
       .map((item, index) => ({ ...item, posicao: index + 1 }));
-  }, [dadosFiltrados, metasData, filtros.isMetaInterna, periodo]);
+  }, [dadosFiltrados, metasData, filtros.isMetaInterna, periodo, tipoTabelaDados, periodoLabelTabela]);
+
+  // Dados para tabela de Atingimento Indicadores Operacionais (por unidade)
+  const indicadoresOperacionaisPorUnidade = useMemo(() => {
+    if (!periodo) return [];
+
+    const multiplicador = filtros.isMetaInterna ? META_CONFIG.META_INTERNA_MULTIPLICADOR : 1;
+    const startDate = periodo.startDate;
+    const endDate = new Date(periodo.endDate);
+    endDate.setDate(endDate.getDate() + 1); // Incluir o último dia
+
+    // Obter lista de unidades dos dados filtrados
+    const unidadesSet = new Set<string>();
+    dadosFiltrados.forEach(d => {
+      if (d.nm_unidade) unidadesSet.add(d.nm_unidade);
+    });
+    
+    // Adicionar unidades do funil
+    if (funilData) {
+      funilData.forEach(d => {
+        if (d.nm_unidade) unidadesSet.add(d.nm_unidade);
+      });
+    }
+
+    const unidades = Array.from(unidadesSet).sort();
+
+    return unidades.map(unidade => {
+      // LEADS: contar do funil para essa unidade no período
+      const leadsResultado = (funilData || []).filter(d => {
+        if (d.nm_unidade !== unidade) return false;
+        const criado = d.criado_em;
+        if (!criado) return false;
+        // Parse date from criado_em (DD/MM/YYYY format)
+        const parts = String(criado).match(/(\d{2})\/(\d{2})\/(\d{4})/);
+        if (!parts) return false;
+        const dateObj = new Date(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1]));
+        return dateObj >= startDate && dateObj < endDate;
+      }).length;
+
+      // Buscar meta de leads para essa unidade no período
+      let leadsMeta = 0;
+      if (metasData) {
+        metasData.forEach((metaInfo, chave) => {
+          const [u, ano, mes] = chave.split('-');
+          if (u !== unidade) return;
+          if (ano && mes) {
+            const metaDate = new Date(Number(ano), Number(mes) - 1, 1);
+            const metaRangeStart = new Date(metaDate.getFullYear(), metaDate.getMonth(), 1);
+            const metaRangeEnd = new Date(metaDate.getFullYear(), metaDate.getMonth() + 1, 1);
+            if (metaRangeStart < endDate && metaRangeEnd > startDate) {
+              leadsMeta += (metaInfo.meta_leads || 0) * multiplicador;
+            }
+          }
+        });
+      }
+
+      // REUNIÕES: contar do funil com diagnostico_realizado preenchido
+      const reunioesResultado = (funilData || []).filter(d => {
+        if (d.nm_unidade !== unidade) return false;
+        // Verificar se passou da fase de qualificação (diagnostico_realizado preenchido)
+        if (!d.diagnostico_realizado || d.diagnostico_realizado.trim() === '') return false;
+        const criado = d.criado_em;
+        if (!criado) return false;
+        const parts = String(criado).match(/(\d{2})\/(\d{2})\/(\d{4})/);
+        if (!parts) return false;
+        const dateObj = new Date(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1]));
+        return dateObj >= startDate && dateObj < endDate;
+      }).length;
+
+      let reunioesMeta = 0;
+      if (metasData) {
+        metasData.forEach((metaInfo, chave) => {
+          const [u, ano, mes] = chave.split('-');
+          if (u !== unidade) return;
+          if (ano && mes) {
+            const metaDate = new Date(Number(ano), Number(mes) - 1, 1);
+            const metaRangeStart = new Date(metaDate.getFullYear(), metaDate.getMonth(), 1);
+            const metaRangeEnd = new Date(metaDate.getFullYear(), metaDate.getMonth() + 1, 1);
+            if (metaRangeStart < endDate && metaRangeEnd > startDate) {
+              reunioesMeta += (metaInfo.meta_reunioes || 0) * multiplicador;
+            }
+          }
+        });
+      }
+
+      // CONTRATOS: contar do salesData para essa unidade no período
+      const contratosResultado = dadosFiltrados.filter(d => d.nm_unidade === unidade).length;
+
+      let contratosMeta = 0;
+      if (metasData) {
+        metasData.forEach((metaInfo, chave) => {
+          const [u, ano, mes] = chave.split('-');
+          if (u !== unidade) return;
+          if (ano && mes) {
+            const metaDate = new Date(Number(ano), Number(mes) - 1, 1);
+            const metaRangeStart = new Date(metaDate.getFullYear(), metaDate.getMonth(), 1);
+            const metaRangeEnd = new Date(metaDate.getFullYear(), metaDate.getMonth() + 1, 1);
+            if (metaRangeStart < endDate && metaRangeEnd > startDate) {
+              contratosMeta += (metaInfo.meta_contratos || 0) * multiplicador;
+            }
+          }
+        });
+      }
+
+      // ADESÕES: contar código de integrante único
+      const adesoesResultado = dadosFiltrados.filter(d => 
+        d.nm_unidade === unidade && 
+        d.codigo_integrante && 
+        String(d.codigo_integrante).trim() !== ''
+      ).length;
+
+      let adesoesMeta = 0;
+      if (metasData) {
+        metasData.forEach((metaInfo, chave) => {
+          const [u, ano, mes] = chave.split('-');
+          if (u !== unidade) return;
+          if (ano && mes) {
+            const metaDate = new Date(Number(ano), Number(mes) - 1, 1);
+            const metaRangeStart = new Date(metaDate.getFullYear(), metaDate.getMonth(), 1);
+            const metaRangeEnd = new Date(metaDate.getFullYear(), metaDate.getMonth() + 1, 1);
+            if (metaRangeStart < endDate && metaRangeEnd > startDate) {
+              adesoesMeta += (metaInfo.meta_adesoes || 0) * multiplicador;
+            }
+          }
+        });
+      }
+
+      return {
+        unidade,
+        leadsPercent: leadsMeta > 0 ? leadsResultado / leadsMeta : 0,
+        reunioesPercent: reunioesMeta > 0 ? reunioesResultado / reunioesMeta : 0,
+        contratosPercent: contratosMeta > 0 ? contratosResultado / contratosMeta : 0,
+        adesoesPercent: adesoesMeta > 0 ? adesoesResultado / adesoesMeta : 0,
+      };
+    });
+  }, [dadosFiltrados, funilData, metasData, periodo, filtros.isMetaInterna]);
 
   // ========== DADOS PARA INDICADORES SECUNDÁRIOS ==========
   
@@ -1654,10 +1822,19 @@ export default function Dashboard() {
 
         {/* Seção 6: Tabela de Dados Detalhados */}
         <Card>
-          <RankingTable 
+          <DadosDetalhadosTable 
             data={rankingUnidades}
             title={`DADOS DETALHADOS POR MÊS/UNIDADE (PERÍODO SELECIONADO) ${indicadorMeta}`}
-            tipo="unidade"
+            tipoSelecionado={tipoTabelaDados}
+            onTipoChange={setTipoTabelaDados}
+            periodoLabel={periodoLabelTabela}
+          />
+        </Card>
+
+        {/* Seção 7: Tabela de Atingimento Indicadores Operacionais */}
+        <Card>
+          <IndicadoresOperacionaisTable 
+            data={indicadoresOperacionaisPorUnidade}
           />
         </Card>
       </div>
@@ -2011,9 +2188,10 @@ export default function Dashboard() {
 
           {/* Conteúdo principal */}
           <main 
-            className="flex-1 p-6 transition-all duration-300"
+            className="flex-1 p-6 transition-all duration-300 overflow-x-hidden"
             style={{ 
-              marginLeft: sidebarCollapsed ? '0' : '280px',
+              marginLeft: sidebarCollapsed ? '0' : '300px',
+              width: sidebarCollapsed ? '100%' : 'calc(100vw - 300px)',
             }}
           >
             {/* Conteúdo */}

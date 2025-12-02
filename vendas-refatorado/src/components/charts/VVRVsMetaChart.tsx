@@ -191,14 +191,14 @@ export default function VVRVsMetaChart({
   return (
     <div className="bg-dark-secondary rounded-xl p-4">
       {/* Título */}
-      <h2 className="section-title text-center">
+      <h2 className="section-title text-left">
         {titulo} ({anoVigente}){' '}
         <span className="section-title-highlight">{indicadorMeta}</span>
       </h2>
 
       {/* Seletor de tipo */}
       {onTipoChange && (
-        <div className="flex justify-center gap-2 mb-4">
+        <div className="flex justify-start gap-2 mb-4">
           <button
             onClick={() => onTipoChange('total')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
