@@ -5,6 +5,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Fundo } from '@/types/vendas.types';
 import { SPREADSHEET_IDS, SHEET_NAMES, GOOGLE_API_KEY } from '@/config/app.config';
+import { parseDate } from '@/utils/periodo';
 
 interface UseFundosDataReturn {
   data: Fundo[];
@@ -12,21 +13,6 @@ interface UseFundosDataReturn {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
-}
-
-/**
- * Parser de data no formato DD/MM/YYYY
- */
-function parseDate(dateString: string): Date | null {
-  if (!dateString || typeof dateString !== 'string') return null;
-  
-  const parts = dateString.split('/');
-  if (parts.length === 3) {
-    return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-  }
-  
-  const date = new Date(dateString);
-  return isNaN(date.getTime()) ? null : date;
 }
 
 /**

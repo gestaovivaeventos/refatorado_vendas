@@ -5,6 +5,35 @@
 import { PeriodoPreDefinido, Periodo } from '@/types/vendas.types';
 
 /**
+ * Parser de data no formato DD/MM/YYYY ou outros formatos comuns
+ * Função utilitária centralizada para evitar duplicação (DRY)
+ */
+export function parseDate(dateString: string | null | undefined): Date | null {
+  if (!dateString || typeof dateString !== 'string') return null;
+  
+  const trimmed = dateString.trim();
+  if (!trimmed) return null;
+
+  // Formato DD/MM/YYYY
+  const brFormat = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (brFormat) {
+    const [, day, month, year] = brFormat;
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  }
+
+  // Formato YYYY-MM-DD
+  const isoFormat = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoFormat) {
+    const [, year, month, day] = isoFormat;
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  }
+
+  // Tentar parse direto como fallback
+  const date = new Date(trimmed);
+  return isNaN(date.getTime()) ? null : date;
+}
+
+/**
  * Calcula datas de um período pré-definido
  */
 export function getPeriodoDatas(periodo: PeriodoPreDefinido): Periodo {

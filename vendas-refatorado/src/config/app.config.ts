@@ -1,30 +1,32 @@
 /**
  * Configuração central da aplicação
  * IDs de planilhas, chaves de API e constantes globais
+ * 
+ * ⚠️ VALORES SENSÍVEIS: Configurados via variáveis de ambiente (.env.local)
  */
 
 // ========== IDs DAS PLANILHAS GOOGLE ==========
 export const SPREADSHEET_IDS = {
   // Planilha de Vendas/Adesões
-  SALES: '1HXyq_r2ssJ5c7wXdrBUc-WdqrlCfiZYE1EuIWbIDg0U',
+  SALES: process.env.NEXT_PUBLIC_SPREADSHEET_SALES || '',
   
   // Planilha de Metas
-  METAS: '1KywSOsTn7qUdVp2dLthWD3Y27RsE1aInk6hRJhp7BFw',
+  METAS: process.env.NEXT_PUBLIC_SPREADSHEET_METAS || '',
   
   // Planilha do Funil
-  FUNIL: '1t67xdPLHB34pZw8WzBUphGRqFye0ZyrTLvDhC7jbVEc',
+  FUNIL: process.env.NEXT_PUBLIC_SPREADSHEET_FUNIL || '',
 };
 
 // ========== NOMES DAS ABAS ==========
 export const SHEET_NAMES = {
-  ADESOES: 'ADESOES',
-  FUNDOS: 'FUNDOS',
-  METAS: 'metas',
-  FUNIL: 'base',
+  ADESOES: process.env.NEXT_PUBLIC_SHEET_ADESOES || 'ADESOES',
+  FUNDOS: process.env.NEXT_PUBLIC_SHEET_FUNDOS || 'FUNDOS',
+  METAS: process.env.NEXT_PUBLIC_SHEET_METAS || 'metas',
+  FUNIL: process.env.NEXT_PUBLIC_SHEET_FUNIL || 'base',
 };
 
 // ========== CHAVE DE API DO GOOGLE ==========
-export const GOOGLE_API_KEY = 'AIzaSyBuGRH91CnRuDtN5RGsb5DvHEfhTxJnWSs';
+export const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY || '';
 
 // ========== CONFIGURAÇÕES DE DISPLAY ==========
 export const DISPLAY_CONFIG = {

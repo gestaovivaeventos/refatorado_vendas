@@ -5,6 +5,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Adesao } from '@/types/vendas.types';
 import { SPREADSHEET_IDS, SHEET_NAMES, GOOGLE_API_KEY } from '@/config/app.config';
+import { parseDate } from '@/utils/periodo';
 
 interface UseSalesDataReturn {
   data: Adesao[];
@@ -12,23 +13,6 @@ interface UseSalesDataReturn {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
-}
-
-/**
- * Parser de data no formato DD/MM/YYYY
- */
-function parseDate(dateString: string): Date | null {
-  if (!dateString) return null;
-  
-  // Formato DD/MM/YYYY
-  const parts = dateString.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (parts) {
-    return new Date(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1]));
-  }
-  
-  // Tentar parse direto
-  const date = new Date(dateString);
-  return isNaN(date.getTime()) ? null : date;
 }
 
 /**
