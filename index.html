@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Vendas</title>
+    <!-- jQuery primeiro -->
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    
+    <!-- Bootstrap CSS e JS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.2/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Multiselect CSS e JS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/1.1.2/css/bootstrap-multiselect.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/1.1.2/js/bootstrap-multiselect.js"></script>
+    
+    <!-- Outros scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.css">
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+    
+    <!-- Fontes Google para a tela de login -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Multiselect CSS e JS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/1.1.2/css/bootstrap-multiselect.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/1.1.2/js/bootstrap-multiselect.js"></script>
+    
+    <!-- Outros scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.css">
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<link rel="stylesheet" href="style.css">
+<style>
+    #company-logo {
+        height: 70px; /* Ajuste a altura do logo aqui */
+        width: auto;
+    }
+
+    /* Estilos do seletor de datas */
+    .date-range-container {
+        position: relative;
+    }
+
+    .date-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .date-range-input {
+        width: 100%;
+        padding: 10px 50px 10px 15px;
+        background-color: #343a40;
+        border: 1px solid #495057;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .date-range-input:hover {
+        border-color: #6c757d;
+    }
+
+    .date-range-input:focus {
+        outline: none;
+        border-color: #ffc107;
+        box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.25);
+    }
+
+    /* Botão dropdown para períodos */
+    .period-dropdown-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #FF6600;
+        border: none;
+        color: #fff;
+        padding: 6px 8px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        transition: all 0.3s ease;
+        z-index: 2;
+    }
+
+    .period-dropdown-btn:hover {
+        background: #e55a00;
+    }
+
+    /* Dropdown com opções de período */
+    .period-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #2c3e50;
+        border: 1px solid #495057;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        z-index: 1000;
+        display: none;
+        max-height: 280px;
+        overflow-y: auto;
+        margin-top: 4px;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+    }
+
+    .period-dropdown.show {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .period-option {
+        display: block;
+        width: 100%;
+        padding: 10px 15px;
+        background: transparent;
+        border: none;
+        color: #fff;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 13px;
+        border-bottom: 1px solid #495057;
+    }
+
+    .period-option:last-child {
+        border-bottom: none;
+    }
+
+    .period-option:hover {
+        background: #495057;
+        transform: translateX(5px);
+    }
+
+    .period-option {
+        transition: all 0.2s ease;
+    }
+
+    .period-option.active {
+        background: #FF6600;
+        color: #fff;
+    }
+
+    .period-option:focus {
+        outline: none;
+        background: #495057;
+    }
+
+    /* Customização do Flatpickr */
+    .flatpickr-calendar {
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    }
+
+    .flatpickr-day.selected {
+        background: #ffc107 !important;
+        border-color: #ffc107 !important;
+        color: #000 !important;
+    }
+
+    .flatpickr-day.inRange {
+        background: rgba(255, 193, 7, 0.2) !important;
+        border-color: transparent !important;
+        color: #fff !important;
+    }
+
+    .flatpickr-day:hover {
+        background: rgba(255, 193, 7, 0.3) !important;
+    }
+</style>
+
+</head>
+<body>
+    <div id="login-overlay">
+        <div id="login-container">
+            <h1 class="page-title">Dashboard de Vendas</h1>
+            <section class="access-control" id="access-section">
+                <div class="login-heading">
+                    <h3 class="main-heading">Seja bem vindo!</h3>
+                    <p class="sub-heading">Faça o seu login</p>
+                </div>
+                <input type="text" id="access-code" maxlength="20" placeholder="Insira seu login">
+                <button id="submit-code">Entrar</button>
+                <p id="error-message">Login inválido!</p>
+            </section>
+            <img id="company-logo-login" src="logo_viva.png" alt="Logo Viva Eventos">
+        </div>
+    </div>
+
+    <div class="dashboard-wrapper" style="display: none;">
+        <!-- Botão do menu lateral corrigido -->
+        <button id="sidebar-toggle"><span class="arrow-icon"></span></button>
+        
+        <div id="sidebar">
+            <div class="page-navigation">
+                <a href="https://central-dashs-viva-html.vercel.app/" class="page-navigation-button" id="return-to-hub-link"><button>Central de Dashboards<br>VIVA Eventos</button></a>
+                <hr>
+                <button id="btn-page1" class="active" data-page="page1">Metas e Resultados</button>
+                <button id="btn-page2" data-page="page2">Indicadores Secundários</button>
+                <button id="btn-page3" data-page="page3">Funil de Vendas</button>
+            </div>
+
+            <section id="loader" class="filters">
+                <div class="loader-container">
+                    <div class="css-loader">
+                        <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                    </div>
+                    <div class="loader-text">Carregando dados...</div>
+                </div>
+            </section>
+
+            <section class="filters" id="filters-section" style="display: none;">
+                <div class="filter-item date-range-container">
+                    <label class="filter-label">📅 Período</label>
+                    <div class="date-input-wrapper">
+                        <input type="text" id="date-range" class="date-range-input" placeholder="Selecione o período" readonly>
+                        <button type="button" class="period-dropdown-btn" id="period-dropdown-btn">⚡</button>
+                        <div class="period-dropdown" id="period-dropdown">
+                            <button type="button" class="period-option" data-period="hoje">Hoje</button>
+                            <button type="button" class="period-option" data-period="ontem">Ontem</button>
+                            <button type="button" class="period-option" data-period="ultimos7dias">Últimos 7 dias</button>
+                            <button type="button" class="period-option" data-period="ultimos30dias">Últimos 30 dias</button>
+                            <button type="button" class="period-option" data-period="estemes">Este mês</button>
+                            <button type="button" class="period-option" data-period="mespassado">Mês passado</button>
+                            <button type="button" class="period-option" data-period="esteano">Este ano</button>
+                            <button type="button" class="period-option" data-period="esteanoateagora">Este ano até agora</button>
+                            <button type="button" class="period-option" data-period="anopassado">Ano passado</button>
+                        </div>
+                    </div>
+                    <input type="hidden" id="start-date">
+                    <input type="hidden" id="end-date">
+                </div>
+                <div class="filter-item filter-item-unidades">
+                    <label class="filter-label">🏢 Unidades</label>
+                    <div class="unidade-input-wrapper">
+                        <div class="multiselect-wrapper">
+                            <select id="unidade-filter" multiple="multiple"></select>
+                        </div>
+                        <button type="button" id="unidade-quick-access-btn" class="unidade-quick-access-btn" title="Filtro Rápido de Unidades">⚡</button>
+                        <div class="unidade-quick-panel" id="unidade-quick-panel">
+                            <div class="unidade-search-container">
+                                <input type="text" id="unidade-search" class="unidade-search-input" placeholder="🔍 Pesquisar unidade..." autocomplete="off">
+                            </div>
+                            <div id="unidade-quick-list" class="unidade-quick-list"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-item" id="curso-filter-container">
+                    <label class="filter-label">📚 Cursos</label>
+                    <select id="curso-filter" multiple="multiple"></select>
+                </div>
+                <div class="filter-item" id="consultor-filter-container">
+                    <label class="filter-label">👤 Consultores</label>
+                    <select id="consultor-filter" multiple="multiple"></select>
+                </div>
+                <div class="filter-item" id="origem-lead-filter-container">
+                    <label class="filter-label">📍 Origem do Lead</label>
+                    <select id="origem-lead-filter" multiple="multiple"></select>
+                </div>
+                <div class="filter-item" id="segmentacao-lead-filter-container">
+                    <label class="filter-label">🎯 Segmentação Lead</label>
+                    <select id="segmentacao-lead-filter" multiple="multiple"></select>
+                </div>
+                <div class="filter-item" id="etiquetas-filter-container">
+                    <label class="filter-label">🏷️ Etiquetas</label>
+                    <select id="etiquetas-filter" multiple="multiple"></select>
+                </div>
+                <div class="filter-item" id="fundo-filter-container">
+                    <label class="filter-label">💰 Fundos</label>
+                    <select id="fundo-filter" multiple="multiple"></select>
+                </div>
+                <div class="filter-item" id="tipo-adesao-filter-container">
+                    <label class="filter-label">📋 Tipo de Adesão</label>
+                    <select id="tipo-adesao-filter" multiple="multiple"></select>
+                </div>
+                <div class="filter-item" id="tipo-servico-filter-container">
+                    <label class="filter-label">🔧 Tipo de Serviço</label>
+                    <select id="tipo-servico-filter" multiple="multiple"></select>
+                </div>
+                <div class="filter-item" id="tipo-cliente-filter-container">
+                    <label class="filter-label">👥 Tipo de Cliente</label>
+                    <select id="tipo-cliente-filter" multiple="multiple"></select>
+                </div>
+                <div class="filter-item" id="consultor-comercial-filter-container">
+                    <label class="filter-label">👨‍💼 Consultor Comercial</label>
+                    <select id="consultor-comercial-filter" multiple="multiple"></select>
+                </div>
+                <div class="filter-item" id="indicacao-adesao-filter-container">
+                    <label class="filter-label">📌 Indicação Adesão</label>
+                    <select id="indicacao-adesao-filter" multiple="multiple"></select>
+                </div>
+                <div class="filter-item" id="instituicao-filter-container">
+                    <label class="filter-label">🏛️ Instituição</label>
+                    <select id="instituicao-filter" multiple="multiple"></select>
+                </div>
+            </section>
+        </div>
+        <div id="main-content">
+            <div class="container">
+                <header class="header">
+                    <div>
+                        <h1 class="page-title dashboard-title">DASHBOARD DE VENDAS</h1>
+                        <span id="last-update-message"></span>
+                    </div>
+                    <img id="company-logo" src="logo_viva.png" alt="Logo da Empresa">
+                </header>
+                <div id="page1" class="page-content active">
+                    <!-- Controle de Meta - Toggle Switch Compacto -->
+                    <section class="kpi-container" id="meta-toggle-section" style="display: none;">
+                        <h2 class="kpi-vvr-title">CONFIGURAÇÃO DE METAS</h2>
+                        <div class="kpi-main-wrapper" style="padding: 8px 30px;">
+                            <div class="meta-toggle-compact-container">
+                                <div class="meta-toggle-switch-wrapper">
+                                    <span class="meta-toggle-label-left">🚀 Super Meta</span>
+                                    <label class="meta-toggle-switch-compact">
+                                        <input type="checkbox" id="meta-toggle-checkbox">
+                                        <span class="meta-toggle-slider-compact">
+                                            <span class="meta-toggle-indicator"></span>
+                                        </span>
+                                    </label>
+                                    <span class="meta-toggle-label-right">🎯 Meta Interna</span>
+                                </div>
+                                <div class="meta-toggle-info">
+                                    <div class="meta-toggle-status">
+                                        <span id="meta-current-text" class="meta-toggle-current">Super Meta (100%)</span>
+                                        <span class="meta-toggle-separator">•</span>
+                                        <span id="meta-description-text" class="meta-toggle-description">Metas originais das bases de dados para controle das franquias</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="kpi-container" id="kpi-section" style="display: none;">
+                        <h2 class="kpi-vvr-title">VVR NO PERÍODO SELECIONADO <span id="kpi-meta-indicator-1" class="meta-indicator-highlight">(Super Meta)</span></h2>
+                        <div class="kpi-main-wrapper">
+                            <div class="kpi-main-cards-container">
+                                <div class="kpi-main-card">
+                                    <span class="kpi-card-title">REALIZADO TOTAL</span>
+                                    <span class="kpi-card-value" id="kpi-total-realizado">R$ 0,00</span>
+                                    <span class="kpi-card-details"><span class="percent" id="kpi-total-percent">0,0%</span> de <span id="kpi-total-meta">R$ 0,00</span> META TOTAL</span>
+                                    <div class="progress-bar-bg"><div class="progress-bar-fg" id="kpi-total-progress"></div></div>
+                                </div>
+                                <div class="kpi-main-card">
+                                    <span class="kpi-card-title">REALIZADO VENDAS</span>
+                                    <span class="kpi-card-value" id="kpi-vendas-realizado">R$ 0,00</span>
+                                    <span class="kpi-card-details"><span class="percent" id="kpi-vendas-percent">0,0%</span> de <span id="kpi-vendas-meta">R$ 0,00</span> META VENDAS</span>
+                                    <div class="progress-bar-bg"><div class="progress-bar-fg" id="kpi-vendas-progress"></div></div>
+                                </div>
+                                <div class="kpi-main-card">
+                                    <span class="kpi-card-title">REALIZADO PÓS VENDAS</span>
+                                    <span class="kpi-card-value" id="kpi-posvendas-realizado">R$ 0,00</span>
+                                    <span class="kpi-card-details"><span class="percent" id="kpi-posvendas-percent">0,0%</span> de <span id="kpi-posvendas-meta">R$ 0,00</span> META PÓS VENDAS</span>
+                                    <div class="progress-bar-bg"><div class="progress-bar-fg" id="kpi-posvendas-progress"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="kpi-container" id="kpi-section-py" style="display: none;">
+                        <h2 class="kpi-vvr-title">VVR NO MESMO PERÍODO SELECIONADO NO ANO ANTERIOR <span id="kpi-meta-indicator-2" class="meta-indicator-highlight">(Super Meta)</span></h2>
+                        <div class="kpi-main-wrapper" style="width: 100%; grid-column: span 12;">
+                            <div class="kpi-main-cards-container">
+                                <div class="kpi-main-card">
+                                    <span class="kpi-card-title">REALIZADO TOTAL</span>
+                                    <span class="kpi-card-value" id="kpi-total-realizado-py">R$ 0,00</span>
+                                    <span class="kpi-card-details"><span class="percent" id="kpi-total-percent-py">0,0%</span> de <span id="kpi-total-meta-py">R$ 0,00</span> META TOTAL</span>
+                                    <div class="progress-bar-bg"><div class="progress-bar-fg" id="kpi-total-progress-py"></div></div>
+                                </div>
+                                <div class="kpi-main-card">
+                                    <span class="kpi-card-title">REALIZADO VENDAS</span>
+                                    <span class="kpi-card-value" id="kpi-vendas-realizado-py">R$ 0,00</span>
+                                    <span class="kpi-card-details"><span class="percent" id="kpi-vendas-percent-py">0,0%</span> de <span id="kpi-vendas-meta-py">R$ 0,00</span> META VENDAS</span>
+                                    <div class="progress-bar-bg"><div class="progress-bar-fg" id="kpi-vendas-progress-py"></div></div>
+                                </div>
+                                <div class="kpi-main-card">
+                                    <span class="kpi-card-title">REALIZADO PÓS VENDAS</span>
+                                    <span class="kpi-card-value" id="kpi-posvendas-realizado-py">R$ 0,00</span>
+                                    <span class="kpi-card-details"><span class="percent" id="kpi-posvendas-percent-py">0,0%</span> de <span id="kpi-posvendas-meta-py">R$ 0,00</span> META PÓS VENDAS</span>
+                                    <div class="progress-bar-bg"><div class="progress-bar-fg" id="kpi-posvendas-progress-py"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- Tabela: Atingimento Indicadores Operacionais (removida daqui e realocada após a tabela principal)</section-marker>
+                    <!-- Nova seção: Indicadores Operacionais -->
+                    <section class="indicators-operacionais" id="indicadores-operacionais" style="display: none;">
+                        <h2>INDICADORES OPERACIONAIS</h2>
+                        <div class="indicators-row">
+                            <div class="indicator-card">
+                                <div class="indicator-label">LEADS</div>
+                                <div class="indicator-value" id="ind-leads">0</div>
+                                <div class="indicator-meta"><span id="ind-leads-percent">0%</span> de <span id="ind-leads-meta">0</span> META</div>
+                                <div class="indicator-progress-bg"><div class="indicator-progress-fg" id="ind-leads-progress"></div></div>
+                            </div>
+                            <div class="indicator-card">
+                                <div class="indicator-label">REUNIÕES</div>
+                                <div class="indicator-value" id="ind-reunioes">0</div>
+                                <div class="indicator-meta"><span id="ind-reunioes-percent">0%</span> de <span id="ind-reunioes-meta">0</span> META</div>
+                                <div class="indicator-progress-bg"><div class="indicator-progress-fg" id="ind-reunioes-progress"></div></div>
+                            </div>
+                            <div class="indicator-card">
+                                <div class="indicator-label">CONTRATOS (MV)</div>
+                                <div class="indicator-value" id="ind-contratos">0</div>
+                                <div class="indicator-meta"><span id="ind-contratos-percent">0%</span> de <span id="ind-contratos-meta">0</span> META</div>
+                                <div class="indicator-progress-bg"><div class="indicator-progress-fg" id="ind-contratos-progress"></div></div>
+                            </div>
+                            <div class="indicator-card">
+                                <div class="indicator-label">ADESÃO TOTAL</div>
+                                <div class="indicator-value" id="ind-adesao">0</div>
+                                <div class="indicator-meta"><span id="ind-adesao-percent">0%</span> de <span id="ind-adesao-meta">0</span> META</div>
+                                <div class="indicator-progress-bg"><div class="indicator-progress-fg" id="ind-adesao-progress"></div></div>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="chart-container" id="chart-vvr-mes-section" style="display: none;">
+                        <h2 id="vvr-vs-meta-title" class="kpi-vvr-title">VVR REALIZADO VS. META POR MÊS</h2>
+                        <div class="chart-selector">
+                            <button id="btn-total" class="active" data-type="total">Total</button>
+                            <button id="btn-vendas" data-type="vendas">Vendas</button>
+                            <button id="btn-posvendas" data-type="posvendas">Pós Venda</button>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="vvrVsMetaPorMesChart"></canvas>
+                        </div>
+                    </section>
+                    <section class="chart-container" id="chart-cumulative-section" style="display: none;">
+                        <h2>VVR Acumulado Anual (Comparativo)</h2>
+                        <div class="chart-selector" id="cumulative-chart-selector"></div>
+                        <div class="chart-wrapper">
+                            <canvas id="cumulativeVvrChart"></canvas>
+                        </div>
+                    </section>
+                    <section class="table-container" id="table-section" style="display: none;">
+                        <h2 class="kpi-vvr-title">DADOS DETALHADOS POR MÊS/UNIDADE (PERÍODO SELECIONADO) <span id="table-meta-indicator" class="meta-indicator-highlight">(Super Meta)</span></h2>
+                        <div class="chart-selector">
+                            <button class="active" data-type="total">Total</button>
+                            <button data-type="vendas">Vendas</button>
+                            <button data-type="posvendas">Pós Venda</button>
+                        </div>
+                        <table id="dados-table" class="display" style="width:100%">
+                            <thead><tr><th>Unidade</th><th>Período</th><th>VVR Realizado</th><th>Meta VVR</th><th>Atingimento VVR</th></tr></thead>
+                            <tbody></tbody>
+                            <tfoot></tfoot>
+                        </table>
+                    </section>
+                    <!-- Inserção: Tabela de Atingimento Indicadores Operacionais — posicionada logo após a tabela principal -->
+                    <section class="table-container" id="indicadores-table-section" style="display: none; margin-top: 0px;">
+                        <h2>Atingimento Indicadores Operacionais</h2>
+                        <table id="indicadores-table" class="display" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Unidade</th>
+                                    <th>Leads (%)</th>
+                                    <th>Reuniões (%)</th>
+                                    <th>Contratos (%)</th>
+                                    <th>Adesões (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </section>
+                </div>
+                <div id="page2" class="page-content">
+                    <section class="chart-container" id="chart-monthly-vvr-section" style="display: none;">
+                        <h2>Comparativo de VVR Mensal</h2>
+                        <div class="chart-selector" id="monthly-chart-selector"></div>
+                        <div class="chart-wrapper">
+                           <canvas id="monthlyVvrChart"></canvas>
+                        </div>
+                    </section>
+                    <div class="chart-row-adesoes">
+                        <div class="chart-container" id="chart-yearly-stacked-section" style="display: none;">
+                            <h2>Venda Realizada Total Anual</h2>
+                            <div class="chart-wrapper">
+                                <canvas id="yearlyStackedChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-container" id="chart-monthly-stacked-section" style="display: none;">
+                            <h2 id="monthly-stacked-title">Venda Realizada Total Mensal</h2>
+                            <div class="chart-wrapper">
+                                <canvas id="monthlyStackedChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row-adesoes">
+                        <div class="chart-container" id="chart-yearly-ticket-section" style="display: none;">
+                            <h2>Ticket Médio Anual</h2>
+                            <div class="chart-wrapper">
+                                <canvas id="yearlyTicketChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-container" id="chart-monthly-ticket-section" style="display: none;">
+                            <h2 id="monthly-ticket-title">Ticket Médio Mensal</h2>
+                            <div class="chart-wrapper">
+                                <canvas id="monthlyTicketChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row-adesoes">
+                        <div class="chart-container" id="chart-yearly-contracts-section" style="display: none;">
+                            <h2>Contratos Realizados Total Anual</h2>
+                            <div class="chart-wrapper">
+                                <canvas id="yearlyContractsChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-container" id="chart-monthly-contracts-section" style="display: none;">
+                            <h2 id="monthly-contracts-title">Contratos Realizados Total Mensal</h2>
+                            <div class="chart-wrapper">
+                                <canvas id="monthlyContractsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <section class="chart-container" id="chart-monthly-adesoes-section" style="display: block;">
+                        <h2>Comparativo Mensal de Adesões</h2>
+                        <div class="chart-selector" id="adesoes-chart-selector"></div>
+                        <div class="chart-wrapper">
+                           <canvas id="monthlyAdesoesChart"></canvas>
+                        </div>
+                    </section>
+                    <div class="chart-row-adesoes">
+                        <div class="chart-container" id="chart-yearly-adesoes-stacked-section" style="display: none;">
+                            <h2>ADESÕES POR TIPO ANUAL</h2>
+                            <div class="chart-wrapper">
+                                <canvas id="yearlyAdesoesStackedChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-container" id="chart-monthly-adesoes-stacked-section" style="display: none;">
+                            <h2 id="monthly-adesoes-stacked-title">ADESÕES POR TIPO MENSAL</h2>
+                            <div class="chart-wrapper">
+                                <canvas id="monthlyAdesoesStackedChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <section class="table-container" id="consultor-table-section" style="display: none;">
+                        <h2>Desempenho por Consultor Comercial</h2>
+                        <table id="consultor-table" class="display" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Unidade</th>
+                                    <th>Consultor Comercial</th>
+                                    <th>VVR Total</th>
+                                    <th>Total de Adesões</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </section>
+                    <section class="table-container" id="detalhada-adesoes-table-section" style="display: none;">
+                        <h2>Adesões Detalhadas no Período</h2>
+                        <table id="detalhada-adesoes-table" class="display" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Unidade</th>
+                                    <th>Cód. Integrante</th>
+                                    <th>Integrante</th>
+                                    <th>Data Cadastro</th>
+                                    <th>Cód. Fundo</th>
+                                    <th>Tipo</th>
+                                    <th>Consultor</th>
+                                    <th>VVR</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </section>
+                    <section class="table-container" id="fundos-detalhados-table-section" style="display: none;">
+                        <h2>Fundos Detalhados no Período</h2>
+                        <table id="fundos-detalhados-table" class="display" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Unidade</th>
+                                    <th>ID Fundo</th>
+                                    <th>Fundo</th>
+                                    <th>DT Contrato</th>
+                                    <th>DT Cadastro</th>
+                                    <th>Tipo de Serviço</th>
+                                    <th>Instituição</th>
+                                    <th>DT Baile</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </section>
+                </div>
+                <div id="page3" class="page-content">
+                    <!-- Indicadores Operacionais do Funil -->
+                    <section class="kpi-container" id="funil-indicators-section" style="display: block;">
+                        <h2 class="kpi-vvr-title">INDICADORES OPERACIONAIS (FUNIL)</h2>
+                        <div class="funil-indicators-grid">
+                            <!-- Container do funil horizontal -->
+                            <div class="funil-horizontal-container">
+                                <div class="funil-horizontal-card">
+                                    <span class="funil-card-title">TOTAL DE LEADS CRIADOS</span>
+                                    <span class="funil-card-value" id="funil-total-leads">282</span>
+                                </div>
+                                <div class="funil-horizontal-card">
+                                    <span class="funil-card-title">QUALIFICAÇÃO COMISSÃO</span>
+                                    <span class="funil-card-value" id="funil-qualificacao-comissao">0</span>
+                                </div>
+                                <div class="funil-horizontal-card">
+                                    <span class="funil-card-title">REUNIÃO REALIZADA</span>
+                                    <span class="funil-card-value" id="funil-reuniao-realizada">0</span>
+                                </div>
+                                <div class="funil-horizontal-card">
+                                    <span class="funil-card-title">PROPOSTAS ENVIADAS</span>
+                                    <span class="funil-card-value" id="funil-propostas-enviadas">23</span>
+                                </div>
+                                <div class="funil-horizontal-card">
+                                    <span class="funil-card-title">CONTRATOS FECHADOS COMISSÃO</span>
+                                    <span class="funil-card-value" id="funil-contratos-fechados">3</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Cards laterais para leads perdidos e descartados -->
+                            <div class="funil-side-cards">
+                                <div class="funil-indicator-card funil-side-card">
+                                    <span class="funil-card-title">LEADS PERDIDOS</span>
+                                    <span class="funil-card-value" id="funil-leads-perdidos">24</span>
+                                </div>
+                                <div class="funil-indicator-card funil-side-card">
+                                    <span class="funil-card-title">LEADS DESCARTADOS</span>
+                                    <span class="funil-card-value" id="funil-leads-desqualificados">25</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Seção de Captações -->
+                    <section class="kpi-container" id="funil-captacoes-section" style="display: block;">
+                        <h2 class="kpi-vvr-title" style="text-align: left;">CAPTAÇÕES</h2>
+                        
+                        <!-- Container para tabela e gráfico -->
+                        <div class="captacoes-content">
+                            <!-- Tabela com mapa de calor -->
+                            <div class="captacoes-table-container">
+                                <!-- Placeholder para nova tabela de captações: a tabela original foi removida conforme solicitado -->
+                                <div id="captacoes-table-placeholder" class="captacoes-table-placeholder">
+                                    <h2 class="kpi-vvr-title" style="margin-top:0;">Desempenho por Captação (Funil)</h2>
+                                            <table id="captacoes-funil-table" class="display" style="width:100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Origem do Lead</th>
+                                                        <th>Tipo de captação</th>
+                                                        <th>%</th>
+                                                        <th>TOTAL</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Novo: Gráfico de barras 100% empilhadas abaixo da tabela -->
+                            <div class="captacoes-stackedbar-container">
+                                <h3 class="kpi-vvr-title" style="text-align: left; font-size: 1rem; margin-top: 6px;">TIPOS DE CAPTAÇÃO TOTAL</h3>
+                                <div class="chart-wrapper">
+                                    <canvas id="captacoesStackedBar"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Seção de Negociações e Perdas por Fase -->
+                    <section class="kpi-container" id="negociacoes-perdas-section" style="display: block;">
+                        <h2 class="kpi-vvr-title" style="text-align: left;">NEGOCIAÇÕES E PERDAS POR FASE</h2>
+                        
+                        <!-- Container para o gráfico de quantidade por fase -->
+                        <div class="negociacoes-content">
+                            <div class="negociacoes-chart-container">
+                                <h3 class="kpi-vvr-title" style="text-align: left; font-size: 1rem; margin-top: 6px;">QUANTIDADE DE TURMAS NEGOCIADAS POR FASE DO CRM</h3>
+                                <div class="chart-wrapper">
+                                    <canvas id="negociacoesPorFaseChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <!-- Container para o gráfico de perdas por fase -->
+                            <div class="negociacoes-chart-container">
+                                <h3 class="kpi-vvr-title" style="text-align: left; font-size: 1rem; margin-top: 6px;">QUANTIDADE DE PERDAS POR FASE</h3>
+                                <div class="chart-wrapper">
+                                    <canvas id="perdasPorFaseChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Seção de Leads Perdidos, Descartes e Concorrentes -->
+                    <section class="kpi-container" id="leads-perdidos-detalhados-section" style="display: block;">
+                        <h2 class="kpi-vvr-title" style="text-align: left;">LEADS PERDIDOS, DESCARTES E CONCORRENTES</h2>
+                        
+                        <!-- Container com duas colunas para as tabelas -->
+                        <div class="leads-perdidos-content">
+                            <div class="tabelas-lado-a-lado">
+                                <!-- Placeholder para Motivos de Perda (tabela removida; espaço preservado) -->
+                                <div class="leads-perdidos-table-container">
+                                    <div class="leads-perdidos-table-wrapper">
+                                        <div class="table-card" role="region" aria-label="Tabela de Motivos de Perda">
+                                            <h2 class="kpi-vvr-title" style="margin-top:0; font-size: 1rem;">Motivos de Perda</h2>
+                                            <table id="motivos-perda-table" class="display" style="width:100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Motivo de Perda</th>
+                                                        <th>%</th>
+                                                        <th>Total</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="motivos-perda-table-body"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Tabela de Descartes (direita) -->
+                                <div class="leads-perdidos-table-container">
+                                    <div class="leads-perdidos-table-wrapper">
+                                        <div class="table-card" role="region" aria-label="Tabela de Descartes">
+                                            <h2 class="kpi-vvr-title" style="margin-top:0; font-size: 1rem;">Motivos do Descarte</h2>
+                                            <table id="descartes-table" class="display" style="width:100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Motivo do Descarte</th>
+                                                        <th>%</th>
+                                                        <th>Total</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="descartes-table-body"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tabela de Concorrentes (Leads Perdidos) -->
+                            <div class="leads-perdidos-table-container">
+                                <div class="leads-perdidos-table-wrapper">
+                                    <div class="table-card" role="region" aria-label="Tabela de Concorrentes">
+                                        <h2 class="kpi-vvr-title" style="margin-top:0; font-size: 1rem;">Concorrentes (Leads Perdidos)</h2>
+                                        <table id="concorrentes-table" class="display" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Concorrente</th>
+                                                    <th>%</th>
+                                                    <th>Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+        <p class="dashboard-footer"> 📊 Developed by Gestão de Dados - VIVA Eventos Brasil 2025</p>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Remove a lógica de login antiga - agora é gerenciada pelo script.js
+            // A autenticação é feita através da planilha de acesso compartilhada
+        });
+    </script>
+</body>
+</html>
