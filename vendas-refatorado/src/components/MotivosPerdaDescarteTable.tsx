@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
+import { Download } from 'lucide-react';
 
 interface MotivoItem {
   motivo: string;
@@ -20,6 +21,7 @@ interface MotivosPerdaDescarteTableProps {
   concorrentes: ConcorrenteItem[];
 }
 
+// Componente de tabela individual no estilo original
 const TabelaMotivos: React.FC<{
   titulo: string;
   colunaNome: string;
@@ -29,7 +31,7 @@ const TabelaMotivos: React.FC<{
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
   
-  const totalPages = Math.ceil(dados.length / itemsPerPage);
+  const totalPages = Math.ceil(dados.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const dadosPaginados = dados.slice(startIndex, endIndex);
@@ -40,36 +42,102 @@ const TabelaMotivos: React.FC<{
     ? 'Nenhum descarte encontrado no período selecionado'
     : 'Nenhum registro disponível na tabela';
 
+  // Calcular classe de calor baseada no percentual
+  const getHeatClass = (percentual: number) => {
+    if (percentual >= 30) return 'heat-high';
+    if (percentual >= 15) return 'heat-medium';
+    return 'heat-low';
+  };
+
   return (
-    <div className="bg-dark-tertiary rounded-lg overflow-hidden flex flex-col h-full">
-      {/* Header da tabela */}
-      <div className="px-4 py-3 border-b border-dark-border flex items-center justify-between">
-        <h3 className="text-text-primary text-xs font-bold uppercase tracking-wide">
-          {titulo}
-        </h3>
-        {dados.length > 0 && (
+    <div 
+      className="table-card flex flex-col"
+      style={{
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))',
+        border: '1px solid rgba(255,255,255,0.03)',
+        borderRadius: '8px',
+        padding: '14px',
+        boxShadow: '0 6px 18px rgba(0,0,0,0.45)',
+        minHeight: '340px',
+      }}
+    >
+      {/* Título da tabela */}
+      <h3 
+        className="section-title"
+        style={{ fontSize: '1rem', marginBottom: '8px' }}
+      >
+        {titulo}
+      </h3>
+
+      {/* Botão de exportar */}
+      {dados.length > 0 && (
+        <div className="mb-2">
           <button
             onClick={onExport}
-            className="text-xs text-primary-500 hover:text-primary-400 transition-colors"
-            title="Exportar para Excel"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded transition-colors"
+            style={{
+              background: 'linear-gradient(180deg, #3a3f44 0%, #2e3236 100%)',
+              color: '#e9ecef',
+              border: '1px solid rgba(0,0,0,0.45)',
+            }}
           >
-            📥 Exportar
+            <Download className="w-3 h-3" />
+            Exportar para Excel
           </button>
-        )}
-      </div>
+        </div>
+      )}
       
       {/* Tabela */}
       <div className="flex-1 overflow-auto">
-        <table className="w-full">
-          <thead className="bg-dark-secondary sticky top-0">
+        <table className="w-full border-collapse" style={{ fontSize: '0.95rem' }}>
+          <thead>
             <tr>
-              <th className="text-left text-text-muted text-xs font-medium px-4 py-2 uppercase tracking-wide">
+              <th 
+                className="text-left sticky top-0 z-10"
+                style={{
+                  background: 'linear-gradient(135deg, #495057 0%, #6c757d 100%)',
+                  color: '#ffc107',
+                  padding: '12px 10px',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  fontSize: '0.85rem',
+                  letterSpacing: '0.5px',
+                  border: '1px solid #6c757d',
+                  width: '60%',
+                }}
+              >
                 {colunaNome}
               </th>
-              <th className="text-center text-text-muted text-xs font-medium px-2 py-2 uppercase tracking-wide w-16">
+              <th 
+                className="text-center sticky top-0 z-10"
+                style={{
+                  background: 'linear-gradient(135deg, #495057 0%, #6c757d 100%)',
+                  color: '#ffc107',
+                  padding: '12px 10px',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  fontSize: '0.85rem',
+                  letterSpacing: '0.5px',
+                  border: '1px solid #6c757d',
+                  width: '20%',
+                }}
+              >
                 %
               </th>
-              <th className="text-center text-text-muted text-xs font-medium px-4 py-2 uppercase tracking-wide w-16">
+              <th 
+                className="text-center sticky top-0 z-10"
+                style={{
+                  background: 'linear-gradient(135deg, #495057 0%, #6c757d 100%)',
+                  color: '#ffc107',
+                  padding: '12px 10px',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  fontSize: '0.85rem',
+                  letterSpacing: '0.5px',
+                  border: '1px solid #6c757d',
+                  width: '20%',
+                }}
+              >
                 Total
               </th>
             </tr>
@@ -77,7 +145,15 @@ const TabelaMotivos: React.FC<{
           <tbody>
             {dados.length === 0 ? (
               <tr>
-                <td colSpan={3} className="text-center text-text-muted py-8 px-4">
+                <td 
+                  colSpan={3} 
+                  className="text-center"
+                  style={{
+                    padding: '40px 10px',
+                    color: '#f8f9fa',
+                    border: '1px solid #495057',
+                  }}
+                >
                   {mensagemVazia}
                 </td>
               </tr>
@@ -85,18 +161,42 @@ const TabelaMotivos: React.FC<{
               dadosPaginados.map((item, index) => (
                 <tr 
                   key={item.motivo}
-                  className={`
-                    border-b border-dark-border/50 hover:bg-dark-secondary/50 transition-colors
-                    ${index % 2 === 0 ? 'bg-dark-tertiary' : 'bg-dark-tertiary/70'}
-                  `}
+                  className="hover:bg-[rgba(255,193,7,0.1)] transition-colors"
                 >
-                  <td className="text-left text-text-primary text-sm px-4 py-2">
+                  <td 
+                    className="text-left"
+                    style={{
+                      padding: '10px',
+                      border: '1px solid #495057',
+                      color: '#f8f9fa',
+                      fontWeight: 500,
+                      fontSize: '0.9rem',
+                      maxWidth: '200px',
+                      wordWrap: 'break-word',
+                    }}
+                  >
                     {item.motivo}
                   </td>
-                  <td className="text-center text-text-secondary text-sm px-2 py-2">
+                  <td 
+                    className="text-center"
+                    style={{
+                      padding: '10px',
+                      border: '1px solid #495057',
+                      color: '#f8f9fa',
+                      fontWeight: 500,
+                    }}
+                  >
                     {item.percentual.toFixed(1)}%
                   </td>
-                  <td className="text-center text-text-primary text-sm font-medium px-4 py-2">
+                  <td 
+                    className="text-center"
+                    style={{
+                      padding: '10px',
+                      border: '1px solid #495057',
+                      color: '#f8f9fa',
+                      fontWeight: 600,
+                    }}
+                  >
                     {item.total}
                   </td>
                 </tr>
@@ -107,28 +207,42 @@ const TabelaMotivos: React.FC<{
       </div>
       
       {/* Paginação */}
-      {dados.length > itemsPerPage && (
-        <div className="px-4 py-2 border-t border-dark-border flex items-center justify-between text-xs text-text-muted">
+      {dados.length > 0 && (
+        <div 
+          className="flex items-center justify-between mt-2 pt-2"
+          style={{
+            borderTop: '1px solid #495057',
+            color: '#adb5bd',
+            fontSize: '0.8rem',
+          }}
+        >
           <span>
-            Mostrando {startIndex + 1} a {Math.min(endIndex, dados.length)} de {dados.length}
+            Mostrando {Math.min(startIndex + 1, dados.length)} a {Math.min(endIndex, dados.length)} de {dados.length} entradas
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-2 py-1 rounded bg-dark-secondary hover:bg-dark-border disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-1 rounded transition-colors disabled:opacity-50"
+              style={{
+                background: currentPage === 1 ? '#343a40' : '#495057',
+                color: '#f8f9fa',
+                border: '1px solid #6c757d',
+              }}
             >
-              ‹
+              Anterior
             </button>
-            <span className="px-2">
-              {currentPage} / {totalPages}
-            </span>
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-2 py-1 rounded bg-dark-secondary hover:bg-dark-border disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-1 rounded transition-colors disabled:opacity-50"
+              style={{
+                background: currentPage === totalPages ? '#343a40' : '#495057',
+                color: '#f8f9fa',
+                border: '1px solid #6c757d',
+              }}
             >
-              ›
+              Próximo
             </button>
           </div>
         </div>
@@ -176,9 +290,12 @@ export const MotivosPerdaDescarteTable: React.FC<MotivosPerdaDescarteTableProps>
   }));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Linha 1: Motivos de Perda e Descarte lado a lado */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[350px]">
+      <div 
+        className="grid grid-cols-1 lg:grid-cols-2 gap-5"
+        style={{ alignItems: 'stretch' }}
+      >
         <TabelaMotivos
           titulo="Motivos de Perda"
           colunaNome="Motivo de Perda"
@@ -194,14 +311,12 @@ export const MotivosPerdaDescarteTable: React.FC<MotivosPerdaDescarteTableProps>
       </div>
 
       {/* Linha 2: Tabela de Concorrentes */}
-      <div className="h-[300px]">
-        <TabelaMotivos
-          titulo="Concorrentes (Leads Perdidos)"
-          colunaNome="Concorrente"
-          dados={concorrentesParaTabela}
-          onExport={() => exportarCSV(concorrentes, 'Relatorio_Concorrentes', 'Concorrente')}
-        />
-      </div>
+      <TabelaMotivos
+        titulo="Concorrentes (Leads Perdidos)"
+        colunaNome="Concorrente"
+        dados={concorrentesParaTabela}
+        onExport={() => exportarCSV(concorrentes, 'Relatorio_Concorrentes', 'Concorrente')}
+      />
     </div>
   );
 };

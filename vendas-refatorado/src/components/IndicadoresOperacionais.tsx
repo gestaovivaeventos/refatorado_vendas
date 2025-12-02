@@ -92,7 +92,7 @@ export default function IndicadoresOperacionais({
     <div className="bg-dark-secondary rounded-xl p-1">
       {/* Título */}
       <div className="px-5 pt-4 pb-2">
-        <h2 className="text-text-primary text-sm font-bold uppercase tracking-wide">
+        <h2 className="section-title">
           INDICADORES OPERACIONAIS
         </h2>
       </div>

@@ -204,7 +204,7 @@ export default function CumulativeYearChart({
   return (
     <div className="bg-dark-secondary rounded-xl p-4">
       {/* Título */}
-      <h2 className="text-text-primary text-sm font-bold uppercase tracking-wide mb-4 text-center">
+      <h2 className="section-title text-center">
         {titulo}
       </h2>
 

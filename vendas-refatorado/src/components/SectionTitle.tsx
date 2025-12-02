@@ -1,5 +1,6 @@
 /**
  * Componente SectionTitle - Título de seção padronizado
+ * Replica o estilo original: fonte Poppins, cor cinza, linha laranja abaixo
  */
 
 import React from 'react';
@@ -15,7 +16,7 @@ export default function SectionTitle({ children, indicator, className = '' }: Se
     <h2 className={`section-title ${className}`}>
       {children}
       {indicator && (
-        <span className="text-primary-500 ml-2">({indicator})</span>
+        <span className="section-title-highlight"> ({indicator})</span>
       )}
     </h2>
   );

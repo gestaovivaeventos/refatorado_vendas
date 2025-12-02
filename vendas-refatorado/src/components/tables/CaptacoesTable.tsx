@@ -133,6 +133,11 @@ export const CaptacoesTable: React.FC<CaptacoesTableProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Título da tabela */}
+      <h3 className="section-title" style={{ fontSize: '1rem' }}>
+        DESEMPENHO POR CAPTAÇÃO (FUNIL)
+      </h3>
+
       {/* Header com busca e exportação */}
       <div className="flex items-center justify-between gap-4">
         <div className="relative flex-1 max-w-xs">

@@ -87,8 +87,15 @@ body {
   }
 
   .card-title {
-    @apply text-text-secondary text-sm font-semibold uppercase tracking-wide mb-4 pb-2;
-    border-bottom: 1px solid var(--border-color);
+    margin: 0 0 12px 0;
+    color: #adb5bd;
+    font-size: 1.2rem;
+    letter-spacing: 0.06em;
+    font-family: 'Poppins', Arial, sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    border-bottom: 1px solid #ff6600;
+    padding-bottom: 2px;
   }
 
   /* KPI Cards */
@@ -298,11 +305,26 @@ body {
     color: var(--text-secondary);
   }
 
-  /* Section Title */
+  /* Section Title - Estilo original do dashboard */
   .section-title {
-    @apply text-lg font-semibold uppercase tracking-wide mb-3 pb-2;
-    color: var(--text-secondary);
-    border-bottom: 1px solid #555;
+    margin: 0 0 12px 0;
+    color: #adb5bd;
+    font-size: 1.2rem;
+    letter-spacing: 0.06em;
+    font-family: 'Poppins', Arial, sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    border-bottom: 1px solid #ff6600;
+    padding-bottom: 2px;
+  }
+
+  /* Título com destaque laranja para indicador de meta */
+  .section-title-highlight {
+    color: #ff6600 !important;
+    font-size: 1.2rem;
+    letter-spacing: 0.06em;
+    font-family: 'Poppins', Arial, sans-serif;
+    font-weight: 600;
   }
 
   /* Footer */

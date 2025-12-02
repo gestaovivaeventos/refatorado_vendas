@@ -1534,7 +1534,7 @@ export default function Dashboard() {
       <div className="space-y-6">
         {/* Toggle de Meta */}
         <div className="bg-dark-secondary rounded-xl p-4">
-          <h2 className="text-text-primary text-sm font-bold uppercase tracking-wide mb-3">
+          <h2 className="section-title">
             CONFIGURAÇÃO DE METAS
           </h2>
           <div className="flex items-center justify-center gap-4">
@@ -1565,9 +1565,9 @@ export default function Dashboard() {
         {/* Seção 1: VVR NO PERÍODO SELECIONADO */}
         <div className="bg-dark-secondary rounded-xl p-1">
           <div className="px-5 pt-4 pb-2">
-            <h2 className="text-text-primary text-sm font-bold uppercase tracking-wide">
+            <h2 className="section-title">
               VVR NO PERÍODO SELECIONADO{' '}
-              <span className="text-primary-500">{indicadorMeta}</span>
+              <span className="section-title-highlight">{indicadorMeta}</span>
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
@@ -1598,9 +1598,9 @@ export default function Dashboard() {
         {/* Seção 2: VVR NO MESMO PERÍODO DO ANO ANTERIOR */}
         <div className="bg-dark-secondary rounded-xl p-1">
           <div className="px-5 pt-4 pb-2">
-            <h2 className="text-text-primary text-sm font-bold uppercase tracking-wide">
+            <h2 className="section-title">
               VVR NO MESMO PERÍODO SELECIONADO NO ANO ANTERIOR{' '}
-              <span className="text-primary-500">{indicadorMeta}</span>
+              <span className="section-title-highlight">{indicadorMeta}</span>
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
@@ -1879,7 +1879,7 @@ export default function Dashboard() {
 
           {/* Seção 2: Captações */}
           <div className="bg-dark-secondary rounded-xl p-5">
-            <h2 className="text-text-primary text-sm font-bold uppercase tracking-wide mb-4">
+            <h2 className="section-title">
               CAPTAÇÕES
             </h2>
             
@@ -1914,7 +1914,7 @@ export default function Dashboard() {
 
           {/* Seção 3: Negociações e Perdas por Fase */}
           <div className="bg-dark-secondary rounded-xl p-5">
-            <h2 className="text-text-primary text-sm font-bold uppercase tracking-wide mb-4">
+            <h2 className="section-title">
               NEGOCIAÇÕES E PERDAS POR FASE
             </h2>
             
@@ -1960,7 +1960,7 @@ export default function Dashboard() {
 
           {/* Seção 4: Leads Perdidos, Descartes e Concorrentes */}
           <div className="bg-dark-secondary rounded-xl p-5">
-            <h2 className="text-text-primary text-sm font-bold uppercase tracking-wide mb-4">
+            <h2 className="section-title">
               LEADS PERDIDOS, DESCARTES E CONCORRENTES
             </h2>
             
