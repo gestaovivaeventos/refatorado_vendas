@@ -685,8 +685,6 @@ export default function Dashboard() {
   // Página de Indicadores Secundários
   const renderIndicadoresPage = () => (
     <div className="space-y-6">
-      <h2 className="text-text-primary text-lg font-bold">Indicadores Secundários</h2>
-      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card titulo="Comparativo de VVR Mensal">
           <div className="h-80 flex items-center justify-center text-text-muted">
@@ -718,8 +716,6 @@ export default function Dashboard() {
   // Página de Funil de Vendas
   const renderFunilPage = () => (
     <div className="space-y-6">
-      <h2 className="text-text-primary text-lg font-bold">Funil de Vendas</h2>
-      
       {loadingFunil ? (
         <Loading mensagem="Carregando dados do funil..." />
       ) : (
@@ -785,17 +781,6 @@ export default function Dashboard() {
               marginLeft: sidebarCollapsed ? '0' : '280px',
             }}
           >
-            {/* Título da página */}
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-text-primary">
-                {PAGES.find(p => p.id === paginaAtiva)?.label || 'Dashboard'}
-              </h1>
-              <p className="text-text-muted text-sm mt-1">
-                Período: {identificarPeriodo(filtros.periodoSelecionado)}
-                {filtros.isMetaInterna && ' | Meta Interna (85%)'}
-              </p>
-            </div>
-
             {/* Conteúdo */}
             {renderContent()}
           </main>
