@@ -1,10 +1,14 @@
 /**
  * Hook para buscar e gerenciar dados do funil de vendas
+ * Com cache para evitar re-fetch desnecessário
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { LeadFunil } from '@/types/funil.types';
-import { SPREADSHEET_IDS, SHEET_NAMES, GOOGLE_API_KEY } from '@/config/app.config';
+
+// Cache simples em memória
+let funilCache: { data: LeadFunil[]; timestamp: number } | null = null;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
 interface UseFunilDataReturn {
   data: LeadFunil[];
@@ -12,22 +16,44 @@ interface UseFunilDataReturn {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  lastUpdate: Date | null;
 }
 
 /**
- * Hook para buscar dados do funil
+ * Hook para buscar dados do funil com cache
  */
 export function useFunilData(): UseFunilDataReturn {
   const [leads, setLeads] = useState<LeadFunil[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const isFetching = useRef(false);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (forceRefresh = false) => {
+    // Evitar múltiplas chamadas simultâneas
+    if (isFetching.current) {
+      console.log('[useFunilData] Já existe uma busca em andamento, ignorando...');
+      return;
+    }
+
+    // Verificar cache primeiro (a menos que force refresh)
+    if (!forceRefresh && funilCache && Date.now() - funilCache.timestamp < CACHE_TTL) {
+      const cacheAge = Math.round((Date.now() - funilCache.timestamp) / 1000);
+      console.log('[useFunilData] Usando dados em cache (idade:', cacheAge, 's)');
+      setLeads(funilCache.data);
+      setLoading(false);
+      return;
+    }
+
+    isFetching.current = true;
     setLoading(true);
     setError(null);
 
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_IDS.FUNIL}/values/${SHEET_NAMES.FUNIL}?key=${GOOGLE_API_KEY}`;
+      // Usar API route local
+      const url = '/api/funil';
+      
+      console.log('[useFunilData] Buscando dados via API route...');
       
       const response = await fetch(url);
       
@@ -112,13 +138,23 @@ export function useFunilData(): UseFunilDataReturn {
         })
         .filter(Boolean) as LeadFunil[];
 
+      console.log('[useFunilData] Dados processados:', processedData.length, 'leads válidos');
+      
+      // Salvar no cache
+      funilCache = {
+        data: processedData,
+        timestamp: Date.now(),
+      };
+      
       setLeads(processedData);
+      setLastUpdate(new Date());
 
     } catch (err: any) {
       console.error('Erro ao buscar dados do funil:', err);
       setError(err.message || 'Erro desconhecido ao buscar dados do funil');
     } finally {
       setLoading(false);
+      isFetching.current = false;
     }
   }, []);
 
@@ -126,11 +162,16 @@ export function useFunilData(): UseFunilDataReturn {
     fetchData();
   }, [fetchData]);
 
+  const refetch = useCallback(async () => {
+    await fetchData(true);
+  }, [fetchData]);
+
   return {
     data: leads,
     leads,
     loading,
     error,
-    refetch: fetchData,
+    refetch,
+    lastUpdate,
   };
 }

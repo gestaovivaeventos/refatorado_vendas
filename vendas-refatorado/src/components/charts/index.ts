@@ -11,3 +11,5 @@ export { default as TicketMedioChart } from './TicketMedioChart';
 export { MultiYearLineChart } from './MultiYearLineChart';
 export { SimpleBarChart } from './SimpleBarChart';
 export { MultiYearBarChart } from './MultiYearBarChart';
+export { FunnelBarChart, CORES_FASES_FUNIL, CORES_FASES_PERDAS, getCorFase } from './FunnelBarChart';
+export { CaptacaoStackedBar } from './CaptacaoStackedBar';

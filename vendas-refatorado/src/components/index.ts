@@ -9,6 +9,7 @@ export { default as Loading } from './Loading';
 export { default as SectionTitle } from './SectionTitle';
 export { default as ChartSelector } from './ChartSelector';
 export { default as MetaToggle } from './MetaToggle';
+export { FunilHorizontal } from './FunilHorizontal';
 
 // Re-exportar de subdiretórios
 export * from './filters';

@@ -6,7 +6,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { Header, Sidebar, Loading, KPICard, IndicadoresOperacionais, Card } from '@/components';
+import { Header, Sidebar, Loading, KPICard, IndicadoresOperacionais, Card, FunilHorizontal } from '@/components';
 import { FilterPanel } from '@/components/filters';
 import { 
   VVRVsMetaChart, 
@@ -18,8 +18,14 @@ import {
   MultiYearLineChart,
   SimpleBarChart,
   MultiYearBarChart,
+  FunnelBarChart,
+  CaptacaoStackedBar,
+  CORES_FASES_FUNIL,
+  CORES_FASES_PERDAS,
+  getCorFase,
 } from '@/components/charts';
-import { RankingTable, DataTable } from '@/components/tables';
+import { RankingTable, DataTable, CaptacoesTable } from '@/components/tables';
+import { MotivosPerdaDescarteTable } from '@/components/MotivosPerdaDescarteTable';
 import { DataTable as GenericDataTable } from '@/components/DataTable';
 import { useSalesData } from '@/hooks/useSalesData';
 import { useMetasData } from '@/hooks/useMetasData';
@@ -1058,6 +1064,430 @@ export default function Dashboard() {
     }));
   }, [fundosData, filtros.unidades, opcoesFiltros.unidades]);
 
+  // ========== DADOS DO FUNIL ==========
+  
+  // Função para converter data DD/MM/YYYY para objeto Date
+  const parseDataFunil = useCallback((dateString: string): Date | null => {
+    if (!dateString || typeof dateString !== 'string') return null;
+    
+    // Tenta primeiro o formato DD/MM/YYYY
+    const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    if (parts) {
+      return new Date(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1]));
+    }
+    
+    // Fallback: tenta outros formatos
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? null : date;
+  }, []);
+
+  // Filtrar dados do funil por unidade e período
+  const dadosFunilFiltrados = useMemo(() => {
+    if (!funilData || funilData.length === 0) return [];
+
+    const unidadesAtivas = filtros.unidades.length > 0 ? filtros.unidades : opcoesFiltros.unidades;
+    
+    let dados = funilData;
+
+    // Filtrar por unidade
+    if (unidadesAtivas.length > 0) {
+      dados = dados.filter(d => unidadesAtivas.includes(d.nm_unidade));
+    }
+
+    // Filtrar por período de data (usando campo criado_em)
+    if (periodo?.startDate && periodo?.endDate) {
+      const startDate = periodo.startDate;
+      // Adicionar 1 dia ao endDate para incluir o dia final completo
+      const endDate = new Date(periodo.endDate);
+      endDate.setDate(endDate.getDate() + 1);
+
+      dados = dados.filter(item => {
+        if (!item.criado_em) return false;
+        
+        const dataItem = parseDataFunil(item.criado_em);
+        if (!dataItem) return false;
+        
+        return dataItem >= startDate && dataItem < endDate;
+      });
+    }
+
+    return dados;
+  }, [funilData, filtros.unidades, opcoesFiltros.unidades, periodo, parseDataFunil]);
+
+  // Dados de negociações por fase (para gráfico do funil)
+  const dadosNegociacoesPorFase = useMemo(() => {
+    if (!dadosFunilFiltrados || dadosFunilFiltrados.length === 0) return [];
+
+    // Contar quantidade por fase
+    const faseContador: Record<string, number> = {};
+    
+    dadosFunilFiltrados.forEach(item => {
+      if (item.titulo && item.titulo.trim() !== '') {
+        const fase = item.fase_perdido || 'Não informado';
+        faseContador[fase] = (faseContador[fase] || 0) + 1;
+      }
+    });
+
+    // Mapear para formato do gráfico com cores
+    return CORES_FASES_FUNIL.map(faseConfig => ({
+      fase: faseConfig.nome,
+      quantidade: faseContador[faseConfig.nome] || 0,
+      cor: faseConfig.cor,
+    })).filter(f => f.quantidade > 0 || CORES_FASES_FUNIL.some(c => c.nome === f.fase));
+  }, [dadosFunilFiltrados]);
+
+  // Dados de perdas por fase
+  const dadosPerdasPorFase = useMemo(() => {
+    if (!dadosFunilFiltrados || dadosFunilFiltrados.length === 0) return [];
+
+    const perdasContador: Record<string, number> = {
+      '1.1 Qualificação do Lead': 0,
+      '1.2 Qualificação Comissão': 0,
+      '1.3 Reunião Agendada': 0,
+      '2.1 Diagnóstico Realizado': 0,
+      '2.2 Apresentação Proposta': 0,
+      '3.1 Proposta Enviada': 0,
+      '3.2 Apresentação Turma': 0,
+      '3.3 Gerar Contrato': 0,
+      '4.1 Fechamento Comissão': 0,
+      '5.1 Captação de Adesões': 0,
+    };
+
+    dadosFunilFiltrados.forEach(item => {
+      if (item.titulo && item.titulo.trim() !== '') {
+        if (item.perda_11?.toLowerCase() === 'sim') perdasContador['1.1 Qualificação do Lead']++;
+        if (item.perda_12?.toLowerCase() === 'sim') perdasContador['1.2 Qualificação Comissão']++;
+        if (item.perda_13?.toLowerCase() === 'sim') perdasContador['1.3 Reunião Agendada']++;
+        if (item.perda_21?.toLowerCase() === 'sim') perdasContador['2.1 Diagnóstico Realizado']++;
+        if (item.perda_22?.toLowerCase() === 'sim') perdasContador['2.2 Apresentação Proposta']++;
+        if (item.perda_31?.toLowerCase() === 'sim') perdasContador['3.1 Proposta Enviada']++;
+        if (item.perda_32?.toLowerCase() === 'sim') perdasContador['3.2 Apresentação Turma']++;
+        if (item.perda_33?.toLowerCase() === 'sim') perdasContador['3.3 Gerar Contrato']++;
+        if (item.perda_41?.toLowerCase() === 'sim') perdasContador['4.1 Fechamento Comissão']++;
+        if (item.perda_51?.toLowerCase() === 'sim') perdasContador['5.1 Captação de Adesões']++;
+      }
+    });
+
+    // Mapear para formato do gráfico com cores
+    return CORES_FASES_PERDAS.map(faseConfig => ({
+      fase: faseConfig.nome,
+      quantidade: perdasContador[faseConfig.nome] || 0,
+      cor: faseConfig.cor,
+    }));
+  }, [dadosFunilFiltrados]);
+
+  // Função para classificar tipo de captação
+  const getTipoCaptacao = useCallback((origemLead: string): string => {
+    if (!origemLead || origemLead.trim() === '') return 'Captação Ativa';
+    
+    const origem = origemLead.trim();
+    
+    const captacoesPassivasExclusivasViva = [
+      'Digital - Redes Sociais - VIVA Brasil',
+      'Digital - Site VIVA Brasil',
+      'Digital - Card Google',
+    ];
+    
+    const captacoesPassivas = [
+      'Presencial - Ligação/WPP Telefone Consultor (a)',
+      'Digital - Redes Sociais - Instagram Local',
+      'Indicação - Via Atlética/DA/CA',
+      'Indicação - Via outra Franquia/Consultor VIVA',
+      'Digital - Redes Sociais - Instagram Consultor (a)',
+      'Presencial - Ligação Telefone Franquia',
+      'Indicação - Via Integrante de Turma',
+      'Presencial - Visita Sede Franquia',
+      'Digital - Campanha paga - Instagram Local',
+    ];
+
+    if (captacoesPassivasExclusivasViva.includes(origem)) {
+      return 'Captação Passiva - Exclusiva Viva BR';
+    }
+    
+    if (captacoesPassivas.includes(origem)) {
+      return 'Captação Passiva';
+    }
+    
+    return 'Captação Ativa';
+  }, []);
+
+  // Dados de captações agrupados
+  const dadosCaptacoes = useMemo(() => {
+    if (!dadosFunilFiltrados || dadosFunilFiltrados.length === 0) return { porOrigem: [], porTipo: [] };
+
+    // Filtrar apenas leads válidos
+    const leadsValidos = dadosFunilFiltrados.filter(item => 
+      item.titulo && item.titulo.trim() !== ''
+    );
+
+    const totalLeads = leadsValidos.length;
+    if (totalLeads === 0) return { porOrigem: [], porTipo: [] };
+
+    // Agrupar por origem
+    const origemContador: Record<string, number> = {};
+    const tipoContador: Record<string, number> = {};
+
+    leadsValidos.forEach(item => {
+      const origem = item.origem_lead || 'Não informado';
+      const tipo = getTipoCaptacao(origem);
+
+      origemContador[origem] = (origemContador[origem] || 0) + 1;
+      tipoContador[tipo] = (tipoContador[tipo] || 0) + 1;
+    });
+
+    // Criar dados por origem
+    const porOrigem = Object.entries(origemContador)
+      .map(([origem, total]) => ({
+        origem,
+        tipo: getTipoCaptacao(origem),
+        percentual: (total / totalLeads) * 100,
+        total,
+      }))
+      .sort((a, b) => b.total - a.total);
+
+    // Criar dados por tipo
+    const porTipo = Object.entries(tipoContador)
+      .map(([tipo, total]) => ({
+        tipo,
+        total,
+        percentual: (total / totalLeads) * 100,
+      }))
+      .sort((a, b) => b.total - a.total);
+
+    return { porOrigem, porTipo };
+  }, [dadosFunilFiltrados, getTipoCaptacao]);
+
+  // Indicadores operacionais do funil horizontal
+  const indicadoresFunilHorizontal = useMemo(() => {
+    if (!dadosFunilFiltrados || dadosFunilFiltrados.length === 0) {
+      return {
+        indicadores: [
+          { titulo: 'TOTAL DE LEADS CRIADOS', valor: 0 },
+          { titulo: 'QUALIFICAÇÃO COMISSÃO', valor: 0 },
+          { titulo: 'REUNIÃO REALIZADA', valor: 0 },
+          { titulo: 'PROPOSTAS ENVIADAS', valor: 0 },
+          { titulo: 'CONTRATOS FECHADOS', valor: 0 },
+        ],
+        leadsPerdidos: 0,
+        leadsDescartados: 0,
+      };
+    }
+
+    // Contar leads válidos
+    const leadsValidos = dadosFunilFiltrados.filter(item => 
+      item.titulo && item.titulo.trim() !== ''
+    );
+
+    // Total de leads criados
+    const totalLeads = leadsValidos.length;
+
+    // Qualificação Comissão
+    const qualificacaoComissao = leadsValidos.filter(item => 
+      item.qualificacao_comissao && item.qualificacao_comissao.trim() !== ''
+    ).length;
+
+    // Reunião Realizada (diagnóstico realizado)
+    const reuniaoRealizada = leadsValidos.filter(item => 
+      item.diagnostico_realizado && item.diagnostico_realizado.trim() !== ''
+    ).length;
+
+    // Propostas Enviadas
+    const propostasEnviadas = leadsValidos.filter(item => 
+      item.proposta_enviada && item.proposta_enviada.trim() !== ''
+    ).length;
+
+    // Contratos Fechados
+    const contratosFechados = leadsValidos.filter(item => 
+      item.fechamento_comissao && item.fechamento_comissao.trim() !== ''
+    ).length;
+
+    // Leads Perdidos (fase = "7.2 Perdido")
+    const leadsPerdidos = leadsValidos.filter(item => 
+      item.fase_perdido === '7.2 Perdido'
+    ).length;
+
+    // Leads Descartados (motivo de perda começa com "Descarte")
+    const leadsDescartados = leadsValidos.filter(item => {
+      const motivo = item.concat_motivo_perda || '';
+      return motivo.toLowerCase().startsWith('descarte');
+    }).length;
+
+    return {
+      indicadores: [
+        { titulo: 'TOTAL DE LEADS CRIADOS', valor: totalLeads },
+        { titulo: 'QUALIFICAÇÃO COMISSÃO', valor: qualificacaoComissao },
+        { titulo: 'REUNIÃO REALIZADA', valor: reuniaoRealizada },
+        { titulo: 'PROPOSTAS ENVIADAS', valor: propostasEnviadas },
+        { titulo: 'CONTRATOS FECHADOS', valor: contratosFechados },
+      ],
+      leadsPerdidos,
+      leadsDescartados,
+    };
+  }, [dadosFunilFiltrados]);
+
+  // Função auxiliar para processar motivo de perda (mesma lógica do original)
+  const getCampoAuxiliar = (concatMotivoPerda: string): string => {
+    if (!concatMotivoPerda || concatMotivoPerda.trim() === '') return '';
+    
+    const motivo = concatMotivoPerda.trim();
+    
+    switch (motivo) {
+      case "Outro Motivo (especifique no campo de texto)":
+        return "Outro Motivo (especifique no campo de texto)";
+      case "Fechou com o Concorrente":
+        return "Fechou com o Concorrente";
+      case "Desistiu de Fazer o Fundo de Formatura":
+        return "Desistiu de Fazer o Fundo de Formatura";
+      case "Lead Duplicado (já existe outra pessoa da turma negociando - especifique o nome)":
+        return "Descarte - Lead Duplicado (já existe outra pessoa da turma negociando - especifique o nome)";
+      case "Falta de Contato no Grupo (durante negociação)":
+        return "Falta de Contato no Grupo (durante negociação)";
+      case "Falta de Contato Inicial (não responde)":
+        return "Falta de Contato Inicial (não responde)";
+      case "Território Inviável (não atendido por franquia VIVA)":
+        return "Descarte - Território Inviável (não atendido por franquia VIVA)";
+      case "Falta de Contato Inicial (telefone errado)":
+        return "Descarte - Falta de Contato Inicial (telefone errado)";
+      case "Pediu para retomar contato no próximo semestre":
+        return "Descarte - Pediu para retomar contato no próximo semestre";
+      case "Tipo de Ensino/Curso não atendido":
+        return "Descarte - Tipo de Ensino/Curso não atendido";
+      case "Adesão individual":
+        return "Descarte - Adesão Individual";
+      case "Adesão individual:":
+        return "Descarte - Adesão Individual";
+      case "Tipo de Ensino/Curso não atendido:":
+        return "Descarte - Tipo de Ensino/Curso não atendido";
+      default:
+        return motivo;
+    }
+  };
+
+  // Calcular motivos de perda e descarte
+  const motivosPerdaDescarte = useMemo(() => {
+    if (!dadosFunilFiltrados || dadosFunilFiltrados.length === 0) {
+      return { motivosPerda: [], motivosDescarte: [] };
+    }
+
+    // Leads válidos com título
+    const leadsValidos = dadosFunilFiltrados.filter(item => 
+      item.titulo && item.titulo.trim() !== ''
+    );
+
+    // Leads perdidos (excluindo descartes)
+    const leadsComFasePerdido = leadsValidos.filter(item => {
+      // 1. Verificar se está na fase 7.2 Perdido
+      const estaNaFasePerdido = item.fase_perdido && 
+        item.fase_perdido.trim() !== '' && 
+        (item.fase_perdido.includes("7.2") || 
+         item.fase_perdido.toLowerCase().includes("perdido"));
+
+      if (!estaNaFasePerdido) return false;
+
+      // 2. Deve ter motivo de perda preenchido
+      if (!item.concat_motivo_perda || item.concat_motivo_perda.trim() === '') return false;
+
+      // 3. Verificar se NÃO começa com "Descarte"
+      const campoAuxiliar = getCampoAuxiliar(item.concat_motivo_perda);
+      return !campoAuxiliar.startsWith("Descarte");
+    });
+
+    // Leads descartados
+    const leadsComDescarte = leadsValidos.filter(item => {
+      const estaNaFasePerdido = item.fase_perdido && 
+        item.fase_perdido.trim() !== '' && 
+        (item.fase_perdido.includes("7.2") || 
+         item.fase_perdido.toLowerCase().includes("perdido"));
+
+      if (!estaNaFasePerdido) return false;
+
+      if (!item.concat_motivo_perda || item.concat_motivo_perda.trim() === '') return false;
+
+      const campoAuxiliar = getCampoAuxiliar(item.concat_motivo_perda);
+      return campoAuxiliar.startsWith("Descarte");
+    });
+
+    // Contar motivos de perda
+    const motivoPerdaContador: Record<string, number> = {};
+    let totalPerdidos = 0;
+    leadsComFasePerdido.forEach(item => {
+      const campoAuxiliar = getCampoAuxiliar(item.concat_motivo_perda);
+      const motivoFinal = campoAuxiliar || item.concat_motivo_perda.trim();
+      if (motivoFinal) {
+        motivoPerdaContador[motivoFinal] = (motivoPerdaContador[motivoFinal] || 0) + 1;
+        totalPerdidos++;
+      }
+    });
+
+    // Contar motivos de descarte
+    const motivoDescarteContador: Record<string, number> = {};
+    let totalDescartados = 0;
+    leadsComDescarte.forEach(item => {
+      const campoAuxiliar = getCampoAuxiliar(item.concat_motivo_perda);
+      const motivoFinal = campoAuxiliar || item.concat_motivo_perda.trim();
+      if (motivoFinal) {
+        motivoDescarteContador[motivoFinal] = (motivoDescarteContador[motivoFinal] || 0) + 1;
+        totalDescartados++;
+      }
+    });
+
+    // Converter para arrays ordenados
+    const motivosPerda = Object.entries(motivoPerdaContador)
+      .map(([motivo, total]) => ({
+        motivo,
+        total,
+        percentual: totalPerdidos > 0 ? (total / totalPerdidos) * 100 : 0
+      }))
+      .sort((a, b) => b.total - a.total);
+
+    const motivosDescarte = Object.entries(motivoDescarteContador)
+      .map(([motivo, total]) => ({
+        motivo,
+        total,
+        percentual: totalDescartados > 0 ? (total / totalDescartados) * 100 : 0
+      }))
+      .sort((a, b) => b.total - a.total);
+
+    // Calcular concorrentes (leads perdidos que fecharam com concorrente)
+    const leadsPerdidosComConcorrente = leadsValidos.filter(item => {
+      const titulo = (item.titulo || '').trim();
+      if (!titulo) return false;
+      
+      const fase = (item.fase_perdido || '').toLowerCase();
+      const estaPerdido = fase.includes('7.2') || fase.includes('perdido');
+      if (!estaPerdido) return false;
+      
+      const motivo = (item.concat_motivo_perda || '').toLowerCase();
+      if (!motivo) return false;
+      
+      // Aceitar variações que mencionem concorrente
+      return motivo.includes('concorrente') || 
+             motivo.includes('concorr') || 
+             motivo.includes('fechou com o concorrente') || 
+             motivo.includes('fechou com concorrente');
+    });
+
+    // Agregar por nome do concorrente
+    const concorrenteContador: Record<string, number> = {};
+    let totalConcorrentes = 0;
+    leadsPerdidosComConcorrente.forEach(item => {
+      let conc = (item.concat_concorrente || '').trim();
+      if (!conc) conc = 'Concorrente não informado';
+      concorrenteContador[conc] = (concorrenteContador[conc] || 0) + 1;
+      totalConcorrentes++;
+    });
+
+    const concorrentes = Object.entries(concorrenteContador)
+      .map(([concorrente, total]) => ({
+        concorrente,
+        total,
+        percentual: totalConcorrentes > 0 ? (total / totalConcorrentes) * 100 : 0
+      }))
+      .sort((a, b) => b.total - a.total);
+
+    return { motivosPerda, motivosDescarte, concorrentes };
+  }, [dadosFunilFiltrados]);
+
   // Handler para atualizar filtros
   const handleFiltrosChange = useCallback((novosFiltros: Partial<FiltrosState>) => {
     setFiltros((prev) => ({ ...prev, ...novosFiltros }));
@@ -1438,20 +1868,107 @@ export default function Dashboard() {
         <Loading mensagem="Carregando dados do funil..." />
       ) : (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card titulo="Funil de Conversão">
-              <div className="text-center text-text-muted py-10">
-                {funilData && funilData.length > 0 
-                  ? `${funilData.length} leads carregados`
-                  : 'Sem dados do funil disponíveis'
-                }
+          {/* Seção 1: Funil Horizontal com Indicadores Operacionais */}
+          <div className="bg-dark-secondary rounded-xl p-5">
+            <FunilHorizontal
+              indicadores={indicadoresFunilHorizontal.indicadores}
+              leadsPerdidos={indicadoresFunilHorizontal.leadsPerdidos}
+              leadsDescartados={indicadoresFunilHorizontal.leadsDescartados}
+            />
+          </div>
+
+          {/* Seção 2: Captações */}
+          <div className="bg-dark-secondary rounded-xl p-5">
+            <h2 className="text-text-primary text-sm font-bold uppercase tracking-wide mb-4">
+              CAPTAÇÕES
+            </h2>
+            
+            {/* Tabela de captações */}
+            <div className="mb-6">
+              {dadosCaptacoes.porOrigem.length > 0 ? (
+                <CaptacoesTable dados={dadosCaptacoes.porOrigem} />
+              ) : (
+                <div className="text-center text-text-muted py-10">
+                  Sem dados de captação disponíveis
+                </div>
+              )}
+            </div>
+
+            {/* Barra de tipos de captação */}
+            <div className="mt-4">
+              <h3 className="text-text-primary text-sm font-medium mb-3">
+                TIPOS DE CAPTAÇÃO TOTAL
+              </h3>
+              {dadosCaptacoes.porTipo.length > 0 ? (
+                <CaptacaoStackedBar
+                  dados={dadosCaptacoes.porTipo}
+                  height={60}
+                />
+              ) : (
+                <div className="text-center text-text-muted py-4">
+                  Sem dados disponíveis
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Seção 3: Negociações e Perdas por Fase */}
+          <div className="bg-dark-secondary rounded-xl p-5">
+            <h2 className="text-text-primary text-sm font-bold uppercase tracking-wide mb-4">
+              NEGOCIAÇÕES E PERDAS POR FASE
+            </h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Gráfico de Negociações */}
+              <div>
+                <h3 className="text-text-primary text-sm font-medium mb-3">
+                  QUANTIDADE DE TURMAS NEGOCIADAS POR FASE DO CRM
+                </h3>
+                {dadosNegociacoesPorFase.length > 0 ? (
+                  <FunnelBarChart
+                    dados={dadosNegociacoesPorFase}
+                    height={400}
+                  />
+                ) : (
+                  <div className="text-center text-text-muted py-10">
+                    {funilData && funilData.length > 0 
+                      ? 'Nenhuma negociação encontrada'
+                      : 'Sem dados disponíveis'
+                    }
+                  </div>
+                )}
               </div>
-            </Card>
-            <Card titulo="Perdas por Fase">
-              <div className="text-center text-text-muted py-10">
-                Análise de perdas será exibida aqui
+
+              {/* Gráfico de Perdas */}
+              <div>
+                <h3 className="text-text-primary text-sm font-medium mb-3">
+                  QUANTIDADE DE PERDAS POR FASE
+                </h3>
+                {dadosPerdasPorFase.some(d => d.quantidade > 0) ? (
+                  <FunnelBarChart
+                    dados={dadosPerdasPorFase}
+                    height={400}
+                  />
+                ) : (
+                  <div className="text-center text-text-muted py-10">
+                    Nenhuma perda registrada
+                  </div>
+                )}
               </div>
-            </Card>
+            </div>
+          </div>
+
+          {/* Seção 4: Leads Perdidos, Descartes e Concorrentes */}
+          <div className="bg-dark-secondary rounded-xl p-5">
+            <h2 className="text-text-primary text-sm font-bold uppercase tracking-wide mb-4">
+              LEADS PERDIDOS, DESCARTES E CONCORRENTES
+            </h2>
+            
+            <MotivosPerdaDescarteTable
+              motivosPerda={motivosPerdaDescarte.motivosPerda}
+              motivosDescarte={motivosPerdaDescarte.motivosDescarte}
+              concorrentes={motivosPerdaDescarte.concorrentes || []}
+            />
           </div>
         </>
       )}
