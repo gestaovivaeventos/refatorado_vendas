@@ -1,11 +1,12 @@
 /**
  * Hook para buscar e gerenciar dados de fundos
+ * Com cache para evitar re-fetch desnecessário
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Fundo } from '@/types/vendas.types';
-import { SPREADSHEET_IDS, SHEET_NAMES, GOOGLE_API_KEY } from '@/config/app.config';
 import { parseDate } from '@/utils/periodo';
+import { clientCache, CACHE_KEYS, CACHE_TTL } from '@/utils/cache';
 
 interface UseFundosDataReturn {
   data: Fundo[];
@@ -13,22 +14,47 @@ interface UseFundosDataReturn {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  lastUpdate: Date | null;
 }
 
 /**
- * Hook para buscar dados de fundos
+ * Hook para buscar dados de fundos com cache
  */
 export function useFundosData(): UseFundosDataReturn {
   const [fundos, setFundos] = useState<Fundo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const isFetching = useRef(false);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (forceRefresh = false) => {
+    // Evitar múltiplas chamadas simultâneas
+    if (isFetching.current) {
+      console.log('[useFundosData] Já existe uma busca em andamento, ignorando...');
+      return;
+    }
+
+    // Verificar cache primeiro (a menos que force refresh)
+    if (!forceRefresh) {
+      const cachedData = clientCache.get<Fundo[]>(CACHE_KEYS.FUNDOS_DATA);
+      if (cachedData) {
+        const cacheAge = clientCache.getAge(CACHE_KEYS.FUNDOS_DATA);
+        console.log('[useFundosData] Usando dados em cache (idade:', Math.round((cacheAge || 0) / 1000), 's)');
+        setFundos(cachedData);
+        setLoading(false);
+        return;
+      }
+    }
+
+    isFetching.current = true;
     setLoading(true);
     setError(null);
 
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_IDS.SALES}/values/${SHEET_NAMES.FUNDOS}?key=${GOOGLE_API_KEY}`;
+      // Usar API route local
+      const url = '/api/fundos';
+      
+      console.log('[useFundosData] Buscando dados via API route...');
       
       const response = await fetch(url);
       
@@ -87,13 +113,18 @@ export function useFundosData(): UseFundosDataReturn {
         })
         .filter(Boolean) as Fundo[];
 
+      // Salvar no cache
+      clientCache.set(CACHE_KEYS.FUNDOS_DATA, processedData, CACHE_TTL.MEDIUM);
+      
       setFundos(processedData);
+      setLastUpdate(new Date());
 
     } catch (err: any) {
       console.error('Erro ao buscar dados de fundos:', err);
       setError(err.message || 'Erro desconhecido ao buscar fundos');
     } finally {
       setLoading(false);
+      isFetching.current = false;
     }
   }, []);
 
@@ -101,11 +132,16 @@ export function useFundosData(): UseFundosDataReturn {
     fetchData();
   }, [fetchData]);
 
+  const refetch = useCallback(async () => {
+    await fetchData(true);
+  }, [fetchData]);
+
   return {
     data: fundos,
     fundos,
     loading,
     error,
-    refetch: fetchData,
+    refetch,
+    lastUpdate,
   };
 }

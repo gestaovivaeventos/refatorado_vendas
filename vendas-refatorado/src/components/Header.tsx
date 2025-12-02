@@ -2,10 +2,18 @@
  * Componente Header do Dashboard de Vendas
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 export default function Header() {
+  const [dataAtual, setDataAtual] = useState<string>('');
+  const [anoAtual, setAnoAtual] = useState<number>(2025);
+
+  useEffect(() => {
+    setDataAtual(new Date().toLocaleString('pt-BR'));
+    setAnoAtual(new Date().getFullYear());
+  }, []);
+
   return (
     <header className="bg-dark-primary">
       <div className="container mx-auto px-4 py-4">
@@ -43,7 +51,7 @@ export default function Header() {
                 Dashboard de Vendas
               </h1>
               <span className="text-xs text-text-secondary">
-                VIVA Eventos Brasil - {new Date().getFullYear()}
+                VIVA Eventos Brasil - {anoAtual}
               </span>
             </div>
           </div>
@@ -52,7 +60,7 @@ export default function Header() {
           <div className="text-right">
             <p className="text-xs text-text-muted">Última atualização</p>
             <p className="text-sm text-text-secondary font-medium">
-              {new Date().toLocaleString('pt-BR')}
+              {dataAtual || 'Carregando...'}
             </p>
           </div>
         </div>

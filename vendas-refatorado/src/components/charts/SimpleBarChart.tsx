@@ -1,0 +1,124 @@
+import React, { useMemo } from 'react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartDataLabels
+);
+
+interface SimpleBarChartProps {
+  data: {
+    labels: string[];
+    values: number[];
+  };
+  horizontal?: boolean;
+  onBarClick?: (label: string) => void;
+  formatValue?: (value: number) => string;
+}
+
+const formatNumber = (value: number): string => {
+  if (Math.abs(value) >= 1000000) {
+    return (value / 1000000).toFixed(1).replace('.0', '') + ' mi';
+  }
+  if (Math.abs(value) >= 1000) {
+    return (value / 1000).toFixed(0) + 'k';
+  }
+  return value.toLocaleString('pt-BR');
+};
+
+export const SimpleBarChart: React.FC<SimpleBarChartProps> = ({
+  data,
+  horizontal = false,
+  onBarClick,
+  formatValue = formatNumber,
+}) => {
+  const chartData = useMemo(() => ({
+    labels: data.labels,
+    datasets: [
+      {
+        label: 'Valor',
+        data: data.values,
+        backgroundColor: '#FF6600',
+        borderRadius: 4,
+        barThickness: horizontal ? 20 : undefined,
+      },
+    ],
+  }), [data, horizontal]);
+
+  const maxValue = useMemo(() => Math.max(...data.values) * 1.2, [data.values]);
+
+  const options = useMemo(() => ({
+    indexAxis: horizontal ? 'y' as const : 'x' as const,
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        padding: 12,
+        backgroundColor: 'rgba(0,0,0,0.85)',
+        titleFont: { size: 14, family: 'Poppins, Arial, sans-serif' },
+        bodyFont: { size: 14, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
+        cornerRadius: 6,
+        displayColors: false,
+        callbacks: {
+          label: (context: any) => formatValue(context.parsed[horizontal ? 'x' : 'y']),
+        },
+      },
+      datalabels: {
+        color: '#FFFFFF',
+        font: { size: 12, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
+        anchor: 'end' as const,
+        align: 'end' as const,
+        formatter: (value: number) => {
+          if (!value || value === 0) return '';
+          return formatValue(value);
+        },
+      },
+    },
+    scales: {
+      x: {
+        beginAtZero: true,
+        max: horizontal ? maxValue : undefined,
+        ticks: {
+          color: '#ADB5BD',
+          font: { size: 12, family: 'Poppins, Arial, sans-serif' },
+          callback: horizontal ? (value: any) => formatValue(Number(value)) : undefined,
+        },
+        grid: { color: 'rgba(255,255,255,0.04)' },
+      },
+      y: {
+        beginAtZero: !horizontal,
+        max: !horizontal ? maxValue : undefined,
+        ticks: {
+          color: '#ADB5BD',
+          font: { size: 12, family: 'Poppins, Arial, sans-serif' },
+          callback: !horizontal ? (value: any) => formatValue(Number(value)) : undefined,
+        },
+        grid: { color: 'rgba(255,255,255,0.04)' },
+      },
+    },
+    onClick: (event: any, elements: any[]) => {
+      if (elements.length > 0 && onBarClick) {
+        const index = elements[0].index;
+        onBarClick(data.labels[index]);
+      }
+    },
+  }), [data, horizontal, maxValue, onBarClick, formatValue]);
+
+  return <Bar data={chartData} options={options} />;
+};

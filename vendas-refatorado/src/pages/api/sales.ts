@@ -1,15 +1,27 @@
 /**
  * API Route para buscar dados de vendas do Google Sheets
  * Evita problemas de CORS fazendo a chamada server-side
+ * Com cache para melhorar performance
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
+
+// Cache simples em memória (server-side)
+let cache: { data: any; timestamp: number } | null = null;
+const CACHE_TTL = 3 * 60 * 1000; // 3 minutos
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   try {
+    // Verificar cache (exceto se for requisição forçada)
+    const forceRefresh = req.query.refresh === 'true';
+    if (!forceRefresh && cache && Date.now() - cache.timestamp < CACHE_TTL) {
+      console.log('[API/sales] Retornando dados em cache');
+      return res.status(200).json({ values: cache.data, cached: true });
+    }
+
     const SPREADSHEET_ID = process.env.NEXT_PUBLIC_SPREADSHEET_SALES;
     const SHEET_NAME = process.env.NEXT_PUBLIC_SHEET_ADESOES || 'ADESOES';
     const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
@@ -23,7 +35,7 @@ export default async function handler(
 
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
     
-    console.log('[API/sales] Buscando dados...');
+    console.log('[API/sales] Buscando dados do Google Sheets...');
     
     const response = await fetch(url);
     
@@ -41,7 +53,13 @@ export default async function handler(
     
     console.log('[API/sales] Dados recebidos:', rows.length, 'linhas');
     
-    return res.status(200).json({ values: rows });
+    // Atualizar cache
+    cache = {
+      data: rows,
+      timestamp: Date.now(),
+    };
+    
+    return res.status(200).json({ values: rows, cached: false });
 
   } catch (error: any) {
     console.error('[API/sales] Erro:', error);

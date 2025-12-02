@@ -1,9 +1,11 @@
 /**
  * Hook para buscar e gerenciar dados de metas
+ * Com cache para evitar re-fetch desnecessário
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Meta, MetasMap } from '@/types/vendas.types';
+import { clientCache, CACHE_KEYS, CACHE_TTL } from '@/utils/cache';
 
 interface UseMetasDataReturn {
   data: MetasMap;
@@ -11,17 +13,39 @@ interface UseMetasDataReturn {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  lastUpdate: Date | null;
 }
 
 /**
- * Hook para buscar dados de metas
+ * Hook para buscar dados de metas com cache
  */
 export function useMetasData(): UseMetasDataReturn {
   const [metas, setMetas] = useState<MetasMap>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const isFetching = useRef(false);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (forceRefresh = false) => {
+    // Evitar múltiplas chamadas simultâneas
+    if (isFetching.current) {
+      console.log('[useMetasData] Já existe uma busca em andamento, ignorando...');
+      return;
+    }
+
+    // Verificar cache primeiro (a menos que force refresh)
+    if (!forceRefresh) {
+      const cachedData = clientCache.get<MetasMap>(CACHE_KEYS.METAS_DATA);
+      if (cachedData) {
+        const cacheAge = clientCache.getAge(CACHE_KEYS.METAS_DATA);
+        console.log('[useMetasData] Usando dados em cache (idade:', Math.round((cacheAge || 0) / 1000), 's)');
+        setMetas(cachedData);
+        setLoading(false);
+        return;
+      }
+    }
+
+    isFetching.current = true;
     setLoading(true);
     setError(null);
 
@@ -91,13 +115,18 @@ export function useMetasData(): UseMetasDataReturn {
         });
       });
 
+      // Salvar no cache
+      clientCache.set(CACHE_KEYS.METAS_DATA, metasMap, CACHE_TTL.LONG);
+      
       setMetas(metasMap);
+      setLastUpdate(new Date());
 
     } catch (err: any) {
       console.error('Erro ao buscar dados de metas:', err);
       setError(err.message || 'Erro desconhecido ao buscar metas');
     } finally {
       setLoading(false);
+      isFetching.current = false;
     }
   }, []);
 
@@ -105,11 +134,16 @@ export function useMetasData(): UseMetasDataReturn {
     fetchData();
   }, [fetchData]);
 
+  const refetch = useCallback(async () => {
+    await fetchData(true);
+  }, [fetchData]);
+
   return {
     data: metas,
     metas,
     loading,
     error,
-    refetch: fetchData,
+    refetch,
+    lastUpdate,
   };
 }
