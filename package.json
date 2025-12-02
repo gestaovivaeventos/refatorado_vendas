@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "googleapis": "^166.0.0",
-    "recharts": "^3.4.1"
-  }
-}
