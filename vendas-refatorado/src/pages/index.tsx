@@ -85,9 +85,45 @@ export default function Dashboard() {
     }
     return false;
   });
-  const [filtros, setFiltros] = useState<FiltrosState>(INITIAL_FILTERS);
+  
+  // Inicializar filtros com valores salvos no localStorage (período e unidades persistem entre páginas)
+  const [filtros, setFiltros] = useState<FiltrosState>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedFilters = localStorage.getItem('dashboardFilters');
+        if (savedFilters) {
+          const parsed = JSON.parse(savedFilters);
+          return {
+            ...INITIAL_FILTERS,
+            periodoSelecionado: parsed.periodoSelecionado || INITIAL_FILTERS.periodoSelecionado,
+            dataInicio: parsed.dataInicio || INITIAL_FILTERS.dataInicio,
+            dataFim: parsed.dataFim || INITIAL_FILTERS.dataFim,
+            isMetaInterna: parsed.isMetaInterna ?? INITIAL_FILTERS.isMetaInterna,
+            unidades: parsed.unidades || INITIAL_FILTERS.unidades,
+          };
+        }
+      } catch (e) {
+        console.warn('Erro ao recuperar filtros do localStorage:', e);
+      }
+    }
+    return INITIAL_FILTERS;
+  });
   const [tipoGraficoVVR, setTipoGraficoVVR] = useState<'total' | 'vendas' | 'posvendas'>('total');
   const [tipoTabelaDados, setTipoTabelaDados] = useState<'total' | 'vendas' | 'posvendas'>('total');
+
+  // Salvar filtros de período e unidades no localStorage quando mudarem
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const filtersToSave = {
+        periodoSelecionado: filtros.periodoSelecionado,
+        dataInicio: filtros.dataInicio,
+        dataFim: filtros.dataFim,
+        isMetaInterna: filtros.isMetaInterna,
+        unidades: filtros.unidades,
+      };
+      localStorage.setItem('dashboardFilters', JSON.stringify(filtersToSave));
+    }
+  }, [filtros.periodoSelecionado, filtros.dataInicio, filtros.dataFim, filtros.isMetaInterna, filtros.unidades]);
 
   // Salvar estado da sidebar no localStorage quando mudar
   useEffect(() => {
@@ -125,7 +161,32 @@ export default function Dashboard() {
   const isLoading = loadingSales || loadingMetas || loadingFundos;
   const hasError = errorSales || errorMetas || errorFundos;
 
+  // Calcular período ANTES das opções de filtros (para usar na hierarquia)
+  const periodo = useMemo(() => {
+    if (filtros.periodoSelecionado === 'personalizado') {
+      return {
+        startDate: filtros.dataInicio ? new Date(filtros.dataInicio) : new Date(),
+        endDate: filtros.dataFim ? new Date(filtros.dataFim) : new Date(),
+      };
+    }
+    return getPeriodoDatas(filtros.periodoSelecionado as any);
+  }, [filtros.periodoSelecionado, filtros.dataInicio, filtros.dataFim]);
+
+  // Função auxiliar para parsear datas do funil (formato DD/MM/YYYY)
+  const parseFunilDateForFilter = useCallback((dateStr: string | undefined | null): Date | null => {
+    if (!dateStr || typeof dateStr !== 'string') return null;
+    const str = dateStr.trim();
+    const parts = str.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    if (parts) {
+      const [, day, month, year] = parts;
+      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    }
+    const fallback = new Date(str);
+    return isNaN(fallback.getTime()) ? null : fallback;
+  }, []);
+
   // Extrair opções de filtro dos dados
+  // Hierarquia: Período + Unidade filtram as opções dos outros filtros
   const opcoesFiltros = useMemo<FiltrosOpcoes>(() => {
     if (!salesData || salesData.length === 0) {
       return {
@@ -150,38 +211,168 @@ export default function Dashboard() {
       };
     }
 
+    // Unidades sempre mostram todas as opções disponíveis
+    const todasUnidades = extrairUnidades(salesData);
+    
+    // Hierarquia de filtros: Período + Unidade
+    const hasUnidadeFilter = filtros.unidades.length > 0;
+    const startDate = periodo?.startDate;
+    const endDate = periodo?.endDate;
+    
+    // Filtrar salesData por unidade e período
+    const salesDataFiltrado = salesData.filter(d => {
+      const unidadeMatch = !hasUnidadeFilter || filtros.unidades.includes(d.nm_unidade);
+      const dataMatch = !startDate || !endDate || 
+        (d.dt_cadastro_integrante instanceof Date && 
+         d.dt_cadastro_integrante >= startDate && 
+         d.dt_cadastro_integrante <= endDate);
+      return unidadeMatch && dataMatch;
+    });
+    
+    // Filtrar fundosData por unidade e período (usando dt_contrato)
+    const fundosDataFiltrado = fundosData ? fundosData.filter(d => {
+      const unidadeMatch = !hasUnidadeFilter || filtros.unidades.includes(d.nm_unidade);
+      const dataMatch = !startDate || !endDate || 
+        (d.dt_contrato instanceof Date && 
+         d.dt_contrato >= startDate && 
+         d.dt_contrato <= endDate);
+      return unidadeMatch && dataMatch;
+    }) : [];
+    
+    // Filtrar funilData por unidade e período (usando criado_em)
+    const funilDataFiltrado = funilData ? funilData.filter(d => {
+      const unidadeMatch = !hasUnidadeFilter || filtros.unidades.includes(d.nm_unidade);
+      if (!unidadeMatch) return false;
+      
+      if (!startDate || !endDate) return true;
+      
+      const criadoDate = parseFunilDateForFilter(d.criado_em);
+      if (!criadoDate) return true; // Se não conseguir parsear a data, inclui o item
+      return criadoDate >= startDate && criadoDate <= endDate;
+    }) : [];
+
     return {
-      unidades: extrairUnidades(salesData),
+      // Unidades sempre mostram todas (é o filtro principal junto com período)
+      unidades: todasUnidades,
       regionais: [],
       ufs: [],
       cidades: [],
-      consultores: [...new Set(salesData.map((d) => d.consultor_comercial).filter(Boolean))].sort(),
+      // Consultores filtrados pela unidade e período
+      consultores: [...new Set(funilDataFiltrado.map((d) => d.consultor).filter(Boolean))].sort(),
       supervisores: [],
       formasPagamento: [],
-      cursos: [...new Set(salesData.map((d) => d.curso_fundo).filter(Boolean))].sort(),
-      fundos: fundosData ? [...new Set(fundosData.map((d) => d.nm_fundo).filter(Boolean))].sort() : [],
-      origensLead: [],
-      segmentacoesLead: [],
-      etiquetas: [],
-      tiposAdesao: [],
-      tiposServico: [...new Set(salesData.map((d) => d.tp_servico).filter(Boolean))].sort(),
-      tiposCliente: [...new Set(salesData.map((d) => d.tipo_cliente).filter(Boolean))].sort(),
-      consultoresComerciais: [],
-      indicacoesAdesao: [],
-      instituicoes: [...new Set(salesData.map((d) => d.nm_instituicao).filter(Boolean))].sort(),
+      // Cursos filtrados pela unidade e período
+      cursos: [...new Set(salesDataFiltrado.map((d) => d.curso_fundo).filter(Boolean))].sort(),
+      // Fundos filtrados pela unidade e período
+      fundos: [...new Set(fundosDataFiltrado.map((d) => d.nm_fundo).filter(Boolean))].sort(),
+      // Dados do Funil filtrados pela unidade e período
+      origensLead: [...new Set(funilDataFiltrado.map((d) => d.origem_lead).filter(Boolean))].sort(),
+      segmentacoesLead: [...new Set(funilDataFiltrado.map((d) => d.segmentacao_lead).filter(Boolean))].sort(),
+      etiquetas: [...new Set(funilDataFiltrado.map((d) => d.etiquetas).filter(Boolean))].sort(),
+      // Dados de Vendas/Adesões filtrados pela unidade e período
+      tiposAdesao: [...new Set(salesDataFiltrado.map((d) => (d.venda_posvenda || '').trim().toUpperCase()).filter(Boolean))].sort(),
+      tiposServico: [...new Set(salesDataFiltrado.map((d) => d.tp_servico).filter(Boolean))].sort(),
+      tiposCliente: [...new Set(salesDataFiltrado.map((d) => d.tipo_cliente).filter(Boolean))].sort(),
+      consultoresComerciais: [...new Set(salesDataFiltrado.map((d) => d.consultor_comercial).filter(Boolean))].sort(),
+      indicacoesAdesao: [...new Set(salesDataFiltrado.map((d) => d.indicado_por).filter(Boolean))].sort(),
+      instituicoes: [...new Set(salesDataFiltrado.map((d) => d.nm_instituicao).filter(Boolean))].sort(),
     };
-  }, [salesData, fundosData]);
+  }, [salesData, fundosData, funilData, filtros.unidades, periodo, parseFunilDateForFilter]);
 
-  // Calcular período
-  const periodo = useMemo(() => {
-    if (filtros.periodoSelecionado === 'personalizado') {
-      return {
-        startDate: filtros.dataInicio ? new Date(filtros.dataInicio) : new Date(),
-        endDate: filtros.dataFim ? new Date(filtros.dataFim) : new Date(),
-      };
+  // Limpar filtros secundários que não são mais válidos quando a unidade muda
+  useEffect(() => {
+    const filtrosParaLimpar: Partial<FiltrosState> = {};
+    
+    // Verificar cada filtro e limpar valores que não existem mais nas opções
+    if (filtros.cursos.length > 0) {
+      const cursosValidos = filtros.cursos.filter(c => opcoesFiltros.cursos.includes(c));
+      if (cursosValidos.length !== filtros.cursos.length) {
+        filtrosParaLimpar.cursos = cursosValidos;
+      }
     }
-    return getPeriodoDatas(filtros.periodoSelecionado as any);
-  }, [filtros.periodoSelecionado, filtros.dataInicio, filtros.dataFim]);
+    
+    if (filtros.fundos.length > 0) {
+      const fundosValidos = filtros.fundos.filter(f => opcoesFiltros.fundos.includes(f));
+      if (fundosValidos.length !== filtros.fundos.length) {
+        filtrosParaLimpar.fundos = fundosValidos;
+      }
+    }
+    
+    if (filtros.consultores.length > 0) {
+      const consultoresValidos = filtros.consultores.filter(c => opcoesFiltros.consultores.includes(c));
+      if (consultoresValidos.length !== filtros.consultores.length) {
+        filtrosParaLimpar.consultores = consultoresValidos;
+      }
+    }
+    
+    if (filtros.tipoAdesao.length > 0) {
+      const tiposValidos = filtros.tipoAdesao.filter(t => opcoesFiltros.tiposAdesao.includes(t));
+      if (tiposValidos.length !== filtros.tipoAdesao.length) {
+        filtrosParaLimpar.tipoAdesao = tiposValidos;
+      }
+    }
+    
+    if (filtros.tipoServico.length > 0) {
+      const tiposValidos = filtros.tipoServico.filter(t => opcoesFiltros.tiposServico.includes(t));
+      if (tiposValidos.length !== filtros.tipoServico.length) {
+        filtrosParaLimpar.tipoServico = tiposValidos;
+      }
+    }
+    
+    if (filtros.tipoCliente.length > 0) {
+      const tiposValidos = filtros.tipoCliente.filter(t => opcoesFiltros.tiposCliente.includes(t));
+      if (tiposValidos.length !== filtros.tipoCliente.length) {
+        filtrosParaLimpar.tipoCliente = tiposValidos;
+      }
+    }
+    
+    if (filtros.consultorComercial.length > 0) {
+      const consultoresValidos = filtros.consultorComercial.filter(c => opcoesFiltros.consultoresComerciais.includes(c));
+      if (consultoresValidos.length !== filtros.consultorComercial.length) {
+        filtrosParaLimpar.consultorComercial = consultoresValidos;
+      }
+    }
+    
+    if (filtros.indicacaoAdesao.length > 0) {
+      const indicacoesValidas = filtros.indicacaoAdesao.filter(i => opcoesFiltros.indicacoesAdesao.includes(i));
+      if (indicacoesValidas.length !== filtros.indicacaoAdesao.length) {
+        filtrosParaLimpar.indicacaoAdesao = indicacoesValidas;
+      }
+    }
+    
+    if (filtros.instituicao.length > 0) {
+      const instituicoesValidas = filtros.instituicao.filter(i => opcoesFiltros.instituicoes.includes(i));
+      if (instituicoesValidas.length !== filtros.instituicao.length) {
+        filtrosParaLimpar.instituicao = instituicoesValidas;
+      }
+    }
+    
+    if (filtros.origemLead.length > 0) {
+      const origensValidas = filtros.origemLead.filter(o => opcoesFiltros.origensLead.includes(o));
+      if (origensValidas.length !== filtros.origemLead.length) {
+        filtrosParaLimpar.origemLead = origensValidas;
+      }
+    }
+    
+    if (filtros.segmentacaoLead.length > 0) {
+      const segmentacoesValidas = filtros.segmentacaoLead.filter(s => opcoesFiltros.segmentacoesLead.includes(s));
+      if (segmentacoesValidas.length !== filtros.segmentacaoLead.length) {
+        filtrosParaLimpar.segmentacaoLead = segmentacoesValidas;
+      }
+    }
+    
+    if (filtros.etiquetas.length > 0) {
+      const etiquetasValidas = filtros.etiquetas.filter(e => opcoesFiltros.etiquetas.includes(e));
+      if (etiquetasValidas.length !== filtros.etiquetas.length) {
+        filtrosParaLimpar.etiquetas = etiquetasValidas;
+      }
+    }
+    
+    // Só atualiza se houver algo para limpar
+    if (Object.keys(filtrosParaLimpar).length > 0) {
+      setFiltros(prev => ({ ...prev, ...filtrosParaLimpar }));
+    }
+  }, [opcoesFiltros]); // Executa quando as opções de filtros mudam (que depende da unidade e período)
 
   // Ano vigente baseado no período
   const anoVigente = useMemo(() => {
@@ -193,11 +384,36 @@ export default function Dashboard() {
     if (!salesData || salesData.length === 0 || !periodo?.startDate) return [];
     
     return filtrarDados(salesData, {
+      // Filtros básicos
       dataInicio: periodo.startDate,
       dataFim: periodo.endDate,
       unidades: filtros.unidades,
+      
+      // Filtros da página de Metas
+      cursos: filtros.cursos,
+      
+      // Filtros da página de Indicadores
+      fundos: filtros.fundos,
+      tipoAdesao: filtros.tipoAdesao,
+      tipoServico: filtros.tipoServico,
+      tipoCliente: filtros.tipoCliente,
+      consultorComercial: filtros.consultorComercial,
+      indicacaoAdesao: filtros.indicacaoAdesao,
+      instituicao: filtros.instituicao,
     });
-  }, [salesData, periodo, filtros.unidades]);
+  }, [
+    salesData, 
+    periodo, 
+    filtros.unidades, 
+    filtros.cursos,
+    filtros.fundos,
+    filtros.tipoAdesao,
+    filtros.tipoServico,
+    filtros.tipoCliente,
+    filtros.consultorComercial,
+    filtros.indicacaoAdesao,
+    filtros.instituicao,
+  ]);
 
   // Calcular KPIs básicos
   const kpis = useMemo(() => {
@@ -285,6 +501,14 @@ export default function Dashboard() {
       dataInicio: startDateAnoAnterior,
       dataFim: endDateAnoAnterior,
       unidades: filtros.unidades,
+      cursos: filtros.cursos,
+      fundos: filtros.fundos,
+      tipoAdesao: filtros.tipoAdesao,
+      tipoServico: filtros.tipoServico,
+      tipoCliente: filtros.tipoCliente,
+      consultorComercial: filtros.consultorComercial,
+      indicacaoAdesao: filtros.indicacaoAdesao,
+      instituicao: filtros.instituicao,
     });
 
     // Separar vendas e pós-vendas
@@ -329,37 +553,169 @@ export default function Dashboard() {
       metaVVRVendas: metaVVRVendas * multiplicador,
       metaVVRPosVendas: metaVVRPosVendas * multiplicador,
     };
-  }, [salesData, periodo, filtros.unidades, filtros.isMetaInterna, metasData, opcoesFiltros.unidades]);
+  }, [
+    salesData, 
+    periodo, 
+    filtros.unidades, 
+    filtros.cursos,
+    filtros.fundos,
+    filtros.tipoAdesao,
+    filtros.tipoServico,
+    filtros.tipoCliente,
+    filtros.consultorComercial,
+    filtros.indicacaoAdesao,
+    filtros.instituicao,
+    filtros.isMetaInterna, 
+    metasData, 
+    opcoesFiltros.unidades
+  ]);
+
+  // Função auxiliar para parsear datas do funil (formato DD/MM/YYYY ou DD/MM/YYYY HH:MM:SS)
+  const parseFunilDate = useCallback((dateStr: string | undefined | null): Date | null => {
+    if (!dateStr) return null;
+    
+    const str = String(dateStr).trim();
+    if (!str) return null;
+    
+    // Tentar formato brasileiro DD/MM/YYYY (com ou sem hora)
+    const parts = str.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    if (parts) {
+      const [, day, month, year] = parts;
+      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    }
+    
+    // Tentar formato ISO ou outro
+    const dt = new Date(str);
+    if (!isNaN(dt.getTime())) {
+      return dt;
+    }
+    
+    return null;
+  }, []);
 
   // Indicadores Operacionais (Leads, Reuniões, Contratos, Adesão)
   const indicadoresOperacionais = useMemo(() => {
     const multiplicador = filtros.isMetaInterna ? META_CONFIG.META_INTERNA_MULTIPLICADOR : 1;
+    // Se nenhuma unidade selecionada, aceitar todos os registros
+    const hasUnidadeFilter = filtros.unidades.length > 0;
     
-    // Leads: dados do funil
-    const leads = funilData?.length || 0;
-    const metaLeads = 100 * multiplicador;
-
-    // Reuniões: placeholder
-    const reunioes = 0;
-    const metaReunioes = 50 * multiplicador;
-
-    // Contratos (MV): contratos de múltiplas vendas
-    const contratos = dadosFiltrados.filter(d => 
-      (d.tp_servico || '').toUpperCase().includes('MV')
+    // === LEADS ===
+    // Contar leads do funil no período, filtrado por unidade
+    const leadsCount = (funilData || []).filter(item => {
+      // Verificar unidade - se não há filtro, aceitar todos
+      if (hasUnidadeFilter && !filtros.unidades.includes(item.nm_unidade)) {
+        return false;
+      }
+      
+      // Verificar se tem título
+      if (!item.titulo || item.titulo.trim() === '') return false;
+      
+      // Parsear data de criação usando função robusta
+      const criadoDate = parseFunilDate(item.criado_em);
+      
+      // Verificar período
+      if (!criadoDate) return false;
+      if (!periodo?.startDate || !periodo?.endDate) return false;
+      
+      return criadoDate >= periodo.startDate && criadoDate <= periodo.endDate;
+    }).length;
+    
+    // === REUNIÕES ===
+    // Usar diagnostico_realizado ou proposta_enviada do funil
+    const reunioesCount = (funilData || []).reduce((acc, item) => {
+      // Verificar unidade - se não há filtro, aceitar todos
+      if (hasUnidadeFilter && !filtros.unidades.includes(item.nm_unidade)) {
+        return acc;
+      }
+      
+      // Usar diagnostico_realizado ou proposta_enviada
+      const dateStr = (item.diagnostico_realizado && item.diagnostico_realizado.trim() !== '') 
+        ? item.diagnostico_realizado 
+        : (item.proposta_enviada && item.proposta_enviada.trim() !== '') 
+          ? item.proposta_enviada 
+          : null;
+      
+      if (!dateStr) return acc;
+      
+      // Parsear data usando função robusta
+      const parsedDate = parseFunilDate(dateStr);
+      
+      if (!parsedDate) return acc;
+      if (!periodo?.startDate || !periodo?.endDate) return acc;
+      
+      if (parsedDate >= periodo.startDate && parsedDate <= periodo.endDate) {
+        return acc + 1;
+      }
+      return acc;
+    }, 0);
+    
+    // === CONTRATOS (MV) ===
+    // Contar id_fundo em fundosData dentro do período
+    const contratosCount = (fundosData || []).filter(d => {
+      // Verificar unidade - se não há filtro, aceitar todos
+      if (hasUnidadeFilter && !filtros.unidades.includes(d.nm_unidade)) {
+        return false;
+      }
+      
+      // Verificar se tem id_fundo
+      if (!d.id_fundo || d.id_fundo.toString().trim() === '') return false;
+      
+      // Verificar período pela dt_contrato
+      if (!d.dt_contrato || !(d.dt_contrato instanceof Date)) return false;
+      if (!periodo?.startDate || !periodo?.endDate) return false;
+      
+      return d.dt_contrato >= periodo.startDate && d.dt_contrato <= periodo.endDate;
+    }).length;
+    
+    // === ADESÕES ===
+    // Contar adesões com codigo_integrante válido
+    const adesoesCount = dadosFiltrados.filter(d => 
+      d.codigo_integrante && d.codigo_integrante.toString().trim() !== ''
     ).length;
-    const metaContratos = 30 * multiplicador;
-
-    // Adesão Total: total de vendas
-    const adesao = dadosFiltrados.length;
-    const metaAdesao = kpis.metaQAV;
+    
+    // === CALCULAR METAS ===
+    let metaLeads = 0;
+    let metaReunioes = 0;
+    let metaContratos = 0;
+    let metaAdesoes = 0;
+    
+    if (metasData && metasData.size > 0 && periodo?.startDate && periodo?.endDate) {
+      // Se há filtro de unidades, normalizar para comparação
+      const unidadesNorm = hasUnidadeFilter 
+        ? filtros.unidades.map(u => u?.toString().toLowerCase().trim() || '')
+        : [];
+      
+      metasData.forEach((metaInfo, chave) => {
+        const [unidadeMetaRaw, anoMeta, mesMeta] = chave.split('-');
+        const unidadeMeta = unidadeMetaRaw?.toString().toLowerCase().trim() || '';
+        
+        if (!unidadeMeta) return;
+        
+        // Verificar unidade - se não há filtro, aceitar todas
+        if (hasUnidadeFilter && !unidadesNorm.includes(unidadeMeta)) return;
+        
+        // Verificar se o mês/ano da meta está dentro do período
+        if (anoMeta && mesMeta) {
+          const metaRangeStart = new Date(Number(anoMeta), Number(mesMeta) - 1, 1);
+          const metaRangeEnd = new Date(Number(anoMeta), Number(mesMeta), 1);
+          
+          if (metaRangeStart <= periodo.endDate && metaRangeEnd > periodo.startDate) {
+            metaLeads += metaInfo.meta_leads || 0;
+            metaReunioes += metaInfo.meta_reunioes || 0;
+            metaContratos += metaInfo.meta_contratos || 0;
+            metaAdesoes += metaInfo.meta_adesoes || 0;
+          }
+        }
+      });
+    }
 
     return {
-      leads: { valor: leads, meta: metaLeads },
-      reunioes: { valor: reunioes, meta: metaReunioes },
-      contratos: { valor: contratos, meta: metaContratos },
-      adesao: { valor: adesao, meta: metaAdesao },
+      leads: { valor: leadsCount, meta: metaLeads * multiplicador },
+      reunioes: { valor: reunioesCount, meta: metaReunioes * multiplicador },
+      contratos: { valor: contratosCount, meta: metaContratos * multiplicador },
+      adesao: { valor: adesoesCount, meta: metaAdesoes * multiplicador },
     };
-  }, [dadosFiltrados, funilData, filtros.isMetaInterna, kpis.metaQAV]);
+  }, [dadosFiltrados, funilData, fundosData, filtros.unidades, filtros.isMetaInterna, metasData, periodo, parseFunilDate]);
 
   // Dados para gráfico VVR vs Meta por Mês
   const dadosGraficoVVRMes = useMemo(() => {
@@ -602,18 +958,22 @@ export default function Dashboard() {
 
     const multiplicador = filtros.isMetaInterna ? META_CONFIG.META_INTERNA_MULTIPLICADOR : 1;
     const startDate = periodo.startDate;
-    const endDate = new Date(periodo.endDate);
-    endDate.setDate(endDate.getDate() + 1); // Incluir o último dia
+    const endDate = periodo.endDate;
 
-    // Obter lista de unidades dos dados filtrados
+    // Obter lista de unidades dos dados filtrados, funil e fundos
     const unidadesSet = new Set<string>();
     dadosFiltrados.forEach(d => {
       if (d.nm_unidade) unidadesSet.add(d.nm_unidade);
     });
     
-    // Adicionar unidades do funil
     if (funilData) {
       funilData.forEach(d => {
+        if (d.nm_unidade) unidadesSet.add(d.nm_unidade);
+      });
+    }
+    
+    if (fundosData) {
+      fundosData.forEach(d => {
         if (d.nm_unidade) unidadesSet.add(d.nm_unidade);
       });
     }
@@ -621,16 +981,15 @@ export default function Dashboard() {
     const unidades = Array.from(unidadesSet).sort();
 
     return unidades.map(unidade => {
-      // LEADS: contar do funil para essa unidade no período
+      // === LEADS ===
+      // Contar do funil para essa unidade no período, com título válido
       const leadsResultado = (funilData || []).filter(d => {
         if (d.nm_unidade !== unidade) return false;
-        const criado = d.criado_em;
-        if (!criado) return false;
-        // Parse date from criado_em (DD/MM/YYYY format)
-        const parts = String(criado).match(/(\d{2})\/(\d{2})\/(\d{4})/);
-        if (!parts) return false;
-        const dateObj = new Date(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1]));
-        return dateObj >= startDate && dateObj < endDate;
+        if (!d.titulo || d.titulo.trim() === '') return false;
+        
+        const dateObj = parseFunilDate(d.criado_em);
+        if (!dateObj) return false;
+        return dateObj >= startDate && dateObj <= endDate;
       }).length;
 
       // Buscar meta de leads para essa unidade no período
@@ -640,28 +999,34 @@ export default function Dashboard() {
           const [u, ano, mes] = chave.split('-');
           if (u !== unidade) return;
           if (ano && mes) {
-            const metaDate = new Date(Number(ano), Number(mes) - 1, 1);
-            const metaRangeStart = new Date(metaDate.getFullYear(), metaDate.getMonth(), 1);
-            const metaRangeEnd = new Date(metaDate.getFullYear(), metaDate.getMonth() + 1, 1);
-            if (metaRangeStart < endDate && metaRangeEnd > startDate) {
+            const metaRangeStart = new Date(Number(ano), Number(mes) - 1, 1);
+            const metaRangeEnd = new Date(Number(ano), Number(mes), 1);
+            if (metaRangeStart <= endDate && metaRangeEnd > startDate) {
               leadsMeta += (metaInfo.meta_leads || 0) * multiplicador;
             }
           }
         });
       }
 
-      // REUNIÕES: contar do funil com diagnostico_realizado preenchido
-      const reunioesResultado = (funilData || []).filter(d => {
-        if (d.nm_unidade !== unidade) return false;
-        // Verificar se passou da fase de qualificação (diagnostico_realizado preenchido)
-        if (!d.diagnostico_realizado || d.diagnostico_realizado.trim() === '') return false;
-        const criado = d.criado_em;
-        if (!criado) return false;
-        const parts = String(criado).match(/(\d{2})\/(\d{2})\/(\d{4})/);
-        if (!parts) return false;
-        const dateObj = new Date(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1]));
-        return dateObj >= startDate && dateObj < endDate;
-      }).length;
+      // === REUNIÕES ===
+      // Usar diagnostico_realizado ou proposta_enviada como data da reunião
+      const reunioesResultado = (funilData || []).reduce((acc, d) => {
+        if (d.nm_unidade !== unidade) return acc;
+        
+        // Usar diagnostico_realizado ou proposta_enviada
+        const dateStr = (d.diagnostico_realizado && d.diagnostico_realizado.trim() !== '') 
+          ? d.diagnostico_realizado 
+          : (d.proposta_enviada && d.proposta_enviada.trim() !== '') 
+            ? d.proposta_enviada 
+            : null;
+        
+        if (!dateStr) return acc;
+        
+        const parsedDate = parseFunilDate(dateStr);
+        if (!parsedDate) return acc;
+        if (parsedDate >= startDate && parsedDate <= endDate) return acc + 1;
+        return acc;
+      }, 0);
 
       let reunioesMeta = 0;
       if (metasData) {
@@ -669,18 +1034,23 @@ export default function Dashboard() {
           const [u, ano, mes] = chave.split('-');
           if (u !== unidade) return;
           if (ano && mes) {
-            const metaDate = new Date(Number(ano), Number(mes) - 1, 1);
-            const metaRangeStart = new Date(metaDate.getFullYear(), metaDate.getMonth(), 1);
-            const metaRangeEnd = new Date(metaDate.getFullYear(), metaDate.getMonth() + 1, 1);
-            if (metaRangeStart < endDate && metaRangeEnd > startDate) {
+            const metaRangeStart = new Date(Number(ano), Number(mes) - 1, 1);
+            const metaRangeEnd = new Date(Number(ano), Number(mes), 1);
+            if (metaRangeStart <= endDate && metaRangeEnd > startDate) {
               reunioesMeta += (metaInfo.meta_reunioes || 0) * multiplicador;
             }
           }
         });
       }
 
-      // CONTRATOS: contar do salesData para essa unidade no período
-      const contratosResultado = dadosFiltrados.filter(d => d.nm_unidade === unidade).length;
+      // === CONTRATOS (MV) ===
+      // Contar id_fundo em fundosData para essa unidade no período
+      const contratosResultado = (fundosData || []).filter(d => {
+        if (d.nm_unidade !== unidade) return false;
+        if (!d.id_fundo || d.id_fundo.toString().trim() === '') return false;
+        if (!d.dt_contrato || !(d.dt_contrato instanceof Date)) return false;
+        return d.dt_contrato >= startDate && d.dt_contrato <= endDate;
+      }).length;
 
       let contratosMeta = 0;
       if (metasData) {
@@ -688,17 +1058,17 @@ export default function Dashboard() {
           const [u, ano, mes] = chave.split('-');
           if (u !== unidade) return;
           if (ano && mes) {
-            const metaDate = new Date(Number(ano), Number(mes) - 1, 1);
-            const metaRangeStart = new Date(metaDate.getFullYear(), metaDate.getMonth(), 1);
-            const metaRangeEnd = new Date(metaDate.getFullYear(), metaDate.getMonth() + 1, 1);
-            if (metaRangeStart < endDate && metaRangeEnd > startDate) {
+            const metaRangeStart = new Date(Number(ano), Number(mes) - 1, 1);
+            const metaRangeEnd = new Date(Number(ano), Number(mes), 1);
+            if (metaRangeStart <= endDate && metaRangeEnd > startDate) {
               contratosMeta += (metaInfo.meta_contratos || 0) * multiplicador;
             }
           }
         });
       }
 
-      // ADESÕES: contar código de integrante único
+      // === ADESÕES ===
+      // Contar código de integrante único para essa unidade
       const adesoesResultado = dadosFiltrados.filter(d => 
         d.nm_unidade === unidade && 
         d.codigo_integrante && 
@@ -711,10 +1081,9 @@ export default function Dashboard() {
           const [u, ano, mes] = chave.split('-');
           if (u !== unidade) return;
           if (ano && mes) {
-            const metaDate = new Date(Number(ano), Number(mes) - 1, 1);
-            const metaRangeStart = new Date(metaDate.getFullYear(), metaDate.getMonth(), 1);
-            const metaRangeEnd = new Date(metaDate.getFullYear(), metaDate.getMonth() + 1, 1);
-            if (metaRangeStart < endDate && metaRangeEnd > startDate) {
+            const metaRangeStart = new Date(Number(ano), Number(mes) - 1, 1);
+            const metaRangeEnd = new Date(Number(ano), Number(mes), 1);
+            if (metaRangeStart <= endDate && metaRangeEnd > startDate) {
               adesoesMeta += (metaInfo.meta_adesoes || 0) * multiplicador;
             }
           }
@@ -729,7 +1098,7 @@ export default function Dashboard() {
         adesoesPercent: adesoesMeta > 0 ? adesoesResultado / adesoesMeta : 0,
       };
     });
-  }, [dadosFiltrados, funilData, metasData, periodo, filtros.isMetaInterna]);
+  }, [dadosFiltrados, funilData, fundosData, metasData, periodo, filtros.isMetaInterna, parseFunilDate]);
 
   // ========== DADOS PARA INDICADORES SECUNDÁRIOS ==========
   
@@ -1167,49 +1536,44 @@ export default function Dashboard() {
   }, [salesData, filtros.unidades, opcoesFiltros.unidades, anoSelecionadoAdesoesTipo, anoVigente]);
 
   // Dados para tabela de Desempenho por Consultor Comercial
+  // Usa dadosFiltrados que já tem todos os filtros aplicados (período, unidade, tipo adesão, etc.)
   const dadosConsultorComercial = useMemo(() => {
-    if (!salesData || salesData.length === 0) return [];
+    if (!dadosFiltrados || dadosFiltrados.length === 0) return [];
 
-    const unidadesAtivas = filtros.unidades.length > 0 ? filtros.unidades : opcoesFiltros.unidades;
-    
-    const dadosFiltradosUnidades = unidadesAtivas.length > 0
-      ? salesData.filter(d => unidadesAtivas.includes(d.nm_unidade))
-      : salesData;
+    // Agrupar por chave única: unidade + consultor (indicado_por conforme código original)
+    const performanceMap = new Map<string, { unidade: string; consultor: string; vvrTotal: number; totalAdesoes: number }>();
 
-    // Agrupar por consultor
-    const consultorMap: Record<string, { unidade: string; vvrTotal: number; totalAdesoes: number }> = {};
-
-    dadosFiltradosUnidades.forEach(d => {
-      const consultor = d.consultor_comercial || 'N/A';
+    dadosFiltrados.forEach(d => {
+      // Usar indicado_por como consultor comercial (conforme lógica original)
+      const consultor = d.indicado_por || 'N/A';
       const unidade = d.nm_unidade || 'N/A';
+      const key = `${unidade}-${consultor}`;
       
-      if (!consultorMap[consultor]) {
-        consultorMap[consultor] = { unidade, vvrTotal: 0, totalAdesoes: 0 };
+      if (!performanceMap.has(key)) {
+        performanceMap.set(key, { unidade, consultor, vvrTotal: 0, totalAdesoes: 0 });
       }
       
-      consultorMap[consultor].vvrTotal += d.vl_plano || 0;
-      consultorMap[consultor].totalAdesoes += 1;
+      const entry = performanceMap.get(key)!;
+      entry.vvrTotal += d.vl_plano || 0;
+      entry.totalAdesoes += 1;
     });
 
-    return Object.entries(consultorMap).map(([consultor, dados]) => ({
-      unidade: dados.unidade,
-      consultorComercial: consultor,
-      vvrTotal: dados.vvrTotal,
-      totalAdesoes: dados.totalAdesoes,
-    })).sort((a, b) => b.vvrTotal - a.vvrTotal);
-  }, [salesData, filtros.unidades, opcoesFiltros.unidades]);
+    return Array.from(performanceMap.values())
+      .map(item => ({
+        unidade: item.unidade,
+        consultorComercial: item.consultor,
+        vvrTotal: item.vvrTotal,
+        totalAdesoes: item.totalAdesoes,
+      }))
+      .sort((a, b) => b.vvrTotal - a.vvrTotal);
+  }, [dadosFiltrados]);
 
   // Dados para tabela de Adesões Detalhadas
+  // Usa dadosFiltrados que já tem todos os filtros aplicados (período, unidade, tipo adesão, etc.)
   const dadosAdesoesDetalhadas = useMemo(() => {
-    if (!salesData || salesData.length === 0) return [];
+    if (!dadosFiltrados || dadosFiltrados.length === 0) return [];
 
-    const unidadesAtivas = filtros.unidades.length > 0 ? filtros.unidades : opcoesFiltros.unidades;
-    
-    const dadosFiltradosUnidades = unidadesAtivas.length > 0
-      ? salesData.filter(d => unidadesAtivas.includes(d.nm_unidade))
-      : salesData;
-
-    return dadosFiltradosUnidades.map(d => ({
+    return dadosFiltrados.map(d => ({
       unidade: d.nm_unidade || 'N/A',
       codIntegrante: d.codigo_integrante || '',
       integrante: d.nm_integrante || 'N/A',
@@ -1218,20 +1582,39 @@ export default function Dashboard() {
         : '',
       codFundo: d.id_fundo || '',
       tipo: d.venda_posvenda || '',
-      consultor: d.consultor_comercial || 'N/A',
+      consultor: d.indicado_por || 'N/A',
       vvr: d.vl_plano || 0,
     }));
-  }, [salesData, filtros.unidades, opcoesFiltros.unidades]);
+  }, [dadosFiltrados]);
 
   // Dados para tabela de Fundos Detalhados
+  // Usa fundosData com filtros de período e unidade aplicados
   const dadosFundosDetalhados = useMemo(() => {
-    if (!fundosData || fundosData.length === 0) return [];
+    if (!fundosData || fundosData.length === 0 || !periodo?.startDate) return [];
 
+    const startDate = periodo.startDate;
+    const endDate = periodo.endDate;
     const unidadesAtivas = filtros.unidades.length > 0 ? filtros.unidades : opcoesFiltros.unidades;
-    
-    const dadosFiltrados = unidadesAtivas.length > 0
-      ? fundosData.filter(d => unidadesAtivas.includes(d.nm_unidade))
-      : fundosData;
+
+    // Filtrar por unidade e período (dt_contrato)
+    const dadosFiltrados = fundosData.filter(d => {
+      const unidadeMatch = unidadesAtivas.length === 0 || unidadesAtivas.includes(d.nm_unidade);
+      const dateMatch = d.dt_contrato instanceof Date && d.dt_contrato >= startDate && d.dt_contrato <= endDate;
+      
+      // Filtros adicionais da página de indicadores
+      const cursoMatch = filtros.cursos.length === 0 || 
+        (d.curso_fundo && filtros.cursos.includes(d.curso_fundo));
+      const fundoMatch = filtros.fundos.length === 0 || 
+        (d.nm_fundo && filtros.fundos.includes(d.nm_fundo));
+      const tipoServicoMatch = filtros.tipoServico.length === 0 || 
+        (d.tipo_servico && filtros.tipoServico.includes(d.tipo_servico.trim().toUpperCase()));
+      const tipoClienteMatch = filtros.tipoCliente.length === 0 || 
+        (d.tipo_cliente && filtros.tipoCliente.includes(d.tipo_cliente.trim().toUpperCase()));
+      const instituicaoMatch = filtros.instituicao.length === 0 || 
+        (d.instituicao && filtros.instituicao.includes(d.instituicao.trim().toUpperCase()));
+      
+      return unidadeMatch && dateMatch && cursoMatch && fundoMatch && tipoServicoMatch && tipoClienteMatch && instituicaoMatch;
+    });
 
     return dadosFiltrados.map(d => ({
       unidade: d.nm_unidade || 'N/A',
@@ -1249,7 +1632,7 @@ export default function Dashboard() {
         ? d.dt_baile.toLocaleDateString('pt-BR') 
         : '',
     }));
-  }, [fundosData, filtros.unidades, opcoesFiltros.unidades]);
+  }, [fundosData, periodo, filtros.unidades, filtros.cursos, filtros.fundos, filtros.tipoServico, filtros.tipoCliente, filtros.instituicao, opcoesFiltros.unidades]);
 
   // ========== DADOS DO FUNIL ==========
   
@@ -2165,12 +2548,13 @@ export default function Dashboard() {
               filtros={filtros}
               opcoes={opcoesFiltros}
               onFiltrosChange={handleFiltrosChange}
-              showMetaToggle={paginaAtiva === 'metas'}
+              paginaAtiva={paginaAtiva}
+              showMetaToggle={paginaAtiva !== 'funil'}
               showUnidades={true}
               showRegionais={false}
               showUFs={false}
               showCidades={false}
-              showConsultores={paginaAtiva !== 'funil'}
+              showConsultores={false}
               showSupervisores={false}
             />
           </Sidebar>

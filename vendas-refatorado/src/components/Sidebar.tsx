@@ -3,7 +3,7 @@
  */
 
 import React, { useState } from 'react';
-import { ChevronRight, ChevronLeft, BarChart3, TrendingUp, Target, Home } from 'lucide-react';
+import { ChevronRight, ChevronLeft, BarChart3, TrendingUp, Target, Home, LogOut } from 'lucide-react';
 import { PAGES } from '@/config/app.config';
 
 interface SidebarProps {
@@ -41,36 +41,36 @@ export default function Sidebar({
     <>
       {/* Sidebar Container */}
       <aside
-        className="fixed left-0 top-0 bottom-0 bg-dark-secondary overflow-y-auto overflow-x-hidden transition-all duration-300 z-50"
+        className="fixed left-0 top-0 bottom-0 bg-dark-secondary overflow-y-auto transition-all duration-300 z-50"
         style={{
           width: isCollapsed ? `${SIDEBAR_WIDTH_COLLAPSED}px` : `${SIDEBAR_WIDTH_EXPANDED}px`,
           borderRight: '2px solid #343A40',
+          overflow: 'visible',
         }}
       >
-        {/* Conteúdo da Sidebar */}
-        <div className={`pt-5 ${isCollapsed ? 'px-2' : 'p-5'}`}>
-          {/* Toggle Button */}
-          <button
-            onClick={() => onCollapseChange(!isCollapsed)}
-            className={`
-              w-full flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200 
-              bg-orange-500/10 border border-orange-500 hover:bg-orange-500/20 mb-4
-              ${isCollapsed ? 'h-10' : 'h-9 px-4'}
-            `}
-            title={isCollapsed ? 'Expandir Menu' : 'Recolher Menu'}
-          >
-            {isCollapsed ? (
-              <ChevronRight size={18} className="text-orange-500" />
-            ) : (
-              <div className="flex items-center justify-between w-full">
-                <span className="text-orange-500 text-sm font-medium" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                  Recolher
-                </span>
-                <ChevronLeft size={18} className="text-orange-500" />
-              </div>
-            )}
-          </button>
+        {/* Toggle Button - Na beirada direita da sidebar */}
+        <button
+          onClick={() => onCollapseChange(!isCollapsed)}
+          className="absolute w-8 h-8 flex items-center justify-center rounded-md bg-dark-secondary border border-orange-500 hover:bg-orange-500/20 cursor-pointer transition-all duration-200 shadow-lg"
+          style={{
+            top: '24px',
+            right: '-16px',
+            zIndex: 60,
+          }}
+          title={isCollapsed ? 'Expandir Menu' : 'Recolher Menu'}
+        >
+          {isCollapsed ? (
+            <ChevronRight size={18} className="text-orange-500" />
+          ) : (
+            <ChevronLeft size={18} className="text-orange-500" />
+          )}
+        </button>
 
+        {/* Conteúdo da Sidebar - com scroll */}
+        <div 
+          className={`${isCollapsed ? 'px-2 pt-16' : 'p-5 pt-16'} flex flex-col`}
+          style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}
+        >
           {/* Link para Central de Dashboards */}
           <a
             href="https://central-dashs-viva-html.vercel.app/"
@@ -131,6 +131,33 @@ export default function Sidebar({
               </div>
             </>
           )}
+
+          {/* Espaçador flexível para empurrar o botão de logout para baixo */}
+          <div className="flex-grow" />
+
+          {/* Botão de Logout */}
+          <div className={`${isCollapsed ? 'pb-4' : 'pb-6'}`}>
+            <hr className="border-dark-tertiary mb-4" />
+            <button
+              onClick={() => {
+                // TODO: Implementar função de logout
+                console.log('Logout clicado');
+              }}
+              className={`
+                flex items-center rounded-lg transition-all duration-200 text-gray-400 border border-transparent hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/50
+                ${isCollapsed ? 'justify-center p-2.5 w-full' : 'gap-3 px-4 py-2.5 w-full'}
+              `}
+              style={{
+                fontFamily: 'Poppins, sans-serif',
+                fontSize: '0.95rem',
+                fontWeight: 500,
+              }}
+              title={isCollapsed ? 'Sair' : undefined}
+            >
+              <LogOut size={20} strokeWidth={2} />
+              {!isCollapsed && <span>Sair</span>}
+            </button>
+          </div>
         </div>
       </aside>
     </>

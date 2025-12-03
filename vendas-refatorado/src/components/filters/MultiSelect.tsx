@@ -178,11 +178,11 @@ export default function MultiSelect({
               />
             </div>
 
-            {/* Ações - Selecionar Todos / Limpar */}
+            {/* Ações - Selecionar Todos / Limpar - Compacto */}
             <div style={{ 
               display: 'flex', 
-              gap: '8px', 
-              padding: '8px', 
+              gap: '4px', 
+              padding: '6px 8px', 
               borderBottom: '1px solid #3a3f46' 
             }}>
               <button
@@ -190,34 +190,41 @@ export default function MultiSelect({
                 onClick={handleSelectAll}
                 style={{
                   flex: 1,
-                  padding: '6px 10px',
-                  background: 'linear-gradient(180deg, #3a3f44 0%, #2e3236 100%)',
-                  color: '#e9ecef',
-                  border: '1px solid rgba(0,0,0,0.45)',
-                  borderRadius: '6px',
-                  fontSize: '0.75rem',
+                  padding: '4px 6px',
+                  background: 'transparent',
+                  color: '#adb5bd',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontSize: '0.7rem',
                   fontFamily: 'Poppins, sans-serif',
                   cursor: 'pointer',
+                  transition: 'all 0.2s',
                 }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#FF6600'; e.currentTarget.style.backgroundColor = 'rgba(255, 102, 0, 0.1)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = '#adb5bd'; e.currentTarget.style.backgroundColor = 'transparent'; }}
               >
-                {selectedValues.length === options.length ? 'Desmarcar Todos' : 'Selecionar Todos'}
+                {selectedValues.length === options.length ? '✗ Desmarcar' : '✓ Todos'}
               </button>
+              <span style={{ color: '#3a3f46', fontSize: '0.7rem', display: 'flex', alignItems: 'center' }}>|</span>
               <button
                 type="button"
                 onClick={handleClearAll}
                 style={{
                   flex: 1,
-                  padding: '6px 10px',
-                  background: 'linear-gradient(180deg, #3a3f44 0%, #2e3236 100%)',
-                  color: '#e9ecef',
-                  border: '1px solid rgba(0,0,0,0.45)',
-                  borderRadius: '6px',
-                  fontSize: '0.75rem',
+                  padding: '4px 6px',
+                  background: 'transparent',
+                  color: '#adb5bd',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontSize: '0.7rem',
                   fontFamily: 'Poppins, sans-serif',
                   cursor: 'pointer',
+                  transition: 'all 0.2s',
                 }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#FF6600'; e.currentTarget.style.backgroundColor = 'rgba(255, 102, 0, 0.1)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = '#adb5bd'; e.currentTarget.style.backgroundColor = 'transparent'; }}
               >
-                Limpar
+                ⟲ Limpar
               </button>
             </div>
 

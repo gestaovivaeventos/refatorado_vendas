@@ -252,17 +252,37 @@ export function extrairValoresUnicos<T>(dados: T[], campo: keyof T): string[] {
 }
 
 /**
+ * Interface para filtros de dados de vendas/adesões
+ */
+export interface FiltrosDados {
+  // Filtros básicos
+  dataInicio?: Date;
+  dataFim?: Date;
+  unidades?: string[];
+  
+  // Filtros da página de Metas
+  cursos?: string[];
+  
+  // Filtros da página de Indicadores
+  fundos?: string[];
+  tipoAdesao?: string[];
+  tipoServico?: string[];
+  tipoCliente?: string[];
+  consultorComercial?: string[];
+  indicacaoAdesao?: string[];
+  instituicao?: string[];
+  
+  // Filtros legados
+  consultores?: string[];
+  tipoVenda?: string;
+}
+
+/**
  * Filtra dados de adesão por múltiplos critérios
  */
 export function filtrarDados(
   dados: Adesao[],
-  filtros: {
-    dataInicio?: Date;
-    dataFim?: Date;
-    unidades?: string[];
-    consultores?: string[];
-    tipoVenda?: string;
-  }
+  filtros: FiltrosDados
 ): Adesao[] {
   return dados.filter(item => {
     // Filtro por data
@@ -280,14 +300,71 @@ export function filtrarDados(
       }
     }
     
-    // Filtro por consultor
+    // Filtro por curso
+    if (filtros.cursos && filtros.cursos.length > 0) {
+      if (!filtros.cursos.includes(item.curso_fundo)) {
+        return false;
+      }
+    }
+    
+    // Filtro por fundo
+    if (filtros.fundos && filtros.fundos.length > 0) {
+      if (!filtros.fundos.includes(item.nm_fundo)) {
+        return false;
+      }
+    }
+    
+    // Filtro por tipo de adesão (VENDA / POS VENDA)
+    if (filtros.tipoAdesao && filtros.tipoAdesao.length > 0) {
+      const tipoNormalizado = (item.venda_posvenda || '').trim().toUpperCase();
+      if (!filtros.tipoAdesao.includes(tipoNormalizado)) {
+        return false;
+      }
+    }
+    
+    // Filtro por tipo de serviço
+    if (filtros.tipoServico && filtros.tipoServico.length > 0) {
+      if (!filtros.tipoServico.includes(item.tp_servico)) {
+        return false;
+      }
+    }
+    
+    // Filtro por tipo de cliente
+    if (filtros.tipoCliente && filtros.tipoCliente.length > 0) {
+      if (!filtros.tipoCliente.includes(item.tipo_cliente)) {
+        return false;
+      }
+    }
+    
+    // Filtro por consultor comercial
+    if (filtros.consultorComercial && filtros.consultorComercial.length > 0) {
+      if (!filtros.consultorComercial.includes(item.consultor_comercial)) {
+        return false;
+      }
+    }
+    
+    // Filtro por indicação de adesão
+    if (filtros.indicacaoAdesao && filtros.indicacaoAdesao.length > 0) {
+      if (!filtros.indicacaoAdesao.includes(item.indicado_por)) {
+        return false;
+      }
+    }
+    
+    // Filtro por instituição
+    if (filtros.instituicao && filtros.instituicao.length > 0) {
+      if (!filtros.instituicao.includes(item.nm_instituicao)) {
+        return false;
+      }
+    }
+    
+    // Filtro por consultor (legado - usado no funil)
     if (filtros.consultores && filtros.consultores.length > 0) {
       if (!filtros.consultores.includes(item.consultor_comercial)) {
         return false;
       }
     }
     
-    // Filtro por tipo de venda
+    // Filtro por tipo de venda (legado)
     if (filtros.tipoVenda && filtros.tipoVenda !== 'todos') {
       if (normalizeText(item.venda_posvenda) !== normalizeText(filtros.tipoVenda)) {
         return false;

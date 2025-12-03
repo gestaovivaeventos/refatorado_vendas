@@ -1,17 +1,23 @@
 /**
  * Componente FilterPanel - Painel completo de filtros
  * Estilo baseado no PEX (Sidebar.tsx)
+ * 
+ * Filtros por página:
+ * - Página 1 (Metas): Período, Meta, Unidades, Cursos
+ * - Página 2 (Indicadores): Período, Meta, Unidades, Fundos, Tipo Adesão, Tipo Serviço, Tipo Cliente, Consultor Comercial, Indicação Adesão, Instituição
+ * - Página 3 (Funil): Período, Unidades, Consultor, Origem Lead, Segmentação Lead, Etiquetas
  */
 
 import React from 'react';
 import DateRangePicker from './DateRangePicker';
 import MultiSelect from './MultiSelect';
-import type { FiltrosState, FiltrosOpcoes } from '@/types/filtros.types';
+import type { FiltrosState, FiltrosOpcoes, PaginaAtiva } from '@/types/filtros.types';
 
 interface FilterPanelProps {
   filtros: FiltrosState;
   opcoes: FiltrosOpcoes;
   onFiltrosChange: (filtros: Partial<FiltrosState>) => void;
+  paginaAtiva?: PaginaAtiva;
   showMetaToggle?: boolean;
   showUnidades?: boolean;
   showRegionais?: boolean;
@@ -20,12 +26,27 @@ interface FilterPanelProps {
   showConsultores?: boolean;
   showSupervisores?: boolean;
   showFormasPagamento?: boolean;
+  // Filtros da página 1 (Metas)
+  showCursos?: boolean;
+  // Filtros da página 2 (Indicadores)
+  showFundos?: boolean;
+  showTipoAdesao?: boolean;
+  showTipoServico?: boolean;
+  showTipoCliente?: boolean;
+  showConsultorComercial?: boolean;
+  showIndicacaoAdesao?: boolean;
+  showInstituicao?: boolean;
+  // Filtros da página 3 (Funil)
+  showOrigemLead?: boolean;
+  showSegmentacaoLead?: boolean;
+  showEtiquetas?: boolean;
 }
 
 export default function FilterPanel({
   filtros,
   opcoes,
   onFiltrosChange,
+  paginaAtiva = 'metas',
   showMetaToggle = true,
   showUnidades = true,
   showRegionais = true,
@@ -34,11 +55,50 @@ export default function FilterPanel({
   showConsultores = false,
   showSupervisores = false,
   showFormasPagamento = false,
+  // Filtros página 1 - Metas
+  showCursos,
+  // Filtros página 2 - defaults baseados na página
+  showFundos,
+  showTipoAdesao,
+  showTipoServico,
+  showTipoCliente,
+  showConsultorComercial,
+  showIndicacaoAdesao,
+  showInstituicao,
+  // Filtros página 3
+  showOrigemLead,
+  showSegmentacaoLead,
+  showEtiquetas,
 }: FilterPanelProps) {
+  // Determinar quais filtros mostrar baseado na página ativa
+  const isMetasPage = paginaAtiva === 'metas';
+  const isIndicadoresPage = paginaAtiva === 'indicadores';
+  const isFunilPage = paginaAtiva === 'funil';
+  
+  // Filtros específicos da página 1 (Metas)
+  const shouldShowCursos = showCursos ?? isMetasPage;
+  
+  // Filtros específicos da página 2 (Indicadores)
+  const shouldShowFundos = showFundos ?? isIndicadoresPage;
+  const shouldShowTipoAdesao = showTipoAdesao ?? isIndicadoresPage;
+  const shouldShowTipoServico = showTipoServico ?? isIndicadoresPage;
+  const shouldShowTipoCliente = showTipoCliente ?? isIndicadoresPage;
+  const shouldShowConsultorComercial = showConsultorComercial ?? isIndicadoresPage;
+  const shouldShowIndicacaoAdesao = showIndicacaoAdesao ?? isIndicadoresPage;
+  const shouldShowInstituicao = showInstituicao ?? isIndicadoresPage;
+  
+  // Filtros específicos da página 3 (Funil)
+  const shouldShowOrigemLead = showOrigemLead ?? isFunilPage;
+  const shouldShowSegmentacaoLead = showSegmentacaoLead ?? isFunilPage;
+  const shouldShowEtiquetas = showEtiquetas ?? isFunilPage;
+  const shouldShowConsultoresFunil = showConsultores || isFunilPage;
+  
+  // Na página do funil, não mostra toggle de meta
+  const shouldShowMetaToggle = showMetaToggle && !isFunilPage;
   return (
     <div>
       {/* Toggle de Tipo de Meta */}
-      {showMetaToggle && (
+      {shouldShowMetaToggle && (
         <div style={{ marginBottom: '20px' }}>
           <label
             style={{
@@ -170,6 +230,17 @@ export default function FilterPanel({
         />
       )}
 
+      {/* Filtro de Cursos - Página Metas */}
+      {shouldShowCursos && opcoes.cursos && opcoes.cursos.length > 0 && (
+        <MultiSelect
+          label="Cursos"
+          options={opcoes.cursos}
+          selectedValues={filtros.cursos}
+          onChange={(cursos) => onFiltrosChange({ cursos })}
+          placeholder="Todos os cursos"
+        />
+      )}
+
       {/* Filtro de Consultores */}
       {showConsultores && opcoes.consultores.length > 0 && (
         <MultiSelect
@@ -200,6 +271,143 @@ export default function FilterPanel({
           selectedValues={filtros.formasPagamento}
           onChange={(formasPagamento) => onFiltrosChange({ formasPagamento })}
           placeholder="Todas as formas"
+        />
+      )}
+
+      {/* ============================================= */}
+      {/* FILTROS ESPECÍFICOS DA PÁGINA 2 (INDICADORES) */}
+      {/* ============================================= */}
+
+      {/* Filtro de Fundos - Apenas página Indicadores */}
+      {shouldShowFundos && opcoes.fundos && opcoes.fundos.length > 0 && (
+        <MultiSelect
+          label="Fundos"
+          options={opcoes.fundos}
+          selectedValues={filtros.fundos}
+          onChange={(fundos) => onFiltrosChange({ fundos })}
+          placeholder="Todos os fundos"
+          
+        />
+      )}
+
+      {/* Filtro de Tipo de Adesão - Apenas página Indicadores */}
+      {shouldShowTipoAdesao && opcoes.tiposAdesao && opcoes.tiposAdesao.length > 0 && (
+        <MultiSelect
+          label="Tipo de Adesão"
+          options={opcoes.tiposAdesao}
+          selectedValues={filtros.tipoAdesao}
+          onChange={(tipoAdesao) => onFiltrosChange({ tipoAdesao })}
+          placeholder="Todos os tipos"
+        />
+      )}
+
+      {/* Filtro de Tipo de Serviço - Apenas página Indicadores */}
+      {shouldShowTipoServico && opcoes.tiposServico && opcoes.tiposServico.length > 0 && (
+        <MultiSelect
+          label="Tipo de Serviço"
+          options={opcoes.tiposServico}
+          selectedValues={filtros.tipoServico}
+          onChange={(tipoServico) => onFiltrosChange({ tipoServico })}
+          placeholder="Todos os tipos"
+        />
+      )}
+
+      {/* Filtro de Tipo de Cliente - Apenas página Indicadores */}
+      {shouldShowTipoCliente && opcoes.tiposCliente && opcoes.tiposCliente.length > 0 && (
+        <MultiSelect
+          label="Tipo de Cliente"
+          options={opcoes.tiposCliente}
+          selectedValues={filtros.tipoCliente}
+          onChange={(tipoCliente) => onFiltrosChange({ tipoCliente })}
+          placeholder="Todos os tipos"
+        />
+      )}
+
+      {/* Filtro de Consultor Comercial - Apenas página Indicadores */}
+      {shouldShowConsultorComercial && opcoes.consultoresComerciais && opcoes.consultoresComerciais.length > 0 && (
+        <MultiSelect
+          label="Consultor Comercial"
+          options={opcoes.consultoresComerciais}
+          selectedValues={filtros.consultorComercial}
+          onChange={(consultorComercial) => onFiltrosChange({ consultorComercial })}
+          placeholder="Todos os consultores"
+          
+        />
+      )}
+
+      {/* Filtro de Indicação Adesão - Apenas página Indicadores */}
+      {shouldShowIndicacaoAdesao && opcoes.indicacoesAdesao && opcoes.indicacoesAdesao.length > 0 && (
+        <MultiSelect
+          label="Indicação de Adesão"
+          options={opcoes.indicacoesAdesao}
+          selectedValues={filtros.indicacaoAdesao}
+          onChange={(indicacaoAdesao) => onFiltrosChange({ indicacaoAdesao })}
+          placeholder="Todas as indicações"
+          
+        />
+      )}
+
+      {/* Filtro de Instituição - Apenas página Indicadores */}
+      {shouldShowInstituicao && opcoes.instituicoes && opcoes.instituicoes.length > 0 && (
+        <MultiSelect
+          label="Instituição"
+          options={opcoes.instituicoes}
+          selectedValues={filtros.instituicao}
+          onChange={(instituicao) => onFiltrosChange({ instituicao })}
+          placeholder="Todas as instituições"
+          
+        />
+      )}
+
+      {/* ============================================= */}
+      {/* FILTROS ESPECÍFICOS DA PÁGINA 3 (FUNIL)      */}
+      {/* ============================================= */}
+
+      {/* Filtro de Consultores (Funil) - Apenas página Funil */}
+      {shouldShowConsultoresFunil && opcoes.consultores && opcoes.consultores.length > 0 && (
+        <MultiSelect
+          label="Consultor"
+          options={opcoes.consultores}
+          selectedValues={filtros.consultores}
+          onChange={(consultores) => onFiltrosChange({ consultores })}
+          placeholder="Todos os consultores"
+          
+        />
+      )}
+
+      {/* Filtro de Origem do Lead - Apenas página Funil */}
+      {shouldShowOrigemLead && opcoes.origensLead && opcoes.origensLead.length > 0 && (
+        <MultiSelect
+          label="Origem do Lead"
+          options={opcoes.origensLead}
+          selectedValues={filtros.origemLead}
+          onChange={(origemLead) => onFiltrosChange({ origemLead })}
+          placeholder="Todas as origens"
+          
+        />
+      )}
+
+      {/* Filtro de Segmentação do Lead - Apenas página Funil */}
+      {shouldShowSegmentacaoLead && opcoes.segmentacoesLead && opcoes.segmentacoesLead.length > 0 && (
+        <MultiSelect
+          label="Segmentação do Lead"
+          options={opcoes.segmentacoesLead}
+          selectedValues={filtros.segmentacaoLead}
+          onChange={(segmentacaoLead) => onFiltrosChange({ segmentacaoLead })}
+          placeholder="Todas as segmentações"
+          
+        />
+      )}
+
+      {/* Filtro de Etiquetas - Apenas página Funil */}
+      {shouldShowEtiquetas && opcoes.etiquetas && opcoes.etiquetas.length > 0 && (
+        <MultiSelect
+          label="Etiquetas"
+          options={opcoes.etiquetas}
+          selectedValues={filtros.etiquetas}
+          onChange={(etiquetas) => onFiltrosChange({ etiquetas })}
+          placeholder="Todas as etiquetas"
+          
         />
       )}
     </div>
