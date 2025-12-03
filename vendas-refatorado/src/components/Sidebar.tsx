@@ -3,7 +3,7 @@
  */
 
 import React, { useState } from 'react';
-import { ChevronRight, BarChart3, TrendingUp, Target, Home } from 'lucide-react';
+import { ChevronRight, ChevronLeft, BarChart3, TrendingUp, Target, Home } from 'lucide-react';
 import { PAGES } from '@/config/app.config';
 
 interface SidebarProps {
@@ -13,6 +13,9 @@ interface SidebarProps {
   onCollapseChange: (collapsed: boolean) => void;
   children?: React.ReactNode;
 }
+
+const SIDEBAR_WIDTH_EXPANDED = 300;
+const SIDEBAR_WIDTH_COLLAPSED = 60;
 
 export default function Sidebar({
   paginaAtiva,
@@ -38,90 +41,97 @@ export default function Sidebar({
     <>
       {/* Sidebar Container */}
       <aside
-        className="fixed left-0 top-0 bottom-0 bg-dark-secondary overflow-y-auto transition-all duration-300 z-50"
+        className="fixed left-0 top-0 bottom-0 bg-dark-secondary overflow-y-auto overflow-x-hidden transition-all duration-300 z-50"
         style={{
-          width: isCollapsed ? '0px' : '300px',
-          borderRight: isCollapsed ? 'none' : '2px solid #343A40',
+          width: isCollapsed ? `${SIDEBAR_WIDTH_COLLAPSED}px` : `${SIDEBAR_WIDTH_EXPANDED}px`,
+          borderRight: '2px solid #343A40',
         }}
       >
-        {/* Toggle Button */}
-        <button
-          onClick={() => onCollapseChange(!isCollapsed)}
-          className="fixed z-50 w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200"
-          style={{
-            left: isCollapsed ? '10px' : '290px',
-            top: '80px',
-            background: 'linear-gradient(to bottom, #FF7A33 0%, #FF6600 50%, #E55A00 100%)',
-            boxShadow: '0 4px 12px rgba(255, 102, 0, 0.4)',
-          }}
-          title={isCollapsed ? 'Mostrar Filtros' : 'Esconder Filtros'}
-        >
-          <ChevronRight
-            size={20}
-            color="#000"
-            style={{
-              transform: isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)',
-              transition: 'transform 0.3s ease',
-            }}
-          />
-        </button>
-
         {/* Conteúdo da Sidebar */}
-        {!isCollapsed && (
-          <div className="p-5 pt-16">
-            {/* Link para Central de Dashboards */}
-            <a
-              href="https://central-dashs-viva-html.vercel.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-gray-400 border border-transparent hover:bg-white/5"
-              style={{
-                fontFamily: 'Poppins, sans-serif',
-                fontSize: '0.95rem',
-                fontWeight: 500,
-              }}
-            >
-              <Home size={20} strokeWidth={2} />
-              <span>Central de Dashboards</span>
-            </a>
+        <div className={`pt-5 ${isCollapsed ? 'px-2' : 'p-5'}`}>
+          {/* Toggle Button */}
+          <button
+            onClick={() => onCollapseChange(!isCollapsed)}
+            className={`
+              w-full flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200 
+              bg-orange-500/10 border border-orange-500 hover:bg-orange-500/20 mb-4
+              ${isCollapsed ? 'h-10' : 'h-9 px-4'}
+            `}
+            title={isCollapsed ? 'Expandir Menu' : 'Recolher Menu'}
+          >
+            {isCollapsed ? (
+              <ChevronRight size={18} className="text-orange-500" />
+            ) : (
+              <div className="flex items-center justify-between w-full">
+                <span className="text-orange-500 text-sm font-medium" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                  Recolher
+                </span>
+                <ChevronLeft size={18} className="text-orange-500" />
+              </div>
+            )}
+          </button>
 
-            <hr className="border-dark-tertiary my-4" />
+          {/* Link para Central de Dashboards */}
+          <a
+            href="https://central-dashs-viva-html.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`
+              flex items-center rounded-lg transition-all duration-200 text-gray-400 border border-transparent hover:bg-white/5
+              ${isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-4 py-2.5'}
+            `}
+            style={{
+              fontFamily: 'Poppins, sans-serif',
+              fontSize: '0.95rem',
+              fontWeight: 500,
+            }}
+            title="Central de Dashboards"
+          >
+            <Home size={20} strokeWidth={2} />
+            {!isCollapsed && <span>Central de Dashboards</span>}
+          </a>
 
-            {/* Navegação de Páginas */}
-            <nav className="flex flex-col gap-1.5 mb-6">
-              {PAGES.map((page) => (
-                <button
-                  key={page.id}
-                  onClick={() => onPaginaChange(page.id)}
-                  className={`
-                    group flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
-                    ${paginaAtiva === page.id
-                      ? 'bg-orange-500/10 border border-orange-500 text-orange-500'
-                      : 'text-gray-400 border border-transparent hover:bg-white/5'
-                    }
-                  `}
-                  style={{
-                    fontFamily: 'Poppins, sans-serif',
-                    fontSize: '0.95rem',
-                    fontWeight: paginaAtiva === page.id ? 600 : 500,
-                  }}
-                >
-                  {React.cloneElement(getIcon(page.id), {
-                    strokeWidth: paginaAtiva === page.id ? 2.5 : 2
-                  })}
-                  <span>{page.label}</span>
-                </button>
-              ))}
-            </nav>
+          <hr className="border-dark-tertiary my-4" />
 
-            <hr className="border-dark-tertiary my-4" />
+          {/* Navegação de Páginas */}
+          <nav className="flex flex-col gap-1.5 mb-6">
+            {PAGES.map((page) => (
+              <button
+                key={page.id}
+                onClick={() => onPaginaChange(page.id)}
+                className={`
+                  group flex items-center rounded-lg transition-all duration-200
+                  ${isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-4 py-2.5'}
+                  ${paginaAtiva === page.id
+                    ? 'bg-orange-500/10 border border-orange-500 text-orange-500'
+                    : 'text-gray-400 border border-transparent hover:bg-white/5'
+                  }
+                `}
+                style={{
+                  fontFamily: 'Poppins, sans-serif',
+                  fontSize: '0.95rem',
+                  fontWeight: paginaAtiva === page.id ? 600 : 500,
+                }}
+                title={isCollapsed ? page.label : undefined}
+              >
+                {React.cloneElement(getIcon(page.id), {
+                  strokeWidth: paginaAtiva === page.id ? 2.5 : 2
+                })}
+                {!isCollapsed && <span>{page.label}</span>}
+              </button>
+            ))}
+          </nav>
 
-            {/* Filtros (children) */}
-            <div className="filters-content">
-              {children}
-            </div>
-          </div>
-        )}
+          {/* Filtros (children) - só mostra quando expandido */}
+          {!isCollapsed && (
+            <>
+              <hr className="border-dark-tertiary my-4" />
+              <div className="filters-content">
+                {children}
+              </div>
+            </>
+          )}
+        </div>
       </aside>
     </>
   );

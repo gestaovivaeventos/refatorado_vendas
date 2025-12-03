@@ -97,7 +97,9 @@ export const SimpleBarChart: React.FC<SimpleBarChartProps> = ({
         ticks: {
           color: '#ADB5BD',
           font: { size: 12, family: 'Poppins, Arial, sans-serif' },
-          callback: horizontal ? (value: any) => formatValue(Number(value)) : undefined,
+          callback: horizontal 
+            ? (value: any) => formatValue(Number(value)) 
+            : function(this: any, value: any) { return this.getLabelForValue(value); },
         },
         grid: { color: 'rgba(255,255,255,0.04)' },
       },

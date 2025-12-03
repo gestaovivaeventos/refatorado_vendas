@@ -158,26 +158,16 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
     );
   };
 
-  // Estilos dos botões de tipo (igual ao original)
-  const getBotaoStyle = (tipo: TipoVenda) => {
+  // Estilos dos botões de tipo (estilo da sidebar)
+  const getBotaoClasses = (tipo: TipoVenda) => {
     const isActive = tipoSelecionado === tipo;
-    if (isActive) {
-      return {
-        backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 22%), linear-gradient(180deg, #ff8a33 0%, #FF6600 50%, #e65500 100%)',
-        backgroundSize: '100% 100%, 100% 100%',
-        backgroundRepeat: 'no-repeat',
-        color: '#ffffff',
-        border: '1px solid rgba(0,0,0,0.6)',
-        borderTop: '1px solid rgba(255,255,255,0.04)',
-        boxShadow: '0 8px 18px rgba(0,0,0,0.45), inset 0 2px 6px rgba(255,255,255,0.02)',
-      };
-    }
-    return {
-      background: 'linear-gradient(180deg, #3a3f44 0%, #2e3236 100%)',
-      color: '#e9ecef',
-      border: '1px solid rgba(0,0,0,0.45)',
-      boxShadow: '0 4px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.02)',
-    };
+    return `
+      px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+      ${isActive
+        ? 'bg-orange-500/10 border border-orange-500 text-orange-500'
+        : 'text-gray-400 border border-transparent bg-dark-tertiary hover:bg-white/5'
+      }
+    `;
   };
 
   const tipoLabel = getTipoLabel();
@@ -190,7 +180,7 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
       </h2>
 
       {/* Botões de seleção de tipo */}
-      <div className="flex flex-wrap gap-2.5 mb-5">
+      <div className="flex flex-wrap gap-2 mb-5">
         {(['total', 'vendas', 'posvendas'] as TipoVenda[]).map((tipo) => (
           <button
             key={tipo}
@@ -198,8 +188,8 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
               onTipoChange(tipo);
               setPaginaAtual(1);
             }}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 hover:brightness-105 hover:-translate-y-0.5"
-            style={getBotaoStyle(tipo)}
+            className={getBotaoClasses(tipo)}
+            style={{ fontFamily: 'Poppins, sans-serif' }}
           >
             {tipo === 'total' ? 'Total' : tipo === 'vendas' ? 'Vendas' : 'Pós Venda'}
           </button>

@@ -215,11 +215,14 @@ export default function CumulativeYearChart({
             <button
               key={ano}
               onClick={() => toggleAno(ano)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                anosSelecionados.includes(ano)
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-dark-tertiary text-text-muted hover:bg-dark-tertiary/80'
-              }`}
+              className={`
+                px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+                ${anosSelecionados.includes(ano)
+                  ? 'bg-orange-500/10 border border-orange-500 text-orange-500'
+                  : 'text-gray-400 border border-transparent bg-dark-tertiary hover:bg-white/5'
+                }
+              `}
+              style={{ fontFamily: 'Poppins, sans-serif' }}
             >
               {ano}
             </button>

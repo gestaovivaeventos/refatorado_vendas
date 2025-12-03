@@ -131,7 +131,7 @@ export default function StackedBarChart({
         ticks: {
           color: COLORS.TEXT_MUTED,
           font: { size: 12, family: 'Poppins, sans-serif' },
-          callback: function(value: any) {
+          callback: function(this: any, value: any) {
             if (horizontal) {
               const num = Number(value);
               if (Math.abs(num) >= 1000000) return `${(num / 1000000).toFixed(1).replace('.0', '')}mi`;
@@ -148,7 +148,7 @@ export default function StackedBarChart({
         ticks: {
           color: COLORS.TEXT_MUTED,
           font: { size: 12, family: 'Poppins, sans-serif' },
-          callback: function(value: any) {
+          callback: function(this: any, value: any) {
             if (!horizontal) {
               const num = Number(value);
               if (Math.abs(num) >= 1000000) return `${(num / 1000000).toFixed(1).replace('.0', '')}mi`;

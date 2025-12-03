@@ -201,31 +201,40 @@ export default function VVRVsMetaChart({
         <div className="flex justify-start gap-2 mb-4">
           <button
             onClick={() => onTipoChange('total')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              tipoSelecionado === 'total'
-                ? 'bg-primary-500 text-white'
-                : 'bg-dark-tertiary text-text-muted hover:bg-dark-tertiary/80'
-            }`}
+            className={`
+              px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+              ${tipoSelecionado === 'total'
+                ? 'bg-orange-500/10 border border-orange-500 text-orange-500'
+                : 'text-gray-400 border border-transparent bg-dark-tertiary hover:bg-white/5'
+              }
+            `}
+            style={{ fontFamily: 'Poppins, sans-serif' }}
           >
             Total
           </button>
           <button
             onClick={() => onTipoChange('vendas')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              tipoSelecionado === 'vendas'
-                ? 'bg-primary-500 text-white'
-                : 'bg-dark-tertiary text-text-muted hover:bg-dark-tertiary/80'
-            }`}
+            className={`
+              px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+              ${tipoSelecionado === 'vendas'
+                ? 'bg-orange-500/10 border border-orange-500 text-orange-500'
+                : 'text-gray-400 border border-transparent bg-dark-tertiary hover:bg-white/5'
+              }
+            `}
+            style={{ fontFamily: 'Poppins, sans-serif' }}
           >
             Vendas
           </button>
           <button
             onClick={() => onTipoChange('posvendas')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              tipoSelecionado === 'posvendas'
-                ? 'bg-primary-500 text-white'
-                : 'bg-dark-tertiary text-text-muted hover:bg-dark-tertiary/80'
-            }`}
+            className={`
+              px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+              ${tipoSelecionado === 'posvendas'
+                ? 'bg-orange-500/10 border border-orange-500 text-orange-500'
+                : 'text-gray-400 border border-transparent bg-dark-tertiary hover:bg-white/5'
+              }
+            `}
+            style={{ fontFamily: 'Poppins, sans-serif' }}
           >
             Pós Venda
           </button>

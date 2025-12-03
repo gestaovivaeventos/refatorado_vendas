@@ -2151,7 +2151,7 @@ export default function Dashboard() {
               filtros={filtros}
               opcoes={opcoesFiltros}
               onFiltrosChange={handleFiltrosChange}
-              showMetaToggle={true}
+              showMetaToggle={paginaAtiva === 'metas'}
               showUnidades={true}
               showRegionais={false}
               showUFs={false}
@@ -2165,8 +2165,8 @@ export default function Dashboard() {
           <main 
             className="flex-1 p-6 transition-all duration-300 overflow-x-hidden"
             style={{ 
-              marginLeft: sidebarCollapsed ? '0' : '300px',
-              width: sidebarCollapsed ? '100%' : 'calc(100vw - 300px)',
+              marginLeft: sidebarCollapsed ? '60px' : '300px',
+              width: sidebarCollapsed ? 'calc(100vw - 60px)' : 'calc(100vw - 300px)',
             }}
           >
             {/* Conteúdo */}

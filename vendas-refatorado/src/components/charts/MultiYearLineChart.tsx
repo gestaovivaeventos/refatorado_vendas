@@ -205,23 +205,20 @@ export const MultiYearLineChart: React.FC<MultiYearLineChartProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Seletor de anos - estilo igual ao original */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+      {/* Seletor de anos */}
+      <div className="flex flex-wrap gap-2 mb-4">
         {allYears.map((year) => (
           <button
             key={year}
             onClick={() => onYearToggle(year)}
-            style={{
-              padding: '6px 20px',
-              borderRadius: '4px',
-              border: activeYears.includes(year) ? '2px solid #FF6600' : '1px solid #495057',
-              backgroundColor: activeYears.includes(year) ? '#FF6600' : 'transparent',
-              color: '#F8F9FA',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
+            className={`
+              px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+              ${activeYears.includes(year)
+                ? 'bg-orange-500/10 border border-orange-500 text-orange-500'
+                : 'text-gray-400 border border-transparent bg-dark-tertiary hover:bg-white/5'
+              }
+            `}
+            style={{ fontFamily: 'Poppins, sans-serif' }}
           >
             {year}
           </button>
