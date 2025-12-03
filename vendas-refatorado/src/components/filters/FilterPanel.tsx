@@ -37,18 +37,18 @@ export default function FilterPanel({
 }: FilterPanelProps) {
   return (
     <div>
-      {/* Toggle de Tipo de Meta - Simples */}
+      {/* Toggle de Tipo de Meta */}
       {showMetaToggle && (
         <div style={{ marginBottom: '20px' }}>
           <label
             style={{
               display: 'block',
-              color: '#aaa',
+              color: '#adb5bd',
               fontSize: '0.75rem',
-              fontWeight: 500,
+              fontWeight: 600,
               marginBottom: '8px',
               textTransform: 'uppercase',
-              letterSpacing: '0.5px',
+              letterSpacing: '0.05em',
               fontFamily: 'Poppins, sans-serif',
             }}
           >
@@ -59,16 +59,17 @@ export default function FilterPanel({
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
-              padding: '8px 12px',
+              padding: '10px 14px',
               backgroundColor: '#2a2f36',
               borderRadius: '8px',
+              border: '1px solid #444',
             }}
           >
             <span
               style={{
-                fontSize: '0.85rem',
+                fontSize: '0.8rem',
                 fontWeight: filtros.isMetaInterna ? 400 : 600,
-                color: filtros.isMetaInterna ? '#adb5bd' : '#ff6600',
+                color: filtros.isMetaInterna ? '#6c757d' : '#FF6600',
                 fontFamily: 'Poppins, sans-serif',
               }}
             >
@@ -80,7 +81,7 @@ export default function FilterPanel({
                 position: 'relative',
                 width: '44px',
                 height: '24px',
-                backgroundColor: filtros.isMetaInterna ? '#ff6600' : '#495057',
+                backgroundColor: filtros.isMetaInterna ? '#FF6600' : '#444',
                 borderRadius: '12px',
                 border: 'none',
                 cursor: 'pointer',
@@ -103,9 +104,9 @@ export default function FilterPanel({
             </button>
             <span
               style={{
-                fontSize: '0.85rem',
+                fontSize: '0.8rem',
                 fontWeight: filtros.isMetaInterna ? 600 : 400,
-                color: filtros.isMetaInterna ? '#ff6600' : '#adb5bd',
+                color: filtros.isMetaInterna ? '#FF6600' : '#6c757d',
                 fontFamily: 'Poppins, sans-serif',
               }}
             >
@@ -129,7 +130,6 @@ export default function FilterPanel({
       {showUnidades && opcoes.unidades.length > 0 && (
         <MultiSelect
           label="Unidades"
-          icon="🏢"
           options={opcoes.unidades}
           selectedValues={filtros.unidades}
           onChange={(unidades) => onFiltrosChange({ unidades })}
@@ -141,7 +141,6 @@ export default function FilterPanel({
       {showRegionais && opcoes.regionais.length > 0 && (
         <MultiSelect
           label="Regionais"
-          icon="🗺️"
           options={opcoes.regionais}
           selectedValues={filtros.regionais}
           onChange={(regionais) => onFiltrosChange({ regionais })}
@@ -153,7 +152,6 @@ export default function FilterPanel({
       {showUFs && opcoes.ufs.length > 0 && (
         <MultiSelect
           label="UFs"
-          icon="📍"
           options={opcoes.ufs}
           selectedValues={filtros.ufs}
           onChange={(ufs) => onFiltrosChange({ ufs })}
@@ -165,7 +163,6 @@ export default function FilterPanel({
       {showCidades && opcoes.cidades.length > 0 && (
         <MultiSelect
           label="Cidades"
-          icon="🏙️"
           options={opcoes.cidades}
           selectedValues={filtros.cidades}
           onChange={(cidades) => onFiltrosChange({ cidades })}
@@ -177,7 +174,6 @@ export default function FilterPanel({
       {showConsultores && opcoes.consultores.length > 0 && (
         <MultiSelect
           label="Consultores"
-          icon="👤"
           options={opcoes.consultores}
           selectedValues={filtros.consultores}
           onChange={(consultores) => onFiltrosChange({ consultores })}
@@ -189,7 +185,6 @@ export default function FilterPanel({
       {showSupervisores && opcoes.supervisores.length > 0 && (
         <MultiSelect
           label="Supervisores"
-          icon="👔"
           options={opcoes.supervisores}
           selectedValues={filtros.supervisores}
           onChange={(supervisores) => onFiltrosChange({ supervisores })}
@@ -201,7 +196,6 @@ export default function FilterPanel({
       {showFormasPagamento && opcoes.formasPagamento.length > 0 && (
         <MultiSelect
           label="Formas de Pagamento"
-          icon="💳"
           options={opcoes.formasPagamento}
           selectedValues={filtros.formasPagamento}
           onChange={(formasPagamento) => onFiltrosChange({ formasPagamento })}

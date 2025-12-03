@@ -16,6 +16,7 @@ import {
   Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { COLORS } from '@/config/app.config';
 import { formatCurrency } from '@/utils/formatacao';
 
@@ -28,7 +29,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  ChartDataLabels
 );
 
 interface YearData {
@@ -123,7 +125,7 @@ export default function CumulativeYearChart({
       label: String(yearData.ano),
       data: yearData.valores,
       borderColor: cores[index],
-      backgroundColor: `${cores[index]}33`, // 20% opacity
+      backgroundColor: `${cores[index]}33`,
       borderWidth: 3,
       pointBackgroundColor: cores[index],
       pointBorderColor: cores[index],
@@ -131,10 +133,31 @@ export default function CumulativeYearChart({
       pointHoverRadius: 6,
       tension: 0.3,
       fill: false,
+      datalabels: {
+        display: true,
+        anchor: 'end' as const,
+        align: 'top' as const,
+        offset: 6,
+        color: cores[index],
+        backgroundColor: 'rgba(33, 37, 41, 0.85)',
+        borderRadius: 4,
+        padding: 4,
+        font: { 
+          size: 11, 
+          weight: 'bold' as const, 
+          family: 'Poppins, Arial, sans-serif' 
+        },
+        formatter: (value: number) => {
+          if (!value || value === 0) return '';
+          if (value >= 1000000) return `${(value / 1000000).toFixed(1)}mi`;
+          if (value >= 1000) return `${(value / 1000).toFixed(0)}k`;
+          return value.toLocaleString('pt-BR');
+        },
+      },
     })),
   }), [dadosFiltrados, cores]);
 
-  const options = useMemo(() => ({
+  const options: any = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     interaction: {
@@ -168,9 +191,6 @@ export default function CumulativeYearChart({
             return label;
           },
         },
-      },
-      datalabels: {
-        display: false,
       },
     },
     scales: {

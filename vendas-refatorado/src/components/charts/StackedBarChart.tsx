@@ -93,7 +93,7 @@ export default function StackedBarChart({
         color: function(context: any) {
           return context.dataset.label === 'Pós Venda' ? '#212529' : '#FFFFFF';
         },
-        font: { weight: 'bold' as const, size: 11, family: 'Poppins, sans-serif' },
+        font: { weight: 'bold' as const, size: 13, family: 'Poppins, sans-serif' },
         anchor: 'center' as const,
         align: 'center' as const,
         formatter: function(value: number) {

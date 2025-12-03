@@ -108,7 +108,7 @@ export const FunnelBarChart: React.FC<FunnelBarChartProps> = ({
         align: 'right' as const,
         color: '#F8F9FA',
         font: {
-          size: 13,
+          size: 14,
           weight: 'bold' as const,
         },
         formatter: (value: number) => value.toLocaleString('pt-BR'),

@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { ChevronDown, ChevronUp, Download, Search } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 interface CaptacaoData {
   origem: string;
@@ -115,20 +115,20 @@ export const CaptacoesTable: React.FC<CaptacoesTableProps> = ({
   // Renderizar ícone de ordenação
   const renderIconeOrdenacao = (coluna: keyof CaptacaoData) => {
     if (ordenacao.coluna !== coluna) {
-      return <ChevronDown className="w-4 h-4 text-text-muted opacity-30" />;
+      return <span className="ml-1 text-gray-500">↕</span>;
     }
     return ordenacao.direcao === 'asc' ? (
-      <ChevronUp className="w-4 h-4 text-accent-primary" />
+      <span className="ml-1" style={{ color: '#FF6600' }}>↑</span>
     ) : (
-      <ChevronDown className="w-4 h-4 text-accent-primary" />
+      <span className="ml-1" style={{ color: '#FF6600' }}>↓</span>
     );
   };
 
-  // Cor do tipo de captação
-  const getCorTipo = (tipo: string) => {
-    if (tipo.includes('Passiva - Exclusiva')) return 'text-green-400';
-    if (tipo.includes('Passiva')) return 'text-blue-400';
-    return 'text-orange-400';
+  // Cor do tipo de captação (padrão: laranja, amarelo, cinza)
+  const getCorTipo = (tipo: string): string => {
+    if (tipo.includes('Passiva - Exclusiva')) return '#FFC107'; // amarelo
+    if (tipo.includes('Passiva')) return '#6c757d'; // cinza
+    return '#FF6600'; // laranja
   };
 
   return (
@@ -140,8 +140,17 @@ export const CaptacoesTable: React.FC<CaptacoesTableProps> = ({
 
       {/* Header com busca e exportação */}
       <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
+        <button
+          onClick={exportarCSV}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-dark-tertiary border border-gray-600 text-gray-400 hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-500"
+          style={{ fontFamily: 'Poppins, sans-serif' }}
+        >
+          <Download className="w-4 h-4" />
+          Exportar
+        </button>
+
+        <div className="flex items-center">
+          <span className="text-[#adb5bd] text-sm mr-2">Pesquisar:</span>
           <input
             type="text"
             placeholder="Buscar origem..."
@@ -150,58 +159,111 @@ export const CaptacoesTable: React.FC<CaptacoesTableProps> = ({
               setBusca(e.target.value);
               setPaginaAtual(1);
             }}
-            className="w-full pl-10 pr-4 py-2 bg-dark-tertiary border border-dark-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/50"
+            className="px-2 py-1 rounded text-sm"
+            style={{
+              backgroundColor: '#212529',
+              color: '#F8F9FA',
+              border: '1px solid #495057',
+              borderRadius: '6px',
+              minWidth: '180px',
+            }}
           />
         </div>
-        <button
-          onClick={exportarCSV}
-          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          <Download className="w-4 h-4" />
-          Exportar
-        </button>
       </div>
 
       {/* Tabela */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-dark-border">
+      <div 
+        style={{ 
+          maxHeight: '500px', 
+          overflowY: 'auto',
+          borderRadius: '8px',
+          border: '1px solid #444',
+        }}
+      >
+        <table 
+          style={{ 
+            width: '100%', 
+            borderCollapse: 'collapse',
+            fontSize: '0.875rem',
+          }}
+        >
+          <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+            <tr style={{ backgroundColor: '#2a2f36' }}>
               <th
                 onClick={() => handleOrdenacao('origem')}
-                className="text-left py-3 px-4 text-text-muted font-medium cursor-pointer hover:text-text-primary transition-colors"
+                className="cursor-pointer"
+                style={{
+                  padding: '12px 16px',
+                  textAlign: 'center',
+                  borderBottom: '2px solid #FF6600',
+                  color: '#adb5bd',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.05em',
+                  transition: 'background-color 0.2s ease',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a2f36'}
               >
-                <div className="flex items-center gap-1">
-                  Origem do Lead
-                  {renderIconeOrdenacao('origem')}
-                </div>
+                Origem do Lead {renderIconeOrdenacao('origem')}
               </th>
               <th
                 onClick={() => handleOrdenacao('tipo')}
-                className="text-left py-3 px-4 text-text-muted font-medium cursor-pointer hover:text-text-primary transition-colors"
+                className="cursor-pointer"
+                style={{
+                  padding: '12px 16px',
+                  textAlign: 'center',
+                  borderBottom: '2px solid #FF6600',
+                  color: '#adb5bd',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.05em',
+                  transition: 'background-color 0.2s ease',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a2f36'}
               >
-                <div className="flex items-center gap-1">
-                  Tipo de Captação
-                  {renderIconeOrdenacao('tipo')}
-                </div>
+                Tipo de Captação {renderIconeOrdenacao('tipo')}
               </th>
               <th
                 onClick={() => handleOrdenacao('percentual')}
-                className="text-right py-3 px-4 text-text-muted font-medium cursor-pointer hover:text-text-primary transition-colors"
+                className="cursor-pointer"
+                style={{
+                  padding: '12px 16px',
+                  textAlign: 'center',
+                  borderBottom: '2px solid #FF6600',
+                  color: '#adb5bd',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.05em',
+                  transition: 'background-color 0.2s ease',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a2f36'}
               >
-                <div className="flex items-center justify-end gap-1">
-                  %
-                  {renderIconeOrdenacao('percentual')}
-                </div>
+                % {renderIconeOrdenacao('percentual')}
               </th>
               <th
                 onClick={() => handleOrdenacao('total')}
-                className="text-right py-3 px-4 text-text-muted font-medium cursor-pointer hover:text-text-primary transition-colors"
+                className="cursor-pointer"
+                style={{
+                  padding: '12px 16px',
+                  textAlign: 'center',
+                  borderBottom: '2px solid #FF6600',
+                  color: '#adb5bd',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.05em',
+                  transition: 'background-color 0.2s ease',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a2f36'}
               >
-                <div className="flex items-center justify-end gap-1">
-                  Total
-                  {renderIconeOrdenacao('total')}
-                </div>
+                Total {renderIconeOrdenacao('total')}
               </th>
             </tr>
           </thead>
@@ -210,17 +272,30 @@ export const CaptacoesTable: React.FC<CaptacoesTableProps> = ({
               dadosPaginados.map((item, index) => (
                 <tr
                   key={index}
-                  className="border-b border-dark-border/50 hover:bg-dark-tertiary/50 transition-colors"
+                  style={{
+                    backgroundColor: index % 2 === 0 ? '#343A40' : '#2c3136',
+                    borderBottom: '1px solid #444',
+                    transition: 'background-color 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = index % 2 === 0 ? '#343A40' : '#2c3136'}
                 >
-                  <td className="py-3 px-4 text-text-primary">{item.origem}</td>
-                  <td className={`py-3 px-4 ${getCorTipo(item.tipo)}`}>{item.tipo}</td>
-                  <td className="py-3 px-4 text-right text-text-secondary">{item.percentual.toFixed(1)}%</td>
-                  <td className="py-3 px-4 text-right text-text-primary font-medium">{item.total.toLocaleString('pt-BR')}</td>
+                  <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA' }}>{item.origem}</td>
+                  <td style={{ padding: '10px 16px', textAlign: 'center', color: getCorTipo(item.tipo) }}>{item.tipo}</td>
+                  <td style={{ padding: '10px 16px', textAlign: 'center', color: '#adb5bd' }}>{item.percentual.toFixed(1)}%</td>
+                  <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA', fontWeight: 500 }}>{item.total.toLocaleString('pt-BR')}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="py-8 text-center text-text-muted">
+                <td 
+                  colSpan={4} 
+                  style={{
+                    textAlign: 'center',
+                    padding: '40px',
+                    color: '#adb5bd',
+                  }}
+                >
                   Nenhum dado encontrado
                 </td>
               </tr>
@@ -228,12 +303,41 @@ export const CaptacoesTable: React.FC<CaptacoesTableProps> = ({
           </tbody>
           {dadosPaginados.length > 0 && (
             <tfoot>
-              <tr className="border-t-2 border-dark-border bg-dark-tertiary/30">
-                <td colSpan={2} className="py-3 px-4 text-text-primary font-bold">
+              <tr 
+                style={{
+                  backgroundColor: '#2a2f36',
+                  borderTop: '2px solid #ff6600',
+                }}
+              >
+                <td 
+                  colSpan={2} 
+                  style={{
+                    padding: '12px 16px',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    color: '#ff6600',
+                  }}
+                >
                   TOTAL
                 </td>
-                <td className="py-3 px-4 text-right text-text-primary font-bold">100%</td>
-                <td className="py-3 px-4 text-right text-accent-primary font-bold">
+                <td 
+                  style={{
+                    padding: '12px 16px',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    color: '#ff6600',
+                  }}
+                >
+                  100%
+                </td>
+                <td 
+                  style={{
+                    padding: '12px 16px',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    color: '#ff6600',
+                  }}
+                >
                   {totais.total.toLocaleString('pt-BR')}
                 </td>
               </tr>
@@ -244,26 +348,40 @@ export const CaptacoesTable: React.FC<CaptacoesTableProps> = ({
 
       {/* Paginação */}
       {totalPaginas > 1 && (
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-text-muted">
-            Mostrando {(paginaAtual - 1) * itensPorPagina + 1} a{' '}
-            {Math.min(paginaAtual * itensPorPagina, dadosFiltrados.length)} de {dadosFiltrados.length}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: '16px',
+          fontSize: '0.875rem',
+          color: '#ADB5BD',
+          fontFamily: 'Poppins, sans-serif',
+        }}>
+          <span>
+            Mostrando {(paginaAtual - 1) * itensPorPagina + 1} a {Math.min(paginaAtual * itensPorPagina, dadosFiltrados.length)} de {dadosFiltrados.length} registros
           </span>
-          <div className="flex items-center gap-2">
+          <div style={{ display: 'flex', gap: '8px' }}>
             <button
               onClick={() => setPaginaAtual(p => Math.max(1, p - 1))}
               disabled={paginaAtual === 1}
-              className="px-3 py-1 rounded bg-dark-tertiary text-text-primary disabled:opacity-50 disabled:cursor-not-allowed hover:bg-dark-border transition-colors"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                paginaAtual === 1 
+                  ? 'bg-dark-tertiary border border-gray-700 text-gray-600 cursor-not-allowed' 
+                  : 'bg-dark-tertiary border border-gray-600 text-gray-400 hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-500'
+              }`}
+              style={{ fontFamily: 'Poppins, sans-serif' }}
             >
               Anterior
             </button>
-            <span className="text-text-muted">
-              {paginaAtual} / {totalPaginas}
-            </span>
             <button
               onClick={() => setPaginaAtual(p => Math.min(totalPaginas, p + 1))}
               disabled={paginaAtual === totalPaginas}
-              className="px-3 py-1 rounded bg-dark-tertiary text-text-primary disabled:opacity-50 disabled:cursor-not-allowed hover:bg-dark-border transition-colors"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                paginaAtual === totalPaginas 
+                  ? 'bg-dark-tertiary border border-gray-700 text-gray-600 cursor-not-allowed' 
+                  : 'bg-dark-tertiary border border-gray-600 text-gray-400 hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-500'
+              }`}
+              style={{ fontFamily: 'Poppins, sans-serif' }}
             >
               Próximo
             </button>

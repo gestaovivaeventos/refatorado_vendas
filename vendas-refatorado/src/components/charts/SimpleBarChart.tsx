@@ -81,7 +81,7 @@ export const SimpleBarChart: React.FC<SimpleBarChartProps> = ({
       },
       datalabels: {
         color: '#FFFFFF',
-        font: { size: 12, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
+        font: { size: 13, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
         anchor: 'end' as const,
         align: 'end' as const,
         formatter: (value: number) => {

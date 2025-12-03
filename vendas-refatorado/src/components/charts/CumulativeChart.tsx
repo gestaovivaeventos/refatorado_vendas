@@ -15,6 +15,7 @@ import {
   Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { COLORS } from '@/config/app.config';
 import { formatCurrency } from '@/utils/formatacao';
 
@@ -27,7 +28,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  ChartDataLabels
 );
 
 interface DataPoint {
@@ -111,6 +113,22 @@ export default function CumulativeChart({
           label: function(context: any) {
             return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
           },
+        },
+      },
+      datalabels: {
+        display: (context: any) => context.datasetIndex === 0, // Só mostrar para Realizado Acumulado
+        anchor: 'end' as const,
+        align: 'top' as const,
+        color: '#FFFFFF',
+        font: {
+          size: 10,
+          weight: 'bold' as const,
+          family: 'Poppins, Arial, sans-serif',
+        },
+        formatter: (value: number) => {
+          if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+          if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
+          return value.toFixed(0);
         },
       },
     },

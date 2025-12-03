@@ -11,6 +11,7 @@ import {
 import { Bar } from 'react-chartjs-2';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
+// Registrar componentes do Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -84,16 +85,32 @@ export const MultiYearBarChart: React.FC<MultiYearBarChartProps> = ({
       .filter(yearData => activeYears.includes(yearData.year))
       .map((yearData) => {
         const index = allYears.indexOf(yearData.year);
+        const color = palette[index];
         return {
           label: String(yearData.year),
           data: yearData.monthlyData,
-          backgroundColor: palette[index],
+          backgroundColor: color,
           borderRadius: 4,
+          datalabels: {
+            display: true,
+            anchor: 'end' as const,
+            align: 'top' as const,
+            offset: 2,
+            color: '#FFFFFF',
+            backgroundColor: 'rgba(33, 37, 41, 0.85)',
+            borderRadius: 4,
+            padding: 3,
+            font: { size: 10, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
+            formatter: (value: number) => {
+              if (!value || value === 0) return '';
+              return formatValue(value);
+            },
+          },
         };
       }),
-  }), [data, activeYears, palette, allYears]);
+  }), [data, activeYears, palette, allYears, formatValue]);
 
-  const options = useMemo(() => ({
+  const options: any = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -125,18 +142,6 @@ export const MultiYearBarChart: React.FC<MultiYearBarChartProps> = ({
             const sum = tooltipItems.reduce((acc, item) => acc + item.parsed.y, 0);
             return `Total: ${formatValue(sum)}`;
           },
-        },
-      },
-      datalabels: {
-        display: (context: any) => context.parsed?.y > 0,
-        color: '#FFFFFF',
-        font: { size: 10, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
-        anchor: 'end' as const,
-        align: 'top' as const,
-        rotation: -45,
-        formatter: (value: number) => {
-          if (!value || value === 0) return '';
-          return formatValue(value);
         },
       },
     },

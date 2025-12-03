@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { Download } from 'lucide-react';
 
 interface Column {
   key: string;
@@ -6,6 +7,7 @@ interface Column {
   align?: 'left' | 'center' | 'right';
   format?: (value: any) => string;
   sortable?: boolean;
+  highlight?: boolean; // Coluna destacada em laranja
 }
 
 interface DataTableProps {
@@ -28,7 +30,7 @@ export const DataTable: React.FC<DataTableProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
 
   // Filtrar dados
   const filteredData = useMemo(() => {
@@ -43,13 +45,17 @@ export const DataTable: React.FC<DataTableProps> = ({
 
   // Ordenar dados
   const sortedData = useMemo(() => {
-    if (!sortColumn) return filteredData;
+    if (!sortColumn || !sortDirection) return filteredData;
     return [...filteredData].sort((a, b) => {
-      const aVal = a[sortColumn];
-      const bVal = b[sortColumn];
+      let aVal = a[sortColumn];
+      let bVal = b[sortColumn];
       
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+      // Tentar converter para número
+      const numA = parseFloat(String(aVal).replace(',', '.'));
+      const numB = parseFloat(String(bVal).replace(',', '.'));
+      
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return sortDirection === 'asc' ? numA - numB : numB - numA;
       }
       
       const aStr = String(aVal || '').toLowerCase();
@@ -89,120 +95,60 @@ export const DataTable: React.FC<DataTableProps> = ({
 
   const handleSort = (columnKey: string) => {
     const column = columns.find(c => c.key === columnKey);
-    if (!column?.sortable) return;
+    if (column?.sortable === false) return;
     
     if (sortColumn === columnKey) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortDirection(null);
+        setSortColumn(null);
+      }
     } else {
       setSortColumn(columnKey);
       setSortDirection('asc');
     }
   };
 
-  const tableStyles = {
-    container: {
-      width: '100%',
-      overflow: 'auto',
-    },
-    header: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: '16px',
-      flexWrap: 'wrap' as const,
-      gap: '12px',
-    },
-    exportButton: {
-      padding: '8px 16px',
-      backgroundColor: 'transparent',
-      border: '1px solid #495057',
-      borderRadius: '4px',
-      color: '#F8F9FA',
-      fontSize: '14px',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease',
-    },
-    searchInput: {
-      padding: '8px 12px',
-      backgroundColor: '#343A40',
-      border: '1px solid #495057',
-      borderRadius: '4px',
-      color: '#F8F9FA',
-      fontSize: '14px',
-      minWidth: '200px',
-    },
-    table: {
-      width: '100%',
-      borderCollapse: 'collapse' as const,
-      fontSize: '14px',
-    },
-    th: {
-      padding: '12px 16px',
-      backgroundColor: '#343A40',
-      color: '#F8F9FA',
-      fontWeight: 600,
-      textAlign: 'left' as const,
-      borderBottom: '2px solid #495057',
-      cursor: 'pointer',
-      userSelect: 'none' as const,
-      whiteSpace: 'nowrap' as const,
-    },
-    td: {
-      padding: '12px 16px',
-      borderBottom: '1px solid #495057',
-      color: '#F8F9FA',
-    },
-    pagination: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginTop: '16px',
-      fontSize: '14px',
-      color: '#ADB5BD',
-    },
-    paginationButton: {
-      padding: '6px 12px',
-      backgroundColor: 'transparent',
-      border: '1px solid #495057',
-      borderRadius: '4px',
-      color: '#F8F9FA',
-      cursor: 'pointer',
-      marginLeft: '8px',
-    },
-    paginationButtonDisabled: {
-      opacity: 0.5,
-      cursor: 'not-allowed',
-    },
-    sortIcon: {
-      marginLeft: '6px',
-      fontSize: '12px',
-    },
+  // Ícone de ordenação no estilo PEX
+  const renderSortIcon = (columnKey: string) => {
+    if (sortColumn !== columnKey) {
+      return <span style={{ color: '#6c757d', marginLeft: '4px' }}>⇅</span>;
+    }
+    if (sortDirection === 'asc') {
+      return <span style={{ color: '#FF6600', marginLeft: '4px' }}>↑</span>;
+    }
+    if (sortDirection === 'desc') {
+      return <span style={{ color: '#FF6600', marginLeft: '4px' }}>↓</span>;
+    }
+    return null;
   };
 
   return (
-    <div style={tableStyles.container}>
+    <div style={{ width: '100%' }}>
       {/* Header com Exportar e Pesquisar */}
-      <div style={tableStyles.header}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: '16px',
+        flexWrap: 'wrap',
+        gap: '12px'
+      }}>
         {exportable && (
           <button 
-            style={tableStyles.exportButton}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-dark-tertiary border border-gray-600 text-gray-400 hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-500"
             onClick={handleExport}
-            onMouseOver={(e) => {
-              e.currentTarget.style.borderColor = '#FF6600';
-              e.currentTarget.style.color = '#FF6600';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.borderColor = '#495057';
-              e.currentTarget.style.color = '#F8F9FA';
-            }}
+            style={{ fontFamily: 'Poppins, sans-serif' }}
           >
-            Exportar para Excel
+            <Download size={16} />
+            Exportar
           </button>
         )}
         
         {searchable && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: '#ADB5BD' }}>Pesquisar:</span>
+            <span style={{ color: '#ADB5BD', fontSize: '0.875rem' }}>Pesquisar:</span>
             <input
               type="text"
               value={searchTerm}
@@ -210,103 +156,157 @@ export const DataTable: React.FC<DataTableProps> = ({
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              style={tableStyles.searchInput}
-              placeholder=""
+              style={{
+                padding: '8px 12px',
+                backgroundColor: '#212529',
+                border: '1px solid #495057',
+                borderRadius: '6px',
+                color: '#F8F9FA',
+                fontSize: '0.875rem',
+                minWidth: '180px',
+                outline: 'none',
+                fontFamily: 'Poppins, sans-serif',
+              }}
             />
           </div>
         )}
       </div>
 
-      {/* Tabela */}
-      <table style={tableStyles.table}>
-        <thead>
-          <tr>
-            {columns.map(col => (
-              <th
-                key={col.key}
-                style={{
-                  ...tableStyles.th,
-                  textAlign: col.align || 'left',
-                  cursor: col.sortable !== false ? 'pointer' : 'default',
-                }}
-                onClick={() => handleSort(col.key)}
-              >
-                {col.title}
-                {col.sortable !== false && (
-                  <span style={tableStyles.sortIcon}>
-                    {sortColumn === col.key 
-                      ? (sortDirection === 'asc' ? '▲' : '▼')
-                      : '◆'
-                    }
-                  </span>
-                )}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {paginatedData.length === 0 ? (
-            <tr>
-              <td 
-                colSpan={columns.length} 
-                style={{ ...tableStyles.td, textAlign: 'center', color: '#ADB5BD' }}
-              >
-                Nenhum registro disponível na tabela
-              </td>
+      {/* Container com scroll vertical */}
+      <div style={{ 
+        maxHeight: '600px', 
+        overflowY: 'auto',
+        overflowX: 'auto'
+      }}>
+        <table 
+          style={{ 
+            width: '100%',
+            borderCollapse: 'separate',
+            borderSpacing: 0,
+            fontSize: '0.875rem',
+          }}
+        >
+          <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+            <tr style={{ backgroundColor: '#2a2f36' }}>
+              {columns.map(col => (
+                <th
+                  key={col.key}
+                  onClick={() => handleSort(col.key)}
+                  style={{
+                    color: '#adb5bd',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    padding: '12px 8px',
+                    textAlign: 'center',
+                    cursor: col.sortable !== false ? 'pointer' : 'default',
+                    userSelect: 'none',
+                    borderBottom: '2px solid #FF6600',
+                    whiteSpace: 'nowrap',
+                    transition: 'background-color 0.2s',
+                    backgroundColor: '#2a2f36',
+                    fontFamily: 'Poppins, sans-serif',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#343a40'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a2f36'}
+                >
+                  {col.title}
+                  {col.sortable !== false && renderSortIcon(col.key)}
+                </th>
+              ))}
             </tr>
-          ) : (
-            paginatedData.map((row, rowIndex) => (
-              <tr 
-                key={rowIndex}
-                style={{
-                  backgroundColor: rowIndex % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)',
-                }}
-              >
-                {columns.map(col => (
-                  <td
-                    key={col.key}
-                    style={{
-                      ...tableStyles.td,
-                      textAlign: col.align || 'left',
-                    }}
-                  >
-                    {col.format ? col.format(row[col.key]) : row[col.key]}
-                  </td>
-                ))}
+          </thead>
+          <tbody>
+            {paginatedData.length === 0 ? (
+              <tr>
+                <td 
+                  colSpan={columns.length} 
+                  style={{ 
+                    padding: '48px 16px', 
+                    textAlign: 'center', 
+                    color: '#adb5bd',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  Nenhum dado disponível
+                </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              paginatedData.map((row, rowIndex) => (
+                <tr
+                  key={rowIndex}
+                  style={{
+                    backgroundColor: rowIndex % 2 === 0 ? '#343A40' : '#2c3136',
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = rowIndex % 2 === 0 ? '#343A40' : '#2c3136'}
+                >
+                  {columns.map(col => (
+                    <td
+                      key={col.key}
+                      style={{
+                        padding: '12px 8px',
+                        color: col.highlight ? '#FF6600' : '#F8F9FA',
+                        fontWeight: col.highlight ? 600 : 400,
+                        fontSize: '0.875rem',
+                        borderBottom: '1px solid #444',
+                        textAlign: 'center',
+                        fontFamily: 'Poppins, sans-serif',
+                      }}
+                    >
+                      {col.format ? col.format(row[col.key]) : row[col.key]}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Paginação */}
-      <div style={tableStyles.pagination}>
-        <span>
-          Mostrando {((currentPage - 1) * pageSize) + 1} a {Math.min(currentPage * pageSize, sortedData.length)} de {sortedData.length} entradas
-        </span>
-        <div>
-          <button
-            style={{
-              ...tableStyles.paginationButton,
-              ...(currentPage === 1 ? tableStyles.paginationButtonDisabled : {}),
-            }}
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-          >
-            Anterior
-          </button>
-          <button
-            style={{
-              ...tableStyles.paginationButton,
-              ...(currentPage === totalPages ? tableStyles.paginationButtonDisabled : {}),
-            }}
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-          >
-            Próximo
-          </button>
+      {totalPages > 1 && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: '16px',
+          fontSize: '0.875rem',
+          color: '#ADB5BD',
+          fontFamily: 'Poppins, sans-serif',
+        }}>
+          <span>
+            Mostrando {((currentPage - 1) * pageSize) + 1} a {Math.min(currentPage * pageSize, sortedData.length)} de {sortedData.length} registros
+          </span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                currentPage === 1 
+                  ? 'bg-dark-tertiary border border-gray-700 text-gray-600 cursor-not-allowed' 
+                  : 'bg-dark-tertiary border border-gray-600 text-gray-400 hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-500'
+              }`}
+              style={{ fontFamily: 'Poppins, sans-serif' }}
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                currentPage === totalPages 
+                  ? 'bg-dark-tertiary border border-gray-700 text-gray-600 cursor-not-allowed' 
+                  : 'bg-dark-tertiary border border-gray-600 text-gray-400 hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-500'
+              }`}
+              style={{ fontFamily: 'Poppins, sans-serif' }}
+            >
+              Próximo
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

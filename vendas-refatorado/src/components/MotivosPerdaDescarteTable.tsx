@@ -21,7 +21,7 @@ interface MotivosPerdaDescarteTableProps {
   concorrentes: ConcorrenteItem[];
 }
 
-// Componente de tabela individual no estilo original
+// Componente de tabela individual no estilo PEX
 const TabelaMotivos: React.FC<{
   titulo: string;
   colunaNome: string;
@@ -41,13 +41,6 @@ const TabelaMotivos: React.FC<{
     : colunaNome.includes('Descarte')
     ? 'Nenhum descarte encontrado no período selecionado'
     : 'Nenhum registro disponível na tabela';
-
-  // Calcular classe de calor baseada no percentual
-  const getHeatClass = (percentual: number) => {
-    if (percentual >= 30) return 'heat-high';
-    if (percentual >= 15) return 'heat-medium';
-    return 'heat-low';
-  };
 
   return (
     <div 
@@ -74,67 +67,74 @@ const TabelaMotivos: React.FC<{
         <div className="mb-2">
           <button
             onClick={onExport}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded transition-colors"
-            style={{
-              background: 'linear-gradient(180deg, #3a3f44 0%, #2e3236 100%)',
-              color: '#e9ecef',
-              border: '1px solid rgba(0,0,0,0.45)',
-            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-dark-tertiary border border-gray-600 text-gray-400 hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-500"
+            style={{ fontFamily: 'Poppins, sans-serif' }}
           >
-            <Download className="w-3 h-3" />
-            Exportar para Excel
+            <Download size={16} />
+            Exportar
           </button>
         </div>
       )}
       
       {/* Tabela */}
-      <div className="flex-1 overflow-auto">
-        <table className="w-full border-collapse" style={{ fontSize: '0.95rem' }}>
-          <thead>
-            <tr>
+      <div 
+        className="flex-1"
+        style={{ 
+          maxHeight: '280px', 
+          overflowY: 'auto',
+          borderRadius: '8px',
+          border: '1px solid #444',
+        }}
+      >
+        <table 
+          style={{ 
+            width: '100%', 
+            borderCollapse: 'collapse',
+            fontSize: '0.875rem',
+          }}
+        >
+          <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+            <tr style={{ backgroundColor: '#2a2f36' }}>
               <th 
-                className="text-left sticky top-0 z-10"
                 style={{
-                  background: 'linear-gradient(135deg, #495057 0%, #6c757d 100%)',
-                  color: '#ffc107',
-                  padding: '12px 10px',
+                  padding: '12px 16px',
+                  textAlign: 'left',
+                  borderBottom: '2px solid #FF6600',
+                  color: '#adb5bd',
                   fontWeight: 600,
                   textTransform: 'uppercase',
-                  fontSize: '0.85rem',
-                  letterSpacing: '0.5px',
-                  border: '1px solid #6c757d',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.05em',
                   width: '60%',
                 }}
               >
                 {colunaNome}
               </th>
               <th 
-                className="text-center sticky top-0 z-10"
                 style={{
-                  background: 'linear-gradient(135deg, #495057 0%, #6c757d 100%)',
-                  color: '#ffc107',
-                  padding: '12px 10px',
+                  padding: '12px 16px',
+                  textAlign: 'center',
+                  borderBottom: '2px solid #FF6600',
+                  color: '#adb5bd',
                   fontWeight: 600,
                   textTransform: 'uppercase',
-                  fontSize: '0.85rem',
-                  letterSpacing: '0.5px',
-                  border: '1px solid #6c757d',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.05em',
                   width: '20%',
                 }}
               >
                 %
               </th>
               <th 
-                className="text-center sticky top-0 z-10"
                 style={{
-                  background: 'linear-gradient(135deg, #495057 0%, #6c757d 100%)',
-                  color: '#ffc107',
-                  padding: '12px 10px',
+                  padding: '12px 16px',
+                  textAlign: 'center',
+                  borderBottom: '2px solid #FF6600',
+                  color: '#adb5bd',
                   fontWeight: 600,
                   textTransform: 'uppercase',
-                  fontSize: '0.85rem',
-                  letterSpacing: '0.5px',
-                  border: '1px solid #6c757d',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.05em',
                   width: '20%',
                 }}
               >
@@ -147,11 +147,10 @@ const TabelaMotivos: React.FC<{
               <tr>
                 <td 
                   colSpan={3} 
-                  className="text-center"
                   style={{
-                    padding: '40px 10px',
-                    color: '#f8f9fa',
-                    border: '1px solid #495057',
+                    textAlign: 'center',
+                    padding: '40px',
+                    color: '#adb5bd',
                   }}
                 >
                   {mensagemVazia}
@@ -161,16 +160,21 @@ const TabelaMotivos: React.FC<{
               dadosPaginados.map((item, index) => (
                 <tr 
                   key={item.motivo}
-                  className="hover:bg-[rgba(255,193,7,0.1)] transition-colors"
+                  style={{
+                    backgroundColor: index % 2 === 0 ? '#343A40' : '#2c3136',
+                    borderBottom: '1px solid #444',
+                    transition: 'background-color 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = index % 2 === 0 ? '#343A40' : '#2c3136'}
                 >
                   <td 
-                    className="text-left"
                     style={{
-                      padding: '10px',
-                      border: '1px solid #495057',
-                      color: '#f8f9fa',
+                      padding: '10px 16px',
+                      textAlign: 'left',
+                      color: '#F8F9FA',
                       fontWeight: 500,
-                      fontSize: '0.9rem',
+                      fontSize: '0.875rem',
                       maxWidth: '200px',
                       wordWrap: 'break-word',
                     }}
@@ -178,22 +182,19 @@ const TabelaMotivos: React.FC<{
                     {item.motivo}
                   </td>
                   <td 
-                    className="text-center"
                     style={{
-                      padding: '10px',
-                      border: '1px solid #495057',
-                      color: '#f8f9fa',
-                      fontWeight: 500,
+                      padding: '10px 16px',
+                      textAlign: 'center',
+                      color: '#adb5bd',
                     }}
                   >
                     {item.percentual.toFixed(1)}%
                   </td>
                   <td 
-                    className="text-center"
                     style={{
-                      padding: '10px',
-                      border: '1px solid #495057',
-                      color: '#f8f9fa',
+                      padding: '10px 16px',
+                      textAlign: 'center',
+                      color: '#F8F9FA',
                       fontWeight: 600,
                     }}
                   >
@@ -207,40 +208,43 @@ const TabelaMotivos: React.FC<{
       </div>
       
       {/* Paginação */}
-      {dados.length > 0 && (
-        <div 
-          className="flex items-center justify-between mt-2 pt-2"
-          style={{
-            borderTop: '1px solid #495057',
-            color: '#adb5bd',
-            fontSize: '0.8rem',
-          }}
-        >
+      {totalPages > 1 && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: '12px',
+          paddingTop: '12px',
+          borderTop: '1px solid #444',
+          fontSize: '0.875rem',
+          color: '#ADB5BD',
+          fontFamily: 'Poppins, sans-serif',
+        }}>
           <span>
-            Mostrando {Math.min(startIndex + 1, dados.length)} a {Math.min(endIndex, dados.length)} de {dados.length} entradas
+            Mostrando {Math.min(startIndex + 1, dados.length)} a {Math.min(endIndex, dados.length)} de {dados.length} registros
           </span>
-          <div className="flex items-center gap-2">
+          <div style={{ display: 'flex', gap: '8px' }}>
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 rounded transition-colors disabled:opacity-50"
-              style={{
-                background: currentPage === 1 ? '#343a40' : '#495057',
-                color: '#f8f9fa',
-                border: '1px solid #6c757d',
-              }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                currentPage === 1 
+                  ? 'bg-dark-tertiary border border-gray-700 text-gray-600 cursor-not-allowed' 
+                  : 'bg-dark-tertiary border border-gray-600 text-gray-400 hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-500'
+              }`}
+              style={{ fontFamily: 'Poppins, sans-serif' }}
             >
               Anterior
             </button>
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded transition-colors disabled:opacity-50"
-              style={{
-                background: currentPage === totalPages ? '#343a40' : '#495057',
-                color: '#f8f9fa',
-                border: '1px solid #6c757d',
-              }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                currentPage === totalPages 
+                  ? 'bg-dark-tertiary border border-gray-700 text-gray-600 cursor-not-allowed' 
+                  : 'bg-dark-tertiary border border-gray-600 text-gray-400 hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-500'
+              }`}
+              style={{ fontFamily: 'Poppins, sans-serif' }}
             >
               Próximo
             </button>

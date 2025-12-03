@@ -152,9 +152,9 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
       return <span className="ml-1 text-gray-500">↕</span>;
     }
     return ordenacao.direcao === 'asc' ? (
-      <span className="ml-1">↑</span>
+      <span className="ml-1" style={{ color: '#FF6600' }}>↑</span>
     ) : (
-      <span className="ml-1">↓</span>
+      <span className="ml-1" style={{ color: '#FF6600' }}>↓</span>
     );
   };
 
@@ -200,15 +200,11 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
       <div className="flex items-center justify-between gap-4">
         <button
           onClick={exportarCSV}
-          className="px-4 py-1.5 text-sm font-medium rounded transition-colors"
-          style={{
-            backgroundColor: '#495057',
-            color: '#F8F9FA',
-            border: '1px solid #ADB5BD',
-            borderRadius: '6px',
-          }}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-dark-tertiary border border-gray-600 text-gray-400 hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-500"
+          style={{ fontFamily: 'Poppins, sans-serif' }}
         >
-          Exportar para Excel
+          <Download size={16} />
+          Exportar
         </button>
 
         <div className="flex items-center">
@@ -233,42 +229,115 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
       </div>
 
       {/* Tabela */}
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left" style={{ color: '#F8F9FA' }}>
-          <thead>
-            <tr>
+      <div 
+        style={{ 
+          maxHeight: '500px', 
+          overflowY: 'auto',
+          borderRadius: '8px',
+          border: '1px solid #444',
+        }}
+      >
+        <table 
+          style={{ 
+            width: '100%', 
+            borderCollapse: 'collapse',
+            fontSize: '0.875rem',
+          }}
+        >
+          <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+            <tr style={{ backgroundColor: '#2a2f36' }}>
               <th
                 onClick={() => handleOrdenacao('nome')}
-                className="cursor-pointer px-3 py-2 text-left border-b border-[#495057] hover:bg-[rgba(255,255,255,0.05)]"
-                style={{ fontWeight: 600 }}
+                className="cursor-pointer"
+                style={{
+                  padding: '12px 16px',
+                  textAlign: 'center',
+                  borderBottom: '2px solid #FF6600',
+                  color: '#adb5bd',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.05em',
+                  transition: 'background-color 0.2s ease',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a2f36'}
               >
                 Unidade {renderIconeOrdenacao('nome')}
               </th>
               <th
                 onClick={() => handleOrdenacao('periodo')}
-                className="cursor-pointer px-3 py-2 text-left border-b border-[#495057] hover:bg-[rgba(255,255,255,0.05)]"
-                style={{ fontWeight: 600 }}
+                className="cursor-pointer"
+                style={{
+                  padding: '12px 16px',
+                  textAlign: 'center',
+                  borderBottom: '2px solid #FF6600',
+                  color: '#adb5bd',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.05em',
+                  transition: 'background-color 0.2s ease',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a2f36'}
               >
                 Período {renderIconeOrdenacao('periodo')}
               </th>
               <th
                 onClick={() => handleOrdenacao('valorRealizado')}
-                className="cursor-pointer px-3 py-2 text-left border-b border-[#495057] hover:bg-[rgba(255,255,255,0.05)]"
-                style={{ fontWeight: 600 }}
+                className="cursor-pointer"
+                style={{
+                  padding: '12px 16px',
+                  textAlign: 'center',
+                  borderBottom: '2px solid #FF6600',
+                  color: '#adb5bd',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.05em',
+                  transition: 'background-color 0.2s ease',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a2f36'}
               >
                 VVR Realizado {tipoLabel} {renderIconeOrdenacao('valorRealizado')}
               </th>
               <th
                 onClick={() => handleOrdenacao('valorMeta')}
-                className="cursor-pointer px-3 py-2 text-left border-b border-[#495057] hover:bg-[rgba(255,255,255,0.05)]"
-                style={{ fontWeight: 600 }}
+                className="cursor-pointer"
+                style={{
+                  padding: '12px 16px',
+                  textAlign: 'center',
+                  borderBottom: '2px solid #FF6600',
+                  color: '#adb5bd',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.05em',
+                  transition: 'background-color 0.2s ease',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a2f36'}
               >
                 Meta VVR {tipoLabel} {renderIconeOrdenacao('valorMeta')}
               </th>
               <th
                 onClick={() => handleOrdenacao('percentual')}
-                className="cursor-pointer px-3 py-2 text-left border-b border-[#495057] hover:bg-[rgba(255,255,255,0.05)]"
-                style={{ fontWeight: 600 }}
+                className="cursor-pointer"
+                style={{
+                  padding: '12px 16px',
+                  textAlign: 'center',
+                  borderBottom: '2px solid #FF6600',
+                  color: '#adb5bd',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.05em',
+                  transition: 'background-color 0.2s ease',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a2f36'}
               >
                 Atingimento VVR {tipoLabel} {renderIconeOrdenacao('percentual')}
               </th>
@@ -279,7 +348,11 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
               <tr>
                 <td
                   colSpan={5}
-                  className="text-center py-10 text-[#adb5bd]"
+                  style={{
+                    textAlign: 'center',
+                    padding: '40px',
+                    color: '#adb5bd',
+                  }}
                 >
                   Nenhum registro encontrado
                 </td>
@@ -289,48 +362,76 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
                 {dadosPaginados.map((item, index) => (
                   <tr
                     key={`${item.nome}-${index}`}
-                    className="hover:bg-[rgba(255,255,255,0.03)] border-b border-[#343a40]"
+                    style={{
+                      backgroundColor: index % 2 === 0 ? '#343A40' : '#2c3136',
+                      borderBottom: '1px solid #444',
+                      transition: 'background-color 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = index % 2 === 0 ? '#343A40' : '#2c3136'}
                   >
-                    <td className="px-3 py-2">{item.nome}</td>
-                    <td className="px-3 py-2">{item.periodo || periodoLabel}</td>
-                    <td className="px-3 py-2">{formatCurrency(item.valorRealizado)}</td>
-                    <td className="px-3 py-2">{formatCurrency(item.valorMeta)}</td>
-                    <td className="px-3 py-2">{formatPercent(item.percentual)}</td>
+                    <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA' }}>{item.nome}</td>
+                    <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA' }}>{item.periodo || periodoLabel}</td>
+                    <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA' }}>{formatCurrency(item.valorRealizado)}</td>
+                    <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA' }}>{formatCurrency(item.valorMeta)}</td>
+                    <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA' }}>{formatPercent(item.percentual)}</td>
                   </tr>
                 ))}
                 
                 {/* Linha de total */}
                 <tr
-                  className="border-t-2 border-[#ff6600]"
-                  style={{ backgroundColor: '#2c3035' }}
+                  style={{
+                    backgroundColor: '#2a2f36',
+                    borderTop: '2px solid #ff6600',
+                  }}
                 >
                   <td
-                    className="px-3 py-2 font-bold"
-                    style={{ color: '#ff6600' }}
+                    style={{
+                      padding: '12px 16px',
+                      textAlign: 'center',
+                      fontWeight: 700,
+                      color: '#ff6600',
+                    }}
                   >
                     TOTAL GERAL
                   </td>
                   <td
-                    className="px-3 py-2 font-bold"
-                    style={{ color: '#ff6600' }}
+                    style={{
+                      padding: '12px 16px',
+                      textAlign: 'center',
+                      fontWeight: 700,
+                      color: '#ff6600',
+                    }}
                   >
                     {periodoLabel}
                   </td>
                   <td
-                    className="px-3 py-2 font-bold"
-                    style={{ color: '#ff6600' }}
+                    style={{
+                      padding: '12px 16px',
+                      textAlign: 'center',
+                      fontWeight: 700,
+                      color: '#ff6600',
+                    }}
                   >
                     {formatCurrency(totais.totalRealizado)}
                   </td>
                   <td
-                    className="px-3 py-2 font-bold"
-                    style={{ color: '#ff6600' }}
+                    style={{
+                      padding: '12px 16px',
+                      textAlign: 'center',
+                      fontWeight: 700,
+                      color: '#ff6600',
+                    }}
                   >
                     {formatCurrency(totais.totalMeta)}
                   </td>
                   <td
-                    className="px-3 py-2 font-bold"
-                    style={{ color: '#ff6600' }}
+                    style={{
+                      padding: '12px 16px',
+                      textAlign: 'center',
+                      fontWeight: 700,
+                      color: '#ff6600',
+                    }}
                   >
                     {formatPercent(totais.atingimentoTotal)}
                   </td>
@@ -342,70 +443,47 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
       </div>
 
       {/* Paginação */}
-      <div
-        className="flex items-center justify-between pt-2"
-        style={{ color: '#adb5bd', fontSize: '0.85rem' }}
-      >
-        <span>
-          Mostrando {dadosFiltrados.length > 0 ? startIndex + 1 : 0} a {Math.min(endIndex, dadosFiltrados.length)} de {dadosFiltrados.length} entradas
-        </span>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setPaginaAtual(1)}
-            disabled={paginaAtual === 1}
-            className="px-2 py-1 rounded transition-colors disabled:opacity-50"
-            style={{
-              color: '#F8F9FA',
-              border: '1px solid #495057',
-            }}
-          >
-            Primeiro
-          </button>
-          <button
-            onClick={() => setPaginaAtual(p => Math.max(1, p - 1))}
-            disabled={paginaAtual === 1}
-            className="px-2 py-1 rounded transition-colors disabled:opacity-50"
-            style={{
-              color: '#F8F9FA',
-              border: '1px solid #495057',
-            }}
-          >
-            Anterior
-          </button>
-          <span
-            className="px-3 py-1 rounded"
-            style={{
-              background: '#FF6600',
-              borderColor: '#FF6600',
-              color: '#ffffff',
-            }}
-          >
-            {paginaAtual}
+      {totalPaginas > 1 && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: '16px',
+          fontSize: '0.875rem',
+          color: '#ADB5BD',
+          fontFamily: 'Poppins, sans-serif',
+        }}>
+          <span>
+            Mostrando {dadosFiltrados.length > 0 ? startIndex + 1 : 0} a {Math.min(endIndex, dadosFiltrados.length)} de {dadosFiltrados.length} registros
           </span>
-          <button
-            onClick={() => setPaginaAtual(p => Math.min(totalPaginas, p + 1))}
-            disabled={paginaAtual === totalPaginas}
-            className="px-2 py-1 rounded transition-colors disabled:opacity-50"
-            style={{
-              color: '#F8F9FA',
-              border: '1px solid #495057',
-            }}
-          >
-            Próximo
-          </button>
-          <button
-            onClick={() => setPaginaAtual(totalPaginas)}
-            disabled={paginaAtual === totalPaginas}
-            className="px-2 py-1 rounded transition-colors disabled:opacity-50"
-            style={{
-              color: '#F8F9FA',
-              border: '1px solid #495057',
-            }}
-          >
-            Último
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => setPaginaAtual(p => Math.max(1, p - 1))}
+              disabled={paginaAtual === 1}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                paginaAtual === 1 
+                  ? 'bg-dark-tertiary border border-gray-700 text-gray-600 cursor-not-allowed' 
+                  : 'bg-dark-tertiary border border-gray-600 text-gray-400 hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-500'
+              }`}
+              style={{ fontFamily: 'Poppins, sans-serif' }}
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => setPaginaAtual(p => Math.min(totalPaginas, p + 1))}
+              disabled={paginaAtual === totalPaginas}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                paginaAtual === totalPaginas 
+                  ? 'bg-dark-tertiary border border-gray-700 text-gray-600 cursor-not-allowed' 
+                  : 'bg-dark-tertiary border border-gray-600 text-gray-400 hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-500'
+              }`}
+              style={{ fontFamily: 'Poppins, sans-serif' }}
+            >
+              Próximo
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -75,7 +75,7 @@ export default function TicketMedioChart({
         anchor: 'end' as const,
         align: 'end' as const,
         color: COLORS.TEXT,
-        font: { weight: 'bold' as const, size: 12, family: 'Poppins, sans-serif' },
+        font: { weight: 'bold' as const, size: 13, family: 'Poppins, sans-serif' },
         formatter: function(value: number) {
           if (!value || value === 0) return '';
           if (value >= 1000) return `${(value / 1000).toFixed(1).replace('.0', '')}k`;

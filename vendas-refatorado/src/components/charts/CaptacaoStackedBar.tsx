@@ -38,11 +38,11 @@ interface CaptacaoStackedBarProps {
   height?: number;
 }
 
-// Cores para os tipos de captação
+// Cores para os tipos de captação (padrão: laranja, amarelo, cinza)
 const CORES_CAPTACAO: Record<string, string> = {
   'Captação Ativa': '#FF6600',
-  'Captação Passiva': '#4CAF50',
-  'Captação Passiva - Exclusiva Viva BR': '#2196F3',
+  'Captação Passiva': '#6c757d',
+  'Captação Passiva - Exclusiva Viva BR': '#FFC107',
 };
 
 export const CaptacaoStackedBar: React.FC<CaptacaoStackedBarProps> = ({
@@ -90,17 +90,7 @@ export const CaptacaoStackedBar: React.FC<CaptacaoStackedBarProps> = ({
     },
     plugins: {
       legend: {
-        display: true,
-        position: 'bottom' as const,
-        labels: {
-          color: '#F8F9FA',
-          padding: 20,
-          font: {
-            size: 12,
-          },
-          usePointStyle: true,
-          pointStyle: 'rect',
-        },
+        display: false, // Desabilitado - usando legenda customizada com %
       },
       title: {
         display: false,

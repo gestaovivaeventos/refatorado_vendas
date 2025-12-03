@@ -13,6 +13,7 @@ import {
 import { Line } from 'react-chartjs-2';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
+// Registrar componentes do Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -102,28 +103,41 @@ export const MultiYearLineChart: React.FC<MultiYearLineChartProps> = ({
           const chart = context.chart;
           const { ctx, chartArea } = chart;
           if (!chartArea) return 'transparent';
-          
-          // Gradiente vertical: cor da linha no topo -> transparente na base
           const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-          gradient.addColorStop(0, color + '40'); // 25% opacidade no topo
-          gradient.addColorStop(0.5, color + '15'); // 8% no meio
-          gradient.addColorStop(1, 'transparent'); // transparente na base
+          gradient.addColorStop(0, color + '40');
+          gradient.addColorStop(0.5, color + '15');
+          gradient.addColorStop(1, 'transparent');
           return gradient;
         },
         fill: true,
-        tension: 0.3, // Curva mais suave
-        borderWidth: isActive ? 2 : 1.5, // Linha fina
+        tension: 0.3,
+        borderWidth: isActive ? 2 : 1.5,
         pointRadius: isActive ? 3 : 0,
         pointHoverRadius: 5,
         pointBackgroundColor: color,
         pointBorderColor: color,
         pointBorderWidth: 1,
         hidden: !isActive,
+        datalabels: {
+          display: isActive,
+          anchor: 'end' as const,
+          align: 'top' as const,
+          offset: 6,
+          color: color,
+          backgroundColor: 'rgba(33, 37, 41, 0.85)',
+          borderRadius: 4,
+          padding: 4,
+          font: { size: 11, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
+          formatter: (value: number) => {
+            if (!value || value === 0) return '';
+            return formatValue(value);
+          },
+        },
       };
     }),
-  }), [data, activeYears, palette]);
+  }), [data, activeYears, palette, formatValue]);
 
-  const options = useMemo(() => ({
+  const options: any = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     interaction: {
@@ -165,21 +179,6 @@ export const MultiYearLineChart: React.FC<MultiYearLineChartProps> = ({
             const sum = tooltipItems.reduce((acc, item) => acc + item.parsed.y, 0);
             return `Total: R$ ${formatValue(sum)}`;
           },
-        },
-      },
-      datalabels: {
-        display: (context: any) => {
-          // Só mostra labels para linhas ativas e com valor
-          return !context.dataset.hidden && context.parsed?.y > 0;
-        },
-        color: (context: any) => context.dataset.borderColor,
-        font: { size: 11, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
-        anchor: 'end' as const,
-        align: 'top' as const,
-        offset: 4,
-        formatter: (value: number) => {
-          if (!value || value === 0) return '';
-          return formatValue(value);
         },
       },
     },

@@ -13,38 +13,38 @@ const QUICK_PERIODS = [
   { value: 'ultimos30dias', label: 'Últimos 30 dias' },
   { value: 'estemes', label: 'Este mês' },
   { value: 'mespassado', label: 'Mês passado' },
+  { value: 'esteanoateagora', label: 'Este ano até agora' },
   { value: 'esteano', label: 'Este ano' },
   { value: 'anopassado', label: 'Ano passado' },
 ];
 
-// Estilos inline no padrão PEX/MultiSelect
+// Estilos inline no padrão do dashboard
 const labelStyle: React.CSSProperties = {
   display: 'block',
-  color: '#aaa',
+  color: '#adb5bd',
   fontSize: '0.75rem',
-  fontWeight: 500,
+  fontWeight: 600,
   marginBottom: '8px',
   textTransform: 'uppercase',
-  letterSpacing: '0.5px',
+  letterSpacing: '0.05em',
   fontFamily: 'Poppins, sans-serif',
 };
 
 const triggerStyle: React.CSSProperties = {
   width: '100%',
   padding: '12px 16px',
-  background: 'linear-gradient(to bottom, #5a6573 0%, #4a5563 50%, #3a4553 100%)',
-  color: 'white',
-  border: 'none',
+  backgroundColor: '#2a2f36',
+  color: '#F8F9FA',
+  border: '1px solid #444',
   borderRadius: '8px',
-  fontSize: '0.9rem',
-  fontWeight: 600,
+  fontSize: '0.875rem',
+  fontWeight: 500,
   fontFamily: 'Poppins, sans-serif',
   cursor: 'pointer',
   transition: 'all 0.2s',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)',
 };
 
 const dropdownStyle: React.CSSProperties = {
@@ -97,6 +97,8 @@ function getPredefinedPeriod(period: string): { start: Date; end: Date } | null 
       return { start: new Date(year, month, 1), end: new Date(year, month + 1, 0) };
     case 'mespassado':
       return { start: new Date(year, month - 1, 1), end: new Date(year, month, 0) };
+    case 'esteanoateagora':
+      return { start: new Date(year, 0, 1), end: hoje };
     case 'esteano':
       return { start: new Date(year, 0, 1), end: new Date(year, 11, 31) };
     case 'anopassado':
@@ -161,7 +163,6 @@ export default function DateRangePicker({
   return (
     <div style={{ marginBottom: '25px', position: 'relative' }} ref={containerRef}>
       <label style={labelStyle}>
-        <span style={{ marginRight: '4px' }}>📅</span>
         Período
       </label>
 
@@ -171,12 +172,12 @@ export default function DateRangePicker({
           onClick={() => setIsOpen(!isOpen)}
           style={triggerStyle}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-1px)';
-            e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+            e.currentTarget.style.borderColor = '#FF6600';
+            e.currentTarget.style.backgroundColor = '#343A40';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+            e.currentTarget.style.borderColor = '#444';
+            e.currentTarget.style.backgroundColor = '#2a2f36';
           }}
         >
           <span style={{ 
@@ -187,7 +188,7 @@ export default function DateRangePicker({
           }}>
             {getDisplayText()}
           </span>
-          <span style={{ fontSize: '0.7rem', marginLeft: '8px' }}>▼</span>
+          <span style={{ fontSize: '0.6rem', marginLeft: '8px', color: '#adb5bd' }}>▼</span>
         </div>
 
         {/* Dropdown */}
@@ -196,15 +197,15 @@ export default function DateRangePicker({
             {/* Seção: Período Personalizado */}
             <div style={{ padding: '12px', borderBottom: '1px solid #3a3f46' }}>
               <div style={{ 
-                color: '#888', 
+                color: '#adb5bd', 
                 fontSize: '0.7rem', 
                 fontWeight: 600, 
                 textTransform: 'uppercase',
-                letterSpacing: '0.5px',
+                letterSpacing: '0.05em',
                 marginBottom: '10px',
                 fontFamily: 'Poppins, sans-serif',
               }}>
-                ⚙️ Período Personalizado
+                Período Personalizado
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -265,15 +266,15 @@ export default function DateRangePicker({
             {/* Seção: Atalhos Rápidos */}
             <div style={{ padding: '8px 12px 4px' }}>
               <div style={{ 
-                color: '#888', 
+                color: '#adb5bd', 
                 fontSize: '0.7rem', 
                 fontWeight: 600, 
                 textTransform: 'uppercase',
-                letterSpacing: '0.5px',
+                letterSpacing: '0.05em',
                 marginBottom: '6px',
                 fontFamily: 'Poppins, sans-serif',
               }}>
-                ⚡ Atalhos Rápidos
+                Atalhos Rápidos
               </div>
             </div>
 

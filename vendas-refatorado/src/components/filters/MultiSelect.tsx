@@ -5,34 +5,33 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 
-// Estilos inline no padrão PEX
+// Estilos inline no padrão do dashboard
 const labelStyle: React.CSSProperties = {
   display: 'block',
-  color: '#aaa',
+  color: '#adb5bd',
   fontSize: '0.75rem',
-  fontWeight: 500,
+  fontWeight: 600,
   marginBottom: '8px',
   textTransform: 'uppercase',
-  letterSpacing: '0.5px',
+  letterSpacing: '0.05em',
   fontFamily: 'Poppins, sans-serif',
 };
 
 const triggerStyle: React.CSSProperties = {
   width: '100%',
   padding: '12px 16px',
-  background: 'linear-gradient(to bottom, #5a6573 0%, #4a5563 50%, #3a4553 100%)',
-  color: 'white',
-  border: 'none',
+  backgroundColor: '#2a2f36',
+  color: '#F8F9FA',
+  border: '1px solid #444',
   borderRadius: '8px',
-  fontSize: '0.9rem',
-  fontWeight: 600,
+  fontSize: '0.875rem',
+  fontWeight: 500,
   fontFamily: 'Poppins, sans-serif',
   cursor: 'pointer',
   transition: 'all 0.2s',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)',
 };
 
 const dropdownStyle: React.CSSProperties = {
@@ -134,7 +133,6 @@ export default function MultiSelect({
   return (
     <div style={{ marginBottom: '25px', position: 'relative' }} ref={containerRef}>
       <label style={labelStyle}>
-        {icon && <span style={{ marginRight: '4px' }}>{icon}</span>}
         {label}
       </label>
 
@@ -144,12 +142,12 @@ export default function MultiSelect({
           onClick={() => setIsOpen(!isOpen)}
           style={triggerStyle}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-1px)';
-            e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+            e.currentTarget.style.borderColor = '#FF6600';
+            e.currentTarget.style.backgroundColor = '#343A40';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+            e.currentTarget.style.borderColor = '#444';
+            e.currentTarget.style.backgroundColor = '#2a2f36';
           }}
         >
           <span style={{ 
@@ -160,7 +158,7 @@ export default function MultiSelect({
           }}>
             {getDisplayText()}
           </span>
-          <span style={{ fontSize: '0.7rem', marginLeft: '8px' }}>▼</span>
+          <span style={{ fontSize: '0.6rem', marginLeft: '8px', color: '#adb5bd' }}>▼</span>
         </div>
 
         {/* Dropdown */}
@@ -170,7 +168,7 @@ export default function MultiSelect({
             <div style={{ padding: '8px', borderBottom: '1px solid #3a3f46' }}>
               <input
                 type="text"
-                placeholder="🔍 Pesquisar..."
+                placeholder="Pesquisar..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onClick={(e) => e.stopPropagation()}
