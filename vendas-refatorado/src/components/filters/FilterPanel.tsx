@@ -6,7 +6,6 @@
 import React from 'react';
 import DateRangePicker from './DateRangePicker';
 import MultiSelect from './MultiSelect';
-import { MetaToggle } from '@/components';
 import type { FiltrosState, FiltrosOpcoes } from '@/types/filtros.types';
 
 interface FilterPanelProps {
@@ -38,13 +37,81 @@ export default function FilterPanel({
 }: FilterPanelProps) {
   return (
     <div>
-      {/* Toggle de Meta */}
+      {/* Toggle de Tipo de Meta - Simples */}
       {showMetaToggle && (
-        <div style={{ marginBottom: '25px' }}>
-          <MetaToggle
-            isMetaInterna={filtros.isMetaInterna}
-            onChange={(isMetaInterna) => onFiltrosChange({ isMetaInterna })}
-          />
+        <div style={{ marginBottom: '20px' }}>
+          <label
+            style={{
+              display: 'block',
+              color: '#aaa',
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              marginBottom: '8px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              fontFamily: 'Poppins, sans-serif',
+            }}
+          >
+            Tipo de Meta
+          </label>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '8px 12px',
+              backgroundColor: '#2a2f36',
+              borderRadius: '8px',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '0.85rem',
+                fontWeight: filtros.isMetaInterna ? 400 : 600,
+                color: filtros.isMetaInterna ? '#adb5bd' : '#ff6600',
+                fontFamily: 'Poppins, sans-serif',
+              }}
+            >
+              Super Meta
+            </span>
+            <button
+              onClick={() => onFiltrosChange({ isMetaInterna: !filtros.isMetaInterna })}
+              style={{
+                position: 'relative',
+                width: '44px',
+                height: '24px',
+                backgroundColor: filtros.isMetaInterna ? '#ff6600' : '#495057',
+                borderRadius: '12px',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s',
+                padding: 0,
+              }}
+            >
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '2px',
+                  left: filtros.isMetaInterna ? '22px' : '2px',
+                  width: '20px',
+                  height: '20px',
+                  backgroundColor: '#fff',
+                  borderRadius: '50%',
+                  transition: 'left 0.2s',
+                }}
+              />
+            </button>
+            <span
+              style={{
+                fontSize: '0.85rem',
+                fontWeight: filtros.isMetaInterna ? 600 : 400,
+                color: filtros.isMetaInterna ? '#ff6600' : '#adb5bd',
+                fontFamily: 'Poppins, sans-serif',
+              }}
+            >
+              Meta Interna
+            </span>
+          </div>
         </div>
       )}
 

@@ -120,14 +120,15 @@ export default function TicketMedioChart({
         ticks: {
           color: COLORS.TEXT_MUTED,
           font: { size: 12, family: 'Poppins, sans-serif' },
-          callback: function(value: any) {
+          callback: function(this: any, value: any) {
             if (!horizontal) {
               const num = Number(value);
               if (Math.abs(num) >= 1000000) return `${(num / 1000000).toFixed(1).replace('.0', '')}mi`;
               if (Math.abs(num) >= 1000) return `${(num / 1000).toFixed(0)}k`;
               return num;
             }
-            return value;
+            // Para gráficos horizontais, retorna o label do eixo Y (anos/meses)
+            return this.getLabelForValue(value);
           },
         },
         grid: { color: 'rgba(255,255,255,0.04)' },

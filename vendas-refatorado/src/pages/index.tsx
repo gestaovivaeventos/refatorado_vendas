@@ -757,7 +757,10 @@ export default function Dashboard() {
       }
     });
 
-    const years = Object.keys(salesByYear).sort((a, b) => Number(a) - Number(b));
+    // Filtrar apenas anos a partir de 2019 e ordenar
+    const years = Object.keys(salesByYear)
+      .filter(year => Number(year) >= 2019)
+      .sort((a, b) => Number(a) - Number(b));
     
     return years.map(year => ({
       label: year,
@@ -836,7 +839,9 @@ export default function Dashboard() {
       ticketByYear[year].totalAdesoes += 1;
     });
 
-    const years = Object.keys(ticketByYear).sort((a, b) => Number(a) - Number(b));
+    const years = Object.keys(ticketByYear)
+      .filter(year => Number(year) >= 2019)
+      .sort((a, b) => Number(a) - Number(b));
     
     return years.map(year => ({
       label: year,
@@ -1700,36 +1705,6 @@ export default function Dashboard() {
     
     return (
       <div className="space-y-6">
-        {/* Toggle de Meta */}
-        <div className="bg-dark-secondary rounded-xl p-4">
-          <h2 className="section-title">
-            CONFIGURAÇÃO DE METAS
-          </h2>
-          <div className="flex items-center justify-center gap-4">
-            <span className={`text-sm ${!filtros.isMetaInterna ? 'text-primary-500 font-bold' : 'text-text-muted'}`}>
-              🚀 Super Meta
-            </span>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filtros.isMetaInterna}
-                onChange={(e) => handleFiltrosChange({ isMetaInterna: e.target.checked })}
-                className="sr-only peer"
-              />
-              <div className="w-14 h-7 bg-dark-tertiary peer-focus:ring-2 peer-focus:ring-primary-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary-500"></div>
-            </label>
-            <span className={`text-sm ${filtros.isMetaInterna ? 'text-primary-500 font-bold' : 'text-text-muted'}`}>
-              🎯 Meta Interna
-            </span>
-          </div>
-          <p className="text-center text-xs text-text-muted mt-2">
-            {filtros.isMetaInterna 
-              ? 'Meta Interna (85%) - Metas ajustadas para controle interno'
-              : 'Super Meta (100%) - Metas originais das bases de dados'
-            }
-          </p>
-        </div>
-
         {/* Seção 1: VVR NO PERÍODO SELECIONADO */}
         <div className="bg-dark-secondary rounded-xl p-1">
           <div className="px-5 pt-4 pb-2">
@@ -1871,7 +1846,7 @@ export default function Dashboard() {
           </div>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Gráfico VVR Anual - Barras Horizontais Empilhadas */}
           <Card titulo="VENDA REALIZADA TOTAL ANUAL">
             <div className="h-80">
@@ -1887,7 +1862,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Gráfico VVR Mensal - Barras Verticais Empilhadas */}
-          <Card titulo={`VENDA REALIZADA TOTAL MENSAL (${anoSelecionadoVVR || anoVigente})`}>
+          <Card titulo={`VENDA REALIZADA TOTAL MENSAL (${anoSelecionadoVVR || anoVigente})`} className="lg:col-span-2">
             <div className="h-80">
               <StackedBarChart
                 data={dadosVVRMensal}
@@ -1897,7 +1872,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Gráfico Ticket Médio Anual */}
           <Card titulo="TICKET MÉDIO ANUAL">
             <div className="h-80">
@@ -1912,7 +1887,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Gráfico Ticket Médio Mensal */}
-          <Card titulo={`TICKET MÉDIO MENSAL (${anoSelecionadoTicket || anoVigente})`}>
+          <Card titulo={`TICKET MÉDIO MENSAL (${anoSelecionadoTicket || anoVigente})`} className="lg:col-span-2">
             <div className="h-80">
               <TicketMedioChart
                 data={dadosTicketMensal}
@@ -1922,7 +1897,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Contratos Realizados Anual */}
           <Card titulo="CONTRATOS REALIZADOS TOTAL ANUAL">
             <div className="h-80">
@@ -1938,7 +1913,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Contratos Realizados Mensal */}
-          <Card titulo={`CONTRATOS REALIZADOS TOTAL MENSAL (${anoSelecionadoContratos || anoVigente})`}>
+          <Card titulo={`CONTRATOS REALIZADOS TOTAL MENSAL (${anoSelecionadoContratos || anoVigente})`} className="lg:col-span-2">
             <div className="h-80">
               <SimpleBarChart
                 data={dadosContratosMensal}
@@ -1959,7 +1934,7 @@ export default function Dashboard() {
           </div>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Adesões por Tipo Anual */}
           <Card titulo="ADESÕES POR TIPO ANUAL">
             <div className="h-80">
@@ -1975,7 +1950,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Adesões por Tipo Mensal */}
-          <Card titulo={`ADESÕES POR TIPO MENSAL (${anoSelecionadoAdesoesTipo || anoVigente})`}>
+          <Card titulo={`ADESÕES POR TIPO MENSAL (${anoSelecionadoAdesoesTipo || anoVigente})`} className="lg:col-span-2">
             <div className="h-80">
               <StackedBarChart
                 data={dadosAdesoesTipoMensal}
@@ -2176,7 +2151,7 @@ export default function Dashboard() {
               filtros={filtros}
               opcoes={opcoesFiltros}
               onFiltrosChange={handleFiltrosChange}
-              showMetaToggle={false}
+              showMetaToggle={true}
               showUnidades={true}
               showRegionais={false}
               showUFs={false}

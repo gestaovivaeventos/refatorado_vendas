@@ -138,7 +138,7 @@ export default function StackedBarChart({
               if (Math.abs(num) >= 1000) return `${(num / 1000).toFixed(0)}k`;
               return num;
             }
-            return value;
+            return this.getLabelForValue(value);
           },
         },
         grid: { color: 'rgba(255,255,255,0.04)' },
@@ -155,7 +155,8 @@ export default function StackedBarChart({
               if (Math.abs(num) >= 1000) return `${(num / 1000).toFixed(0)}k`;
               return num;
             }
-            return value;
+            // Para gráfico horizontal, retornar o label (ano)
+            return this.getLabelForValue(value);
           },
         },
         grid: { color: 'rgba(255,255,255,0.04)' },
