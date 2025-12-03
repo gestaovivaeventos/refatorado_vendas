@@ -1,9 +1,11 @@
 /**
  * Componente MultiSelect - Seleção múltipla de opções
  * Estilo baseado no PEX (Sidebar.tsx) - dropdown com pesquisa integrada
+ * Usa position: fixed para evitar corte pelo overflow da sidebar
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 // Estilos inline no padrão do dashboard
 const labelStyle: React.CSSProperties = {
@@ -34,21 +36,6 @@ const triggerStyle: React.CSSProperties = {
   alignItems: 'center',
 };
 
-const dropdownStyle: React.CSSProperties = {
-  position: 'absolute',
-  top: '100%',
-  left: 0,
-  right: 0,
-  marginTop: '4px',
-  backgroundColor: '#2a2f36',
-  border: '2px solid #FF6600',
-  borderRadius: '8px',
-  zIndex: 1000,
-  maxHeight: '300px',
-  overflow: 'hidden',
-  boxShadow: '0 8px 16px rgba(0, 0, 0, 0.5)',
-};
-
 const searchInputStyle: React.CSSProperties = {
   width: '100%',
   padding: '8px 10px',
@@ -70,6 +57,13 @@ interface MultiSelectProps {
   placeholder?: string;
 }
 
+interface DropdownPosition {
+  top: number;
+  left: number;
+  width: number;
+  openUpward: boolean;
+}
+
 export default function MultiSelect({
   label,
   icon,
@@ -80,14 +74,20 @@ export default function MultiSelect({
 }: MultiSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [openUpward, setOpenUpward] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition>({ top: 0, left: 0, width: 0, openUpward: false });
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Fechar dropdown ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current && 
+        !containerRef.current.contains(event.target as Node) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -99,20 +99,49 @@ export default function MultiSelect({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  // Verificar se deve abrir para cima ou para baixo
-  const checkDropdownDirection = () => {
+  // Recalcular posição quando a janela é redimensionada ou rolada
+  useEffect(() => {
+    const updatePosition = () => {
+      if (isOpen && triggerRef.current) {
+        calculatePosition();
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('resize', updatePosition);
+      window.addEventListener('scroll', updatePosition, true);
+    }
+
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [isOpen]);
+
+  // Calcular posição do dropdown
+  const calculatePosition = () => {
     if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
       const dropdownHeight = 320; // altura aproximada do dropdown
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
       
-      // Se não houver espaço suficiente abaixo, abrir para cima
-      setOpenUpward(spaceBelow < dropdownHeight);
+      // Se não houver espaço suficiente abaixo E houver espaço acima, abrir para cima
+      const openUpward = spaceBelow < dropdownHeight && spaceAbove > dropdownHeight;
+      
+      setDropdownPosition({
+        top: openUpward ? rect.top - dropdownHeight - 4 : rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        openUpward,
+      });
     }
   };
 
   const handleOpen = () => {
-    checkDropdownDirection();
+    if (!isOpen) {
+      calculatePosition();
+    }
     setIsOpen(!isOpen);
   };
 
@@ -149,23 +178,196 @@ export default function MultiSelect({
     return `${selectedValues.length} selecionados`;
   };
 
+  // Renderizar dropdown usando portal para evitar problemas de overflow
+  const renderDropdown = () => {
+    if (!isOpen) return null;
+
+    const dropdownContent = (
+      <div
+        ref={dropdownRef}
+        style={{
+          position: 'fixed',
+          top: `${dropdownPosition.top}px`,
+          left: `${dropdownPosition.left}px`,
+          width: `${dropdownPosition.width}px`,
+          backgroundColor: '#2a2f36',
+          border: '2px solid #FF6600',
+          borderRadius: '8px',
+          zIndex: 9999,
+          maxHeight: '300px',
+          overflow: 'hidden',
+          boxShadow: '0 8px 16px rgba(0, 0, 0, 0.5)',
+        }}
+      >
+        {/* Caixa de pesquisa dentro do dropdown */}
+        <div style={{ padding: '8px', borderBottom: '1px solid #3a3f46' }}>
+          <input
+            type="text"
+            placeholder="Pesquisar..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            style={searchInputStyle}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6600'; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#3a3f46'; }}
+            autoFocus
+          />
+        </div>
+
+        {/* Ações - Selecionar Todos / Limpar - Compacto */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '4px', 
+          padding: '6px 8px', 
+          borderBottom: '1px solid #3a3f46' 
+        }}>
+          <button
+            type="button"
+            onClick={handleSelectAll}
+            style={{
+              flex: 1,
+              padding: '4px 6px',
+              background: 'transparent',
+              color: '#adb5bd',
+              border: 'none',
+              borderRadius: '4px',
+              fontSize: '0.7rem',
+              fontFamily: 'Poppins, sans-serif',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#FF6600'; e.currentTarget.style.backgroundColor = 'rgba(255, 102, 0, 0.1)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = '#adb5bd'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+          >
+            {selectedValues.length === options.length ? '✗ Desmarcar' : '✓ Todos'}
+          </button>
+          <span style={{ color: '#3a3f46', fontSize: '0.7rem', display: 'flex', alignItems: 'center' }}>|</span>
+          <button
+            type="button"
+            onClick={handleClearAll}
+            style={{
+              flex: 1,
+              padding: '4px 6px',
+              background: 'transparent',
+              color: '#adb5bd',
+              border: 'none',
+              borderRadius: '4px',
+              fontSize: '0.7rem',
+              fontFamily: 'Poppins, sans-serif',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#FF6600'; e.currentTarget.style.backgroundColor = 'rgba(255, 102, 0, 0.1)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = '#adb5bd'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+          >
+            ⟲ Limpar
+          </button>
+        </div>
+
+        {/* Lista de opções */}
+        <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+          {filteredOptions.length === 0 ? (
+            <div style={{
+              padding: '16px 12px',
+              textAlign: 'center',
+              color: '#aaa',
+              fontSize: '0.85rem',
+              fontStyle: 'italic',
+            }}>
+              Nenhum resultado encontrado
+            </div>
+          ) : (
+            filteredOptions.map((option) => {
+              const isSelected = selectedValues.includes(option);
+              return (
+                <div
+                  key={option}
+                  onClick={() => handleToggle(option)}
+                  style={{
+                    padding: '10px 12px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    fontFamily: 'Poppins, sans-serif',
+                    color: isSelected ? '#FF6600' : '#ccc',
+                    fontWeight: isSelected ? 600 : 400,
+                    backgroundColor: isSelected ? '#1f2329' : 'transparent',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#1f2329';
+                    e.currentTarget.style.color = '#FF6600';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (isSelected) {
+                      e.currentTarget.style.backgroundColor = '#1f2329';
+                      e.currentTarget.style.color = '#FF6600';
+                    } else {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = '#ccc';
+                    }
+                  }}
+                >
+                  {/* Checkbox visual */}
+                  <div style={{
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '3px',
+                    border: isSelected ? '2px solid #FF6600' : '2px solid #555',
+                    backgroundColor: isSelected ? '#FF6600' : 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}>
+                    {isSelected && (
+                      <span style={{ color: 'white', fontSize: '10px', fontWeight: 'bold' }}>✓</span>
+                    )}
+                  </div>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {option}
+                  </span>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+
+    // Usar portal para renderizar fora do container da sidebar
+    if (typeof document !== 'undefined') {
+      return createPortal(dropdownContent, document.body);
+    }
+    return null;
+  };
+
   return (
     <div style={{ marginBottom: '25px', position: 'relative' }} ref={containerRef}>
-      <label style={labelStyle}>
-        {label}
-      </label>
+      {label && (
+        <label style={labelStyle}>
+          {label}
+        </label>
+      )}
 
       {/* Trigger Button */}
-      <div style={{ position: 'relative' }} ref={triggerRef}>
+      <div ref={triggerRef}>
         <div
           onClick={handleOpen}
-          style={triggerStyle}
+          style={{
+            ...triggerStyle,
+            borderColor: isOpen ? '#FF6600' : '#444',
+          }}
           onMouseEnter={(e) => {
             e.currentTarget.style.borderColor = '#FF6600';
             e.currentTarget.style.backgroundColor = '#343A40';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = '#444';
+            if (!isOpen) {
+              e.currentTarget.style.borderColor = '#444';
+            }
             e.currentTarget.style.backgroundColor = '#2a2f36';
           }}
         >
@@ -177,157 +379,18 @@ export default function MultiSelect({
           }}>
             {getDisplayText()}
           </span>
-          <span style={{ fontSize: '0.6rem', marginLeft: '8px', color: '#adb5bd' }}>▼</span>
+          <span style={{ 
+            fontSize: '0.6rem', 
+            marginLeft: '8px', 
+            color: '#adb5bd',
+            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.2s',
+          }}>▼</span>
         </div>
-
-        {/* Dropdown */}
-        {isOpen && (
-          <div style={{
-            ...dropdownStyle,
-            ...(openUpward ? {
-              top: 'auto',
-              bottom: '100%',
-              marginTop: 0,
-              marginBottom: '4px',
-            } : {}),
-          }}>
-            {/* Caixa de pesquisa dentro do dropdown */}
-            <div style={{ padding: '8px', borderBottom: '1px solid #3a3f46' }}>
-              <input
-                type="text"
-                placeholder="Pesquisar..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onClick={(e) => e.stopPropagation()}
-                style={searchInputStyle}
-                onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6600'; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = '#3a3f46'; }}
-              />
-            </div>
-
-            {/* Ações - Selecionar Todos / Limpar - Compacto */}
-            <div style={{ 
-              display: 'flex', 
-              gap: '4px', 
-              padding: '6px 8px', 
-              borderBottom: '1px solid #3a3f46' 
-            }}>
-              <button
-                type="button"
-                onClick={handleSelectAll}
-                style={{
-                  flex: 1,
-                  padding: '4px 6px',
-                  background: 'transparent',
-                  color: '#adb5bd',
-                  border: 'none',
-                  borderRadius: '4px',
-                  fontSize: '0.7rem',
-                  fontFamily: 'Poppins, sans-serif',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#FF6600'; e.currentTarget.style.backgroundColor = 'rgba(255, 102, 0, 0.1)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#adb5bd'; e.currentTarget.style.backgroundColor = 'transparent'; }}
-              >
-                {selectedValues.length === options.length ? '✗ Desmarcar' : '✓ Todos'}
-              </button>
-              <span style={{ color: '#3a3f46', fontSize: '0.7rem', display: 'flex', alignItems: 'center' }}>|</span>
-              <button
-                type="button"
-                onClick={handleClearAll}
-                style={{
-                  flex: 1,
-                  padding: '4px 6px',
-                  background: 'transparent',
-                  color: '#adb5bd',
-                  border: 'none',
-                  borderRadius: '4px',
-                  fontSize: '0.7rem',
-                  fontFamily: 'Poppins, sans-serif',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#FF6600'; e.currentTarget.style.backgroundColor = 'rgba(255, 102, 0, 0.1)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#adb5bd'; e.currentTarget.style.backgroundColor = 'transparent'; }}
-              >
-                ⟲ Limpar
-              </button>
-            </div>
-
-            {/* Lista de opções */}
-            <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-              {filteredOptions.length === 0 ? (
-                <div style={{
-                  padding: '16px 12px',
-                  textAlign: 'center',
-                  color: '#aaa',
-                  fontSize: '0.85rem',
-                  fontStyle: 'italic',
-                }}>
-                  Nenhum resultado encontrado
-                </div>
-              ) : (
-                filteredOptions.map((option) => {
-                  const isSelected = selectedValues.includes(option);
-                  return (
-                    <div
-                      key={option}
-                      onClick={() => handleToggle(option)}
-                      style={{
-                        padding: '10px 12px',
-                        cursor: 'pointer',
-                        fontSize: '0.9rem',
-                        fontFamily: 'Poppins, sans-serif',
-                        color: isSelected ? '#FF6600' : '#ccc',
-                        fontWeight: isSelected ? 600 : 400,
-                        backgroundColor: isSelected ? '#1f2329' : 'transparent',
-                        transition: 'all 0.2s',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#1f2329';
-                        e.currentTarget.style.color = '#FF6600';
-                      }}
-                      onMouseLeave={(e) => {
-                        if (isSelected) {
-                          e.currentTarget.style.backgroundColor = '#1f2329';
-                          e.currentTarget.style.color = '#FF6600';
-                        } else {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                          e.currentTarget.style.color = '#ccc';
-                        }
-                      }}
-                    >
-                      {/* Checkbox visual */}
-                      <div style={{
-                        width: '16px',
-                        height: '16px',
-                        borderRadius: '3px',
-                        border: isSelected ? '2px solid #FF6600' : '2px solid #555',
-                        backgroundColor: isSelected ? '#FF6600' : 'transparent',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}>
-                        {isSelected && (
-                          <span style={{ color: 'white', fontSize: '10px', fontWeight: 'bold' }}>✓</span>
-                        )}
-                      </div>
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {option}
-                      </span>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Dropdown via Portal */}
+      {renderDropdown()}
     </div>
   );
 }

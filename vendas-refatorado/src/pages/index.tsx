@@ -211,8 +211,22 @@ export default function Dashboard() {
       };
     }
 
-    // Unidades sempre mostram todas as opções disponíveis
-    const todasUnidades = extrairUnidades(salesData);
+    // Unidades sempre mostram todas as opções disponíveis (de vendas + funil)
+    const unidadesVendas = extrairUnidades(salesData);
+    
+    // Extrair unidades do funil e incluir "Sem Unidade" se houver leads sem unidade
+    const unidadesFunil = funilData ? [...new Set(funilData.map(d => {
+      const unidade = (d.nm_unidade || '').trim();
+      return unidade === '' ? 'Sem Unidade' : unidade;
+    }))].filter(Boolean) : [];
+    
+    // Combinar todas as unidades (vendas + funil) sem duplicatas
+    const todasUnidades = [...new Set([...unidadesVendas, ...unidadesFunil])].sort((a, b) => {
+      // "Sem Unidade" vai para o final da lista
+      if (a === 'Sem Unidade') return 1;
+      if (b === 'Sem Unidade') return -1;
+      return a.localeCompare(b);
+    });
     
     // Hierarquia de filtros: Período + Unidade
     const hasUnidadeFilter = filtros.unidades.length > 0;
@@ -1655,14 +1669,23 @@ export default function Dashboard() {
   const dadosFunilFiltrados = useMemo(() => {
     if (!funilData || funilData.length === 0) return [];
 
-    const unidadesAtivas = filtros.unidades.length > 0 ? filtros.unidades : opcoesFiltros.unidades;
+    const temFiltroUnidade = filtros.unidades.length > 0;
     
     let dados = funilData;
 
-    // Filtrar por unidade
-    if (unidadesAtivas.length > 0) {
-      dados = dados.filter(d => unidadesAtivas.includes(d.nm_unidade));
+    // Filtrar por unidade apenas se houver filtro específico selecionado
+    // Se não houver filtro, traz TODOS os leads (incluindo "sem unidade")
+    if (temFiltroUnidade) {
+      dados = dados.filter(d => {
+        const unidadeLead = (d.nm_unidade || '').trim();
+        // Se o lead não tem unidade, verificar se "Sem Unidade" está selecionado
+        if (!unidadeLead || unidadeLead === '' || unidadeLead.toLowerCase() === 'sem unidade') {
+          return filtros.unidades.some(u => u.toLowerCase() === 'sem unidade' || u === '');
+        }
+        return filtros.unidades.includes(d.nm_unidade);
+      });
     }
+    // Se não há filtro de unidade, mantém todos os dados (incluindo sem unidade)
 
     // Filtrar por período de data (usando campo criado_em)
     if (periodo?.startDate && periodo?.endDate) {
@@ -1682,7 +1705,7 @@ export default function Dashboard() {
     }
 
     return dados;
-  }, [funilData, filtros.unidades, opcoesFiltros.unidades, periodo, parseDataFunil]);
+  }, [funilData, filtros.unidades, periodo, parseDataFunil]);
 
   // Dados de negociações por fase (para gráfico do funil)
   const dadosNegociacoesPorFase = useMemo(() => {
@@ -2068,7 +2091,7 @@ export default function Dashboard() {
     if (isLoading) {
       return (
         <div className="flex-1 flex items-center justify-center">
-          <Loading mensagem="Carregando dados do dashboard..." />
+          <Loading mensagem="Carregando..." />
         </div>
       );
     }
@@ -2414,7 +2437,7 @@ export default function Dashboard() {
   const renderFunilPage = () => (
     <div className="space-y-6">
       {loadingFunil ? (
-        <Loading mensagem="Carregando dados do funil..." />
+        <Loading mensagem="Carregando..." />
       ) : (
         <>
           {/* Seção 1: Funil Horizontal com Indicadores Operacionais */}
