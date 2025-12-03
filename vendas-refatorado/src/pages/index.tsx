@@ -24,7 +24,7 @@ import {
   CORES_FASES_PERDAS,
   getCorFase,
 } from '@/components/charts';
-import { RankingTable, DataTable, CaptacoesTable, DadosDetalhadosTable, IndicadoresOperacionaisTable } from '@/components/tables';
+import { DataTable, CaptacoesTable, DadosDetalhadosTable, IndicadoresOperacionaisTable } from '@/components/tables';
 import { MotivosPerdaDescarteTable } from '@/components/MotivosPerdaDescarteTable';
 import { DataTable as GenericDataTable } from '@/components/DataTable';
 import { useSalesData } from '@/hooks/useSalesData';
