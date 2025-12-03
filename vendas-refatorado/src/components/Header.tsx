@@ -2,7 +2,7 @@
  * Componente Header do Dashboard de Vendas
  */
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Image from 'next/image';
 
 interface HeaderProps {
@@ -10,15 +10,6 @@ interface HeaderProps {
 }
 
 export default function Header({ sidebarCollapsed = false }: HeaderProps) {
-  const [dataAtual, setDataAtual] = useState<string>('');
-
-  useEffect(() => {
-    // Data fixa: dia vigente às 08:30
-    const hoje = new Date();
-    const dataFormatada = hoje.toLocaleDateString('pt-BR');
-    setDataAtual(`${dataFormatada}, 08:30:00`);
-  }, []);
-
   return (
     <header 
       className="bg-dark-primary transition-all duration-300"
@@ -61,14 +52,6 @@ export default function Header({ sidebarCollapsed = false }: HeaderProps) {
                 Dashboard de Vendas
               </h1>
             </div>
-          </div>
-
-          {/* Data de atualização */}
-          <div className="text-right">
-            <p className="text-xs text-text-muted">Última atualização</p>
-            <p className="text-sm text-text-secondary font-medium">
-              {dataAtual || 'Carregando...'}
-            </p>
           </div>
         </div>
       </div>

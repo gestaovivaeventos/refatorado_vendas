@@ -29,7 +29,6 @@ export function useMetasData(): UseMetasDataReturn {
   const fetchData = useCallback(async (forceRefresh = false) => {
     // Evitar múltiplas chamadas simultâneas
     if (isFetching.current) {
-      console.log('[useMetasData] Já existe uma busca em andamento, ignorando...');
       return;
     }
 
@@ -37,8 +36,6 @@ export function useMetasData(): UseMetasDataReturn {
     if (!forceRefresh) {
       const cachedData = clientCache.get<MetasMap>(CACHE_KEYS.METAS_DATA);
       if (cachedData) {
-        const cacheAge = clientCache.getAge(CACHE_KEYS.METAS_DATA);
-        console.log('[useMetasData] Usando dados em cache (idade:', Math.round((cacheAge || 0) / 1000), 's)');
         setMetas(cachedData);
         setLoading(false);
         return;
@@ -52,8 +49,6 @@ export function useMetasData(): UseMetasDataReturn {
     try {
       // Usar API route local para evitar CORS
       const url = '/api/metas';
-      
-      console.log('[useMetasData] Buscando dados via API route...');
       
       const response = await fetch(url);
       
@@ -122,7 +117,6 @@ export function useMetasData(): UseMetasDataReturn {
       setLastUpdate(new Date());
 
     } catch (err: any) {
-      console.error('Erro ao buscar dados de metas:', err);
       setError(err.message || 'Erro desconhecido ao buscar metas');
     } finally {
       setLoading(false);

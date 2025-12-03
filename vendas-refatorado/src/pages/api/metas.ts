@@ -17,7 +17,6 @@ export default async function handler(
     // Verificar cache (exceto se for requisição forçada)
     const forceRefresh = req.query.refresh === 'true';
     if (!forceRefresh && cache && Date.now() - cache.timestamp < CACHE_TTL) {
-      console.log('[API/metas] Retornando dados em cache');
       return res.status(200).json({ values: cache.data, cached: true });
     }
 
@@ -34,8 +33,6 @@ export default async function handler(
 
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
     
-    console.log('[API/metas] Buscando dados do Google Sheets...');
-    
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -49,8 +46,6 @@ export default async function handler(
 
     const data = await response.json();
     const rows = data.values || [];
-    
-    console.log('[API/metas] Dados recebidos:', rows.length, 'linhas');
     
     // Atualizar cache
     cache = {

@@ -140,62 +140,73 @@ export default function FilterPanel({
 
   return (
     <div>
-      {/* Header colapsável "Filtros" */}
+      {/* Header colapsável "Filtros" - sem caixa, apenas texto e ícone */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          gap: '8px',
           width: '100%',
-          padding: '12px 14px',
-          backgroundColor: '#2a2f36',
-          border: '1px solid #444',
-          borderRadius: '8px',
+          padding: '4px 0',
+          backgroundColor: 'transparent',
+          border: 'none',
           cursor: 'pointer',
           marginBottom: isExpanded ? '16px' : '0',
           transition: 'all 0.2s ease',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span
-            style={{
-              color: '#FF6600',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              fontFamily: 'Poppins, sans-serif',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            }}
-          >
-            Filtros
-          </span>
-          {filtrosAtivos > 0 && (
-            <span
-              style={{
-                backgroundColor: '#FF6600',
-                color: '#fff',
-                fontSize: '0.7rem',
-                fontWeight: 600,
-                padding: '2px 8px',
-                borderRadius: '10px',
-                fontFamily: 'Poppins, sans-serif',
-              }}
-            >
-              {filtrosAtivos}
-            </span>
-          )}
-        </div>
+        {/* Ícone de filtro laranja */}
         <svg
-          width="16"
-          height="16"
+          width="18"
+          height="18"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#adb5bd"
+          stroke="#FF6600"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+        </svg>
+        <span
+          style={{
+            color: '#adb5bd',
+            fontSize: '0.85rem',
+            fontWeight: 500,
+            fontFamily: 'Poppins, sans-serif',
+          }}
+        >
+          Filtros
+        </span>
+        {filtrosAtivos > 0 && (
+          <span
+            style={{
+              backgroundColor: '#FF6600',
+              color: '#fff',
+              fontSize: '0.65rem',
+              fontWeight: 600,
+              padding: '2px 6px',
+              borderRadius: '10px',
+              fontFamily: 'Poppins, sans-serif',
+              marginLeft: '2px',
+            }}
+          >
+            {filtrosAtivos}
+          </span>
+        )}
+        {/* Seta de expansão */}
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#6c757d"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
           style={{
+            marginLeft: 'auto',
             transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
             transition: 'transform 0.2s ease',
           }}

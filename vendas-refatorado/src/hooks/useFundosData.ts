@@ -30,7 +30,6 @@ export function useFundosData(): UseFundosDataReturn {
   const fetchData = useCallback(async (forceRefresh = false) => {
     // Evitar múltiplas chamadas simultâneas
     if (isFetching.current) {
-      console.log('[useFundosData] Já existe uma busca em andamento, ignorando...');
       return;
     }
 
@@ -38,8 +37,6 @@ export function useFundosData(): UseFundosDataReturn {
     if (!forceRefresh) {
       const cachedData = clientCache.get<Fundo[]>(CACHE_KEYS.FUNDOS_DATA);
       if (cachedData) {
-        const cacheAge = clientCache.getAge(CACHE_KEYS.FUNDOS_DATA);
-        console.log('[useFundosData] Usando dados em cache (idade:', Math.round((cacheAge || 0) / 1000), 's)');
         setFundos(cachedData);
         setLoading(false);
         return;
@@ -53,8 +50,6 @@ export function useFundosData(): UseFundosDataReturn {
     try {
       // Usar API route local
       const url = '/api/fundos';
-      
-      console.log('[useFundosData] Buscando dados via API route...');
       
       const response = await fetch(url);
       
@@ -120,7 +115,6 @@ export function useFundosData(): UseFundosDataReturn {
       setLastUpdate(new Date());
 
     } catch (err: any) {
-      console.error('Erro ao buscar dados de fundos:', err);
       setError(err.message || 'Erro desconhecido ao buscar fundos');
     } finally {
       setLoading(false);

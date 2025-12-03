@@ -2,8 +2,8 @@
  * Componente Sidebar do Dashboard de Vendas
  */
 
-import React, { useState } from 'react';
-import { ChevronRight, ChevronLeft, BarChart3, TrendingUp, Target, Home, LogOut } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronRight, ChevronLeft, BarChart3, TrendingUp, Target, Home, LogOut, Clock } from 'lucide-react';
 import { PAGES } from '@/config/app.config';
 
 interface SidebarProps {
@@ -24,6 +24,15 @@ export default function Sidebar({
   onCollapseChange,
   children,
 }: SidebarProps) {
+  const [dataAtual, setDataAtual] = useState<string>('');
+
+  useEffect(() => {
+    // Data fixa: dia vigente às 08:30
+    const hoje = new Date();
+    const dataFormatada = hoje.toLocaleDateString('pt-BR');
+    setDataAtual(`${dataFormatada}, 08:30`);
+  }, []);
+
   const getIcon = (pageId: string) => {
     switch (pageId) {
       case 'metas':
@@ -71,27 +80,42 @@ export default function Sidebar({
           className={`${isCollapsed ? 'px-2 pt-16' : 'p-5 pt-16'} flex flex-col`}
           style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}
         >
-          {/* Link para Central de Dashboards */}
-          <a
-            href="https://central-dashs-viva-html.vercel.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`
-              flex items-center rounded-lg transition-all duration-200 text-gray-400 border border-transparent hover:bg-white/5
-              ${isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-4 py-2.5'}
-            `}
-            style={{
-              fontFamily: 'Poppins, sans-serif',
-              fontSize: '0.95rem',
-              fontWeight: 500,
-            }}
-            title="Central de Dashboards"
-          >
-            <Home size={20} strokeWidth={2} />
-            {!isCollapsed && <span>Central de Dashboards</span>}
-          </a>
-
-          <hr className="border-dark-tertiary my-4" />
+          {/* Última Atualização */}
+          {!isCollapsed && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '12px',
+              }}
+            >
+              <Clock size={14} style={{ color: '#FF6600' }} />
+              <div>
+                <span
+                  style={{
+                    color: '#6c757d',
+                    fontSize: '0.7rem',
+                    fontFamily: 'Poppins, sans-serif',
+                  }}
+                >
+                  Última atualização:{' '}
+                </span>
+                <span
+                  style={{
+                    color: '#adb5bd',
+                    fontSize: '0.75rem',
+                    fontWeight: 500,
+                    fontFamily: 'Poppins, sans-serif',
+                  }}
+                >
+                  {dataAtual}
+                </span>
+              </div>
+            </div>
+          )}
+          
+          <hr className="border-dark-tertiary mb-4" />
 
           {/* Navegação de Páginas */}
           <nav className="flex flex-col gap-1.5 mb-6">
@@ -104,13 +128,14 @@ export default function Sidebar({
                   ${isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-4 py-2.5'}
                   ${paginaAtiva === page.id
                     ? 'bg-orange-500/10 border border-orange-500 text-orange-500'
-                    : 'text-gray-400 border border-transparent hover:bg-white/5'
+                    : 'text-gray-400 border border-gray-600/50 hover:bg-white/5'
                   }
                 `}
                 style={{
                   fontFamily: 'Poppins, sans-serif',
                   fontSize: '0.95rem',
                   fontWeight: paginaAtiva === page.id ? 600 : 500,
+                  boxShadow: paginaAtiva !== page.id ? '0 2px 8px rgba(0, 0, 0, 0.3)' : 'none',
                 }}
                 title={isCollapsed ? page.label : undefined}
               >
@@ -132,25 +157,48 @@ export default function Sidebar({
             </>
           )}
 
-          {/* Espaçador flexível para empurrar o botão de logout para baixo */}
+          {/* Espaçador flexível para empurrar os botões para baixo */}
           <div className="flex-grow" />
 
-          {/* Botão de Logout */}
+          {/* Área inferior: Central + Sair */}
           <div className={`${isCollapsed ? 'pb-4' : 'pb-6'}`}>
             <hr className="border-dark-tertiary mb-4" />
-            <button
-              onClick={() => {
-                // TODO: Implementar função de logout
-                console.log('Logout clicado');
-              }}
+            
+            {/* Link para Central de Dashboards */}
+            <a
+              href="https://central-dashs-viva-html.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
               className={`
-                flex items-center rounded-lg transition-all duration-200 text-gray-400 border border-transparent hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/50
+                flex items-center rounded-lg transition-all duration-200 text-gray-400 border border-gray-600/50 hover:bg-white/5
                 ${isCollapsed ? 'justify-center p-2.5 w-full' : 'gap-3 px-4 py-2.5 w-full'}
               `}
               style={{
                 fontFamily: 'Poppins, sans-serif',
                 fontSize: '0.95rem',
                 fontWeight: 500,
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+              }}
+              title="Central de Dashboards"
+            >
+              <Home size={20} strokeWidth={2} />
+              {!isCollapsed && <span>Central de Dashboards</span>}
+            </a>
+
+            {/* Botão de Logout */}
+            <button
+              onClick={() => {
+                // TODO: Implementar função de logout
+              }}
+              className={`
+                flex items-center rounded-lg transition-all duration-200 text-gray-400 border border-gray-600/50 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/50
+                ${isCollapsed ? 'justify-center p-2.5 w-full mt-2' : 'gap-3 px-4 py-2.5 w-full mt-2'}
+              `}
+              style={{
+                fontFamily: 'Poppins, sans-serif',
+                fontSize: '0.95rem',
+                fontWeight: 500,
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
               }}
               title={isCollapsed ? 'Sair' : undefined}
             >

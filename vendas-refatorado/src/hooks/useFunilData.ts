@@ -32,14 +32,11 @@ export function useFunilData(): UseFunilDataReturn {
   const fetchData = useCallback(async (forceRefresh = false) => {
     // Evitar múltiplas chamadas simultâneas
     if (isFetching.current) {
-      console.log('[useFunilData] Já existe uma busca em andamento, ignorando...');
       return;
     }
 
     // Verificar cache primeiro (a menos que force refresh)
     if (!forceRefresh && funilCache && Date.now() - funilCache.timestamp < CACHE_TTL) {
-      const cacheAge = Math.round((Date.now() - funilCache.timestamp) / 1000);
-      console.log('[useFunilData] Usando dados em cache (idade:', cacheAge, 's)');
       setLeads(funilCache.data);
       setLoading(false);
       return;
@@ -52,8 +49,6 @@ export function useFunilData(): UseFunilDataReturn {
     try {
       // Usar API route local
       const url = '/api/funil';
-      
-      console.log('[useFunilData] Buscando dados via API route...');
       
       const response = await fetch(url);
       
@@ -137,8 +132,6 @@ export function useFunilData(): UseFunilDataReturn {
           } as LeadFunil;
         })
         .filter(Boolean) as LeadFunil[];
-
-      console.log('[useFunilData] Dados processados:', processedData.length, 'leads válidos');
       
       // Salvar no cache
       funilCache = {
@@ -150,7 +143,6 @@ export function useFunilData(): UseFunilDataReturn {
       setLastUpdate(new Date());
 
     } catch (err: any) {
-      console.error('Erro ao buscar dados do funil:', err);
       setError(err.message || 'Erro desconhecido ao buscar dados do funil');
     } finally {
       setLoading(false);

@@ -55,8 +55,6 @@ export function useSalesData(): UseSalesDataReturn {
 
     // Verificar colunas essenciais
     if (indices.unidade === -1 || indices.data === -1 || indices.valor === -1) {
-      console.error('[useSalesData] Headers encontrados:', headers);
-      console.error('[useSalesData] Índices:', indices);
       throw new Error('Colunas essenciais não encontradas na planilha');
     }
 
@@ -91,7 +89,6 @@ export function useSalesData(): UseSalesDataReturn {
   const fetchData = useCallback(async (forceRefresh = false) => {
     // Evitar múltiplas chamadas simultâneas
     if (isFetching.current) {
-      console.log('[useSalesData] Já existe uma busca em andamento, ignorando...');
       return;
     }
 
@@ -99,8 +96,6 @@ export function useSalesData(): UseSalesDataReturn {
     if (!forceRefresh) {
       const cachedData = clientCache.get<Adesao[]>(CACHE_KEYS.SALES_DATA);
       if (cachedData) {
-        const cacheAge = clientCache.getAge(CACHE_KEYS.SALES_DATA);
-        console.log('[useSalesData] Usando dados em cache (idade:', Math.round((cacheAge || 0) / 1000), 's)');
         setDados(cachedData);
         setLoading(false);
         return;
@@ -115,13 +110,10 @@ export function useSalesData(): UseSalesDataReturn {
       // Usar API route local para evitar CORS
       const url = '/api/sales';
       
-      console.log('[useSalesData] Buscando dados via API route...');
-      
       const response = await fetch(url);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('[useSalesData] Erro na resposta:', response.status, errorData);
         throw new Error(errorData.message || `Falha ao buscar dados de vendas: ${response.status}`);
       }
 
@@ -129,8 +121,6 @@ export function useSalesData(): UseSalesDataReturn {
       const rows = data.values || [];
       
       const processedData = processRows(rows);
-
-      console.log('[useSalesData] Dados processados:', processedData.length, 'registros válidos');
       
       // Salvar no cache
       clientCache.set(CACHE_KEYS.SALES_DATA, processedData, CACHE_TTL.MEDIUM);
@@ -139,7 +129,6 @@ export function useSalesData(): UseSalesDataReturn {
       setLastUpdate(new Date());
 
     } catch (err: any) {
-      console.error('Erro ao buscar dados de vendas:', err);
       setError(err.message || 'Erro desconhecido ao buscar dados');
     } finally {
       setLoading(false);
