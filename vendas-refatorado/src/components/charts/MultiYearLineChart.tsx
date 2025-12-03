@@ -90,52 +90,53 @@ export const MultiYearLineChart: React.FC<MultiYearLineChartProps> = ({
 
   const chartData = useMemo(() => ({
     labels: monthLabels,
-    datasets: data.map((yearData, index) => {
-      const isActive = activeYears.includes(yearData.year);
-      const colorObj = palette[index];
-      const color = colorObj.hex;
+    datasets: data
+      .filter(yearData => activeYears.includes(yearData.year))
+      .map((yearData) => {
+        const index = allYears.indexOf(yearData.year);
+        const colorObj = palette[index];
+        const color = colorObj.hex;
       
-      return {
-        label: String(yearData.year),
-        data: yearData.monthlyData,
-        borderColor: color,
-        backgroundColor: (context: any) => {
-          const chart = context.chart;
-          const { ctx, chartArea } = chart;
-          if (!chartArea) return 'transparent';
-          const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-          gradient.addColorStop(0, color + '40');
-          gradient.addColorStop(0.5, color + '15');
-          gradient.addColorStop(1, 'transparent');
-          return gradient;
-        },
-        fill: true,
-        tension: 0.3,
-        borderWidth: isActive ? 2 : 1.5,
-        pointRadius: isActive ? 3 : 0,
-        pointHoverRadius: 5,
-        pointBackgroundColor: color,
-        pointBorderColor: color,
-        pointBorderWidth: 1,
-        hidden: !isActive,
-        datalabels: {
-          display: isActive,
-          anchor: 'end' as const,
-          align: 'top' as const,
-          offset: 6,
-          color: color,
-          backgroundColor: 'rgba(33, 37, 41, 0.85)',
-          borderRadius: 4,
-          padding: 4,
-          font: { size: 11, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
-          formatter: (value: number) => {
-            if (!value || value === 0) return '';
-            return formatValue(value);
+        return {
+          label: String(yearData.year),
+          data: yearData.monthlyData,
+          borderColor: color,
+          backgroundColor: (context: any) => {
+            const chart = context.chart;
+            const { ctx, chartArea } = chart;
+            if (!chartArea) return 'transparent';
+            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            gradient.addColorStop(0, color + '40');
+            gradient.addColorStop(0.5, color + '15');
+            gradient.addColorStop(1, 'transparent');
+            return gradient;
           },
-        },
-      };
-    }),
-  }), [data, activeYears, palette, formatValue]);
+          fill: true,
+          tension: 0.3,
+          borderWidth: 2,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          pointBackgroundColor: color,
+          pointBorderColor: color,
+          pointBorderWidth: 1,
+          datalabels: {
+            display: true,
+            anchor: 'end' as const,
+            align: 'top' as const,
+            offset: 6,
+            color: color,
+            backgroundColor: 'rgba(33, 37, 41, 0.85)',
+            borderRadius: 4,
+            padding: 4,
+            font: { size: 11, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
+            formatter: (value: number) => {
+              if (!value || value === 0) return '';
+              return formatValue(value);
+            },
+          },
+        };
+      }),
+  }), [data, activeYears, palette, allYears, formatValue]);
 
   const options: any = useMemo(() => ({
     responsive: true,

@@ -77,10 +77,24 @@ export default function Dashboard() {
   
   // Estados - inicializa com base no router.asPath (funciona no SSR)
   const [paginaAtiva, setPaginaAtiva] = useState<PaginaAtiva>(() => getPaginaFromPath(router.asPath));
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    // Recuperar estado da sidebar do localStorage (se disponível)
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebarCollapsed');
+      return saved === 'true';
+    }
+    return false;
+  });
   const [filtros, setFiltros] = useState<FiltrosState>(INITIAL_FILTERS);
   const [tipoGraficoVVR, setTipoGraficoVVR] = useState<'total' | 'vendas' | 'posvendas'>('total');
   const [tipoTabelaDados, setTipoTabelaDados] = useState<'total' | 'vendas' | 'posvendas'>('total');
+
+  // Salvar estado da sidebar no localStorage quando mudar
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sidebarCollapsed', String(sidebarCollapsed));
+    }
+  }, [sidebarCollapsed]);
 
   // Sincronizar página com URL na montagem (para garantir após hidratação)
   useEffect(() => {
