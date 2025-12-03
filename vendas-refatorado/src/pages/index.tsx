@@ -2533,7 +2533,7 @@ export default function Dashboard() {
 
       <div className="min-h-screen bg-dark-primary">
         {/* Header */}
-        <Header />
+        <Header sidebarCollapsed={sidebarCollapsed} />
 
         {/* Layout principal */}
         <div className="flex">

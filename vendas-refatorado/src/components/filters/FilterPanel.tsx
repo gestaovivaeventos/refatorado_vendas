@@ -8,7 +8,7 @@
  * - Página 3 (Funil): Período, Unidades, Consultor, Origem Lead, Segmentação Lead, Etiquetas
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import DateRangePicker from './DateRangePicker';
 import MultiSelect from './MultiSelect';
 import type { FiltrosState, FiltrosOpcoes, PaginaAtiva } from '@/types/filtros.types';
@@ -70,6 +70,22 @@ export default function FilterPanel({
   showSegmentacaoLead,
   showEtiquetas,
 }: FilterPanelProps) {
+  // Estado para controlar expansão/colapso de todos os filtros
+  const [isExpanded, setIsExpanded] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('filtrosPanelExpanded');
+      return saved !== null ? JSON.parse(saved) : true;
+    }
+    return true;
+  });
+
+  // Salvar estado no localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('filtrosPanelExpanded', JSON.stringify(isExpanded));
+    }
+  }, [isExpanded]);
+
   // Determinar quais filtros mostrar baseado na página ativa
   const isMetasPage = paginaAtiva === 'metas';
   const isIndicadoresPage = paginaAtiva === 'indicadores';
@@ -93,323 +109,416 @@ export default function FilterPanel({
   const shouldShowEtiquetas = showEtiquetas ?? isFunilPage;
   const shouldShowConsultoresFunil = showConsultores || isFunilPage;
   
-  // Na página do funil, não mostra toggle de meta
-  const shouldShowMetaToggle = showMetaToggle && !isFunilPage;
+  // Na página do funil e indicadores, não mostra toggle de meta (só aparece na página de metas)
+  const shouldShowMetaToggle = showMetaToggle && isMetasPage;
+
+  // Contar filtros ativos
+  const contarFiltrosAtivos = () => {
+    let count = 0;
+    if (filtros.unidades.length > 0) count++;
+    if (filtros.regionais.length > 0) count++;
+    if (filtros.ufs.length > 0) count++;
+    if (filtros.cidades.length > 0) count++;
+    if (filtros.cursos.length > 0) count++;
+    if (filtros.consultores.length > 0) count++;
+    if (filtros.supervisores.length > 0) count++;
+    if (filtros.formasPagamento.length > 0) count++;
+    if (filtros.fundos.length > 0) count++;
+    if (filtros.tipoAdesao.length > 0) count++;
+    if (filtros.tipoServico.length > 0) count++;
+    if (filtros.tipoCliente.length > 0) count++;
+    if (filtros.consultorComercial.length > 0) count++;
+    if (filtros.indicacaoAdesao.length > 0) count++;
+    if (filtros.instituicao.length > 0) count++;
+    if (filtros.origemLead.length > 0) count++;
+    if (filtros.segmentacaoLead.length > 0) count++;
+    if (filtros.etiquetas.length > 0) count++;
+    return count;
+  };
+
+  const filtrosAtivos = contarFiltrosAtivos();
+
   return (
     <div>
-      {/* Toggle de Tipo de Meta */}
-      {shouldShowMetaToggle && (
-        <div style={{ marginBottom: '20px' }}>
-          <label
+      {/* Header colapsável "Filtros" */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          width: '100%',
+          padding: '12px 14px',
+          backgroundColor: '#2a2f36',
+          border: '1px solid #444',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          marginBottom: isExpanded ? '16px' : '0',
+          transition: 'all 0.2s ease',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span
             style={{
-              display: 'block',
-              color: '#adb5bd',
-              fontSize: '0.75rem',
+              color: '#FF6600',
+              fontSize: '0.85rem',
               fontWeight: 600,
-              marginBottom: '8px',
+              fontFamily: 'Poppins, sans-serif',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
-              fontFamily: 'Poppins, sans-serif',
             }}
           >
-            Tipo de Meta
-          </label>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '10px 14px',
-              backgroundColor: '#2a2f36',
-              borderRadius: '8px',
-              border: '1px solid #444',
-            }}
-          >
+            Filtros
+          </span>
+          {filtrosAtivos > 0 && (
             <span
               style={{
-                fontSize: '0.8rem',
-                fontWeight: filtros.isMetaInterna ? 400 : 600,
-                color: filtros.isMetaInterna ? '#6c757d' : '#FF6600',
+                backgroundColor: '#FF6600',
+                color: '#fff',
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                padding: '2px 8px',
+                borderRadius: '10px',
                 fontFamily: 'Poppins, sans-serif',
               }}
             >
-              Super Meta
+              {filtrosAtivos}
             </span>
-            <button
-              onClick={() => onFiltrosChange({ isMetaInterna: !filtros.isMetaInterna })}
+          )}
+        </div>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#adb5bd"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{
+            transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.2s ease',
+          }}
+        >
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+
+      {/* Conteúdo dos filtros */}
+      <div
+        style={{
+          maxHeight: isExpanded ? '2000px' : '0',
+          opacity: isExpanded ? 1 : 0,
+          overflow: 'hidden',
+          transition: 'max-height 0.3s ease, opacity 0.2s ease',
+        }}
+      >
+        {/* Toggle de Tipo de Meta */}
+        {shouldShowMetaToggle && (
+          <div style={{ marginBottom: '20px' }}>
+            <label
               style={{
-                position: 'relative',
-                width: '44px',
-                height: '24px',
-                backgroundColor: filtros.isMetaInterna ? '#FF6600' : '#444',
-                borderRadius: '12px',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s',
-                padding: 0,
+                display: 'block',
+                color: '#adb5bd',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                marginBottom: '8px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                fontFamily: 'Poppins, sans-serif',
+              }}
+            >
+              Tipo de Meta
+            </label>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '10px 14px',
+                backgroundColor: '#2a2f36',
+                borderRadius: '8px',
+                border: '1px solid #444',
               }}
             >
               <span
                 style={{
-                  position: 'absolute',
-                  top: '2px',
-                  left: filtros.isMetaInterna ? '22px' : '2px',
-                  width: '20px',
-                  height: '20px',
-                  backgroundColor: '#fff',
-                  borderRadius: '50%',
-                  transition: 'left 0.2s',
+                  fontSize: '0.8rem',
+                  fontWeight: filtros.isMetaInterna ? 400 : 600,
+                  color: filtros.isMetaInterna ? '#6c757d' : '#FF6600',
+                  fontFamily: 'Poppins, sans-serif',
                 }}
-              />
-            </button>
-            <span
-              style={{
-                fontSize: '0.8rem',
-                fontWeight: filtros.isMetaInterna ? 600 : 400,
-                color: filtros.isMetaInterna ? '#FF6600' : '#6c757d',
-                fontFamily: 'Poppins, sans-serif',
-              }}
-            >
-              Meta Interna
-            </span>
+              >
+                Super Meta
+              </span>
+              <button
+                onClick={() => onFiltrosChange({ isMetaInterna: !filtros.isMetaInterna })}
+                style={{
+                  position: 'relative',
+                  width: '44px',
+                  height: '24px',
+                  backgroundColor: filtros.isMetaInterna ? '#FF6600' : '#444',
+                  borderRadius: '12px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s',
+                  padding: 0,
+                }}
+              >
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '2px',
+                    left: filtros.isMetaInterna ? '22px' : '2px',
+                    width: '20px',
+                    height: '20px',
+                    backgroundColor: '#fff',
+                    borderRadius: '50%',
+                    transition: 'left 0.2s',
+                  }}
+                />
+              </button>
+              <span
+                style={{
+                  fontSize: '0.8rem',
+                  fontWeight: filtros.isMetaInterna ? 600 : 400,
+                  color: filtros.isMetaInterna ? '#FF6600' : '#6c757d',
+                  fontFamily: 'Poppins, sans-serif',
+                }}
+              >
+                Meta Interna
+              </span>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Filtro de Período */}
-      <DateRangePicker
-        periodoSelecionado={filtros.periodoSelecionado}
-        dataInicio={filtros.dataInicio}
-        dataFim={filtros.dataFim}
-        onPeriodoChange={(periodoSelecionado) => onFiltrosChange({ periodoSelecionado })}
-        onDataInicioChange={(dataInicio) => onFiltrosChange({ dataInicio })}
-        onDataFimChange={(dataFim) => onFiltrosChange({ dataFim })}
-      />
-
-      {/* Filtro de Unidades */}
-      {showUnidades && opcoes.unidades.length > 0 && (
-        <MultiSelect
-          label="Unidades"
-          options={opcoes.unidades}
-          selectedValues={filtros.unidades}
-          onChange={(unidades) => onFiltrosChange({ unidades })}
-          placeholder="Todas as unidades"
+        {/* Filtro de Período */}
+        <DateRangePicker
+          periodoSelecionado={filtros.periodoSelecionado}
+          dataInicio={filtros.dataInicio}
+          dataFim={filtros.dataFim}
+          onPeriodoChange={(periodoSelecionado) => onFiltrosChange({ periodoSelecionado })}
+          onDataInicioChange={(dataInicio) => onFiltrosChange({ dataInicio })}
+          onDataFimChange={(dataFim) => onFiltrosChange({ dataFim })}
         />
-      )}
 
-      {/* Filtro de Regionais */}
-      {showRegionais && opcoes.regionais.length > 0 && (
-        <MultiSelect
-          label="Regionais"
-          options={opcoes.regionais}
-          selectedValues={filtros.regionais}
-          onChange={(regionais) => onFiltrosChange({ regionais })}
-          placeholder="Todas as regionais"
-        />
-      )}
+        {/* Filtro de Unidades */}
+        {showUnidades && opcoes.unidades.length > 0 && (
+          <MultiSelect
+            label="Unidades"
+            options={opcoes.unidades}
+            selectedValues={filtros.unidades}
+            onChange={(unidades) => onFiltrosChange({ unidades })}
+            placeholder="Todas as unidades"
+          />
+        )}
 
-      {/* Filtro de UFs */}
-      {showUFs && opcoes.ufs.length > 0 && (
-        <MultiSelect
-          label="UFs"
-          options={opcoes.ufs}
-          selectedValues={filtros.ufs}
-          onChange={(ufs) => onFiltrosChange({ ufs })}
-          placeholder="Todos os estados"
-        />
-      )}
+        {/* Filtro de Regionais */}
+        {showRegionais && opcoes.regionais.length > 0 && (
+          <MultiSelect
+            label="Regionais"
+            options={opcoes.regionais}
+            selectedValues={filtros.regionais}
+            onChange={(regionais) => onFiltrosChange({ regionais })}
+            placeholder="Todas as regionais"
+          />
+        )}
 
-      {/* Filtro de Cidades */}
-      {showCidades && opcoes.cidades.length > 0 && (
-        <MultiSelect
-          label="Cidades"
-          options={opcoes.cidades}
-          selectedValues={filtros.cidades}
-          onChange={(cidades) => onFiltrosChange({ cidades })}
-          placeholder="Todas as cidades"
-        />
-      )}
+        {/* Filtro de UFs */}
+        {showUFs && opcoes.ufs.length > 0 && (
+          <MultiSelect
+            label="UFs"
+            options={opcoes.ufs}
+            selectedValues={filtros.ufs}
+            onChange={(ufs) => onFiltrosChange({ ufs })}
+            placeholder="Todos os estados"
+          />
+        )}
 
-      {/* Filtro de Cursos - Página Metas */}
-      {shouldShowCursos && opcoes.cursos && opcoes.cursos.length > 0 && (
-        <MultiSelect
-          label="Cursos"
-          options={opcoes.cursos}
-          selectedValues={filtros.cursos}
-          onChange={(cursos) => onFiltrosChange({ cursos })}
-          placeholder="Todos os cursos"
-        />
-      )}
+        {/* Filtro de Cidades */}
+        {showCidades && opcoes.cidades.length > 0 && (
+          <MultiSelect
+            label="Cidades"
+            options={opcoes.cidades}
+            selectedValues={filtros.cidades}
+            onChange={(cidades) => onFiltrosChange({ cidades })}
+            placeholder="Todas as cidades"
+          />
+        )}
 
-      {/* Filtro de Consultores */}
-      {showConsultores && opcoes.consultores.length > 0 && (
-        <MultiSelect
-          label="Consultores"
-          options={opcoes.consultores}
-          selectedValues={filtros.consultores}
-          onChange={(consultores) => onFiltrosChange({ consultores })}
-          placeholder="Todos os consultores"
-        />
-      )}
+        {/* Filtro de Cursos - Página Metas */}
+        {shouldShowCursos && opcoes.cursos && opcoes.cursos.length > 0 && (
+          <MultiSelect
+            label="Cursos"
+            options={opcoes.cursos}
+            selectedValues={filtros.cursos}
+            onChange={(cursos) => onFiltrosChange({ cursos })}
+            placeholder="Todos os cursos"
+          />
+        )}
 
-      {/* Filtro de Supervisores */}
-      {showSupervisores && opcoes.supervisores.length > 0 && (
-        <MultiSelect
-          label="Supervisores"
-          options={opcoes.supervisores}
-          selectedValues={filtros.supervisores}
-          onChange={(supervisores) => onFiltrosChange({ supervisores })}
-          placeholder="Todos os supervisores"
-        />
-      )}
+        {/* Filtro de Consultores */}
+        {showConsultores && opcoes.consultores.length > 0 && (
+          <MultiSelect
+            label="Consultores"
+            options={opcoes.consultores}
+            selectedValues={filtros.consultores}
+            onChange={(consultores) => onFiltrosChange({ consultores })}
+            placeholder="Todos os consultores"
+          />
+        )}
 
-      {/* Filtro de Formas de Pagamento */}
-      {showFormasPagamento && opcoes.formasPagamento.length > 0 && (
-        <MultiSelect
-          label="Formas de Pagamento"
-          options={opcoes.formasPagamento}
-          selectedValues={filtros.formasPagamento}
-          onChange={(formasPagamento) => onFiltrosChange({ formasPagamento })}
-          placeholder="Todas as formas"
-        />
-      )}
+        {/* Filtro de Supervisores */}
+        {showSupervisores && opcoes.supervisores.length > 0 && (
+          <MultiSelect
+            label="Supervisores"
+            options={opcoes.supervisores}
+            selectedValues={filtros.supervisores}
+            onChange={(supervisores) => onFiltrosChange({ supervisores })}
+            placeholder="Todos os supervisores"
+          />
+        )}
 
-      {/* ============================================= */}
-      {/* FILTROS ESPECÍFICOS DA PÁGINA 2 (INDICADORES) */}
-      {/* ============================================= */}
+        {/* Filtro de Formas de Pagamento */}
+        {showFormasPagamento && opcoes.formasPagamento.length > 0 && (
+          <MultiSelect
+            label="Formas de Pagamento"
+            options={opcoes.formasPagamento}
+            selectedValues={filtros.formasPagamento}
+            onChange={(formasPagamento) => onFiltrosChange({ formasPagamento })}
+            placeholder="Todas as formas"
+          />
+        )}
 
-      {/* Filtro de Fundos - Apenas página Indicadores */}
-      {shouldShowFundos && opcoes.fundos && opcoes.fundos.length > 0 && (
-        <MultiSelect
-          label="Fundos"
-          options={opcoes.fundos}
-          selectedValues={filtros.fundos}
-          onChange={(fundos) => onFiltrosChange({ fundos })}
-          placeholder="Todos os fundos"
-          
-        />
-      )}
+        {/* ============================================= */}
+        {/* FILTROS ESPECÍFICOS DA PÁGINA 2 (INDICADORES) */}
+        {/* ============================================= */}
 
-      {/* Filtro de Tipo de Adesão - Apenas página Indicadores */}
-      {shouldShowTipoAdesao && opcoes.tiposAdesao && opcoes.tiposAdesao.length > 0 && (
-        <MultiSelect
-          label="Tipo de Adesão"
-          options={opcoes.tiposAdesao}
-          selectedValues={filtros.tipoAdesao}
-          onChange={(tipoAdesao) => onFiltrosChange({ tipoAdesao })}
-          placeholder="Todos os tipos"
-        />
-      )}
+        {/* Filtro de Fundos - Apenas página Indicadores */}
+        {shouldShowFundos && opcoes.fundos && opcoes.fundos.length > 0 && (
+          <MultiSelect
+            label="Fundos"
+            options={opcoes.fundos}
+            selectedValues={filtros.fundos}
+            onChange={(fundos) => onFiltrosChange({ fundos })}
+            placeholder="Todos os fundos"
+          />
+        )}
 
-      {/* Filtro de Tipo de Serviço - Apenas página Indicadores */}
-      {shouldShowTipoServico && opcoes.tiposServico && opcoes.tiposServico.length > 0 && (
-        <MultiSelect
-          label="Tipo de Serviço"
-          options={opcoes.tiposServico}
-          selectedValues={filtros.tipoServico}
-          onChange={(tipoServico) => onFiltrosChange({ tipoServico })}
-          placeholder="Todos os tipos"
-        />
-      )}
+        {/* Filtro de Tipo de Adesão - Apenas página Indicadores */}
+        {shouldShowTipoAdesao && opcoes.tiposAdesao && opcoes.tiposAdesao.length > 0 && (
+          <MultiSelect
+            label="Tipo de Adesão"
+            options={opcoes.tiposAdesao}
+            selectedValues={filtros.tipoAdesao}
+            onChange={(tipoAdesao) => onFiltrosChange({ tipoAdesao })}
+            placeholder="Todos os tipos"
+          />
+        )}
 
-      {/* Filtro de Tipo de Cliente - Apenas página Indicadores */}
-      {shouldShowTipoCliente && opcoes.tiposCliente && opcoes.tiposCliente.length > 0 && (
-        <MultiSelect
-          label="Tipo de Cliente"
-          options={opcoes.tiposCliente}
-          selectedValues={filtros.tipoCliente}
-          onChange={(tipoCliente) => onFiltrosChange({ tipoCliente })}
-          placeholder="Todos os tipos"
-        />
-      )}
+        {/* Filtro de Tipo de Serviço - Apenas página Indicadores */}
+        {shouldShowTipoServico && opcoes.tiposServico && opcoes.tiposServico.length > 0 && (
+          <MultiSelect
+            label="Tipo de Serviço"
+            options={opcoes.tiposServico}
+            selectedValues={filtros.tipoServico}
+            onChange={(tipoServico) => onFiltrosChange({ tipoServico })}
+            placeholder="Todos os tipos"
+          />
+        )}
 
-      {/* Filtro de Consultor Comercial - Apenas página Indicadores */}
-      {shouldShowConsultorComercial && opcoes.consultoresComerciais && opcoes.consultoresComerciais.length > 0 && (
-        <MultiSelect
-          label="Consultor Comercial"
-          options={opcoes.consultoresComerciais}
-          selectedValues={filtros.consultorComercial}
-          onChange={(consultorComercial) => onFiltrosChange({ consultorComercial })}
-          placeholder="Todos os consultores"
-          
-        />
-      )}
+        {/* Filtro de Tipo de Cliente - Apenas página Indicadores */}
+        {shouldShowTipoCliente && opcoes.tiposCliente && opcoes.tiposCliente.length > 0 && (
+          <MultiSelect
+            label="Tipo de Cliente"
+            options={opcoes.tiposCliente}
+            selectedValues={filtros.tipoCliente}
+            onChange={(tipoCliente) => onFiltrosChange({ tipoCliente })}
+            placeholder="Todos os tipos"
+          />
+        )}
 
-      {/* Filtro de Indicação Adesão - Apenas página Indicadores */}
-      {shouldShowIndicacaoAdesao && opcoes.indicacoesAdesao && opcoes.indicacoesAdesao.length > 0 && (
-        <MultiSelect
-          label="Indicação de Adesão"
-          options={opcoes.indicacoesAdesao}
-          selectedValues={filtros.indicacaoAdesao}
-          onChange={(indicacaoAdesao) => onFiltrosChange({ indicacaoAdesao })}
-          placeholder="Todas as indicações"
-          
-        />
-      )}
+        {/* Filtro de Consultor Comercial - Apenas página Indicadores */}
+        {shouldShowConsultorComercial && opcoes.consultoresComerciais && opcoes.consultoresComerciais.length > 0 && (
+          <MultiSelect
+            label="Consultor Comercial"
+            options={opcoes.consultoresComerciais}
+            selectedValues={filtros.consultorComercial}
+            onChange={(consultorComercial) => onFiltrosChange({ consultorComercial })}
+            placeholder="Todos os consultores"
+          />
+        )}
 
-      {/* Filtro de Instituição - Apenas página Indicadores */}
-      {shouldShowInstituicao && opcoes.instituicoes && opcoes.instituicoes.length > 0 && (
-        <MultiSelect
-          label="Instituição"
-          options={opcoes.instituicoes}
-          selectedValues={filtros.instituicao}
-          onChange={(instituicao) => onFiltrosChange({ instituicao })}
-          placeholder="Todas as instituições"
-          
-        />
-      )}
+        {/* Filtro de Indicação Adesão - Apenas página Indicadores */}
+        {shouldShowIndicacaoAdesao && opcoes.indicacoesAdesao && opcoes.indicacoesAdesao.length > 0 && (
+          <MultiSelect
+            label="Indicação de Adesão"
+            options={opcoes.indicacoesAdesao}
+            selectedValues={filtros.indicacaoAdesao}
+            onChange={(indicacaoAdesao) => onFiltrosChange({ indicacaoAdesao })}
+            placeholder="Todas as indicações"
+          />
+        )}
 
-      {/* ============================================= */}
-      {/* FILTROS ESPECÍFICOS DA PÁGINA 3 (FUNIL)      */}
-      {/* ============================================= */}
+        {/* Filtro de Instituição - Apenas página Indicadores */}
+        {shouldShowInstituicao && opcoes.instituicoes && opcoes.instituicoes.length > 0 && (
+          <MultiSelect
+            label="Instituição"
+            options={opcoes.instituicoes}
+            selectedValues={filtros.instituicao}
+            onChange={(instituicao) => onFiltrosChange({ instituicao })}
+            placeholder="Todas as instituições"
+          />
+        )}
 
-      {/* Filtro de Consultores (Funil) - Apenas página Funil */}
-      {shouldShowConsultoresFunil && opcoes.consultores && opcoes.consultores.length > 0 && (
-        <MultiSelect
-          label="Consultor"
-          options={opcoes.consultores}
-          selectedValues={filtros.consultores}
-          onChange={(consultores) => onFiltrosChange({ consultores })}
-          placeholder="Todos os consultores"
-          
-        />
-      )}
+        {/* ============================================= */}
+        {/* FILTROS ESPECÍFICOS DA PÁGINA 3 (FUNIL)      */}
+        {/* ============================================= */}
 
-      {/* Filtro de Origem do Lead - Apenas página Funil */}
-      {shouldShowOrigemLead && opcoes.origensLead && opcoes.origensLead.length > 0 && (
-        <MultiSelect
-          label="Origem do Lead"
-          options={opcoes.origensLead}
-          selectedValues={filtros.origemLead}
-          onChange={(origemLead) => onFiltrosChange({ origemLead })}
-          placeholder="Todas as origens"
-          
-        />
-      )}
+        {/* Filtro de Consultores (Funil) - Apenas página Funil */}
+        {shouldShowConsultoresFunil && opcoes.consultores && opcoes.consultores.length > 0 && (
+          <MultiSelect
+            label="Consultor"
+            options={opcoes.consultores}
+            selectedValues={filtros.consultores}
+            onChange={(consultores) => onFiltrosChange({ consultores })}
+            placeholder="Todos os consultores"
+          />
+        )}
 
-      {/* Filtro de Segmentação do Lead - Apenas página Funil */}
-      {shouldShowSegmentacaoLead && opcoes.segmentacoesLead && opcoes.segmentacoesLead.length > 0 && (
-        <MultiSelect
-          label="Segmentação do Lead"
-          options={opcoes.segmentacoesLead}
-          selectedValues={filtros.segmentacaoLead}
-          onChange={(segmentacaoLead) => onFiltrosChange({ segmentacaoLead })}
-          placeholder="Todas as segmentações"
-          
-        />
-      )}
+        {/* Filtro de Origem do Lead - Apenas página Funil */}
+        {shouldShowOrigemLead && opcoes.origensLead && opcoes.origensLead.length > 0 && (
+          <MultiSelect
+            label="Origem do Lead"
+            options={opcoes.origensLead}
+            selectedValues={filtros.origemLead}
+            onChange={(origemLead) => onFiltrosChange({ origemLead })}
+            placeholder="Todas as origens"
+          />
+        )}
 
-      {/* Filtro de Etiquetas - Apenas página Funil */}
-      {shouldShowEtiquetas && opcoes.etiquetas && opcoes.etiquetas.length > 0 && (
-        <MultiSelect
-          label="Etiquetas"
-          options={opcoes.etiquetas}
-          selectedValues={filtros.etiquetas}
-          onChange={(etiquetas) => onFiltrosChange({ etiquetas })}
-          placeholder="Todas as etiquetas"
-          
-        />
-      )}
+        {/* Filtro de Segmentação do Lead - Apenas página Funil */}
+        {shouldShowSegmentacaoLead && opcoes.segmentacoesLead && opcoes.segmentacoesLead.length > 0 && (
+          <MultiSelect
+            label="Segmentação do Lead"
+            options={opcoes.segmentacoesLead}
+            selectedValues={filtros.segmentacaoLead}
+            onChange={(segmentacaoLead) => onFiltrosChange({ segmentacaoLead })}
+            placeholder="Todas as segmentações"
+          />
+        )}
+
+        {/* Filtro de Etiquetas - Apenas página Funil */}
+        {shouldShowEtiquetas && opcoes.etiquetas && opcoes.etiquetas.length > 0 && (
+          <MultiSelect
+            label="Etiquetas"
+            options={opcoes.etiquetas}
+            selectedValues={filtros.etiquetas}
+            onChange={(etiquetas) => onFiltrosChange({ etiquetas })}
+            placeholder="Todas as etiquetas"
+          />
+        )}
+      </div>
     </div>
   );
 }

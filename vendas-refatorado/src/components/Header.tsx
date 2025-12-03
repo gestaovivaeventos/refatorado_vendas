@@ -5,18 +5,28 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 
-export default function Header() {
+interface HeaderProps {
+  sidebarCollapsed?: boolean;
+}
+
+export default function Header({ sidebarCollapsed = false }: HeaderProps) {
   const [dataAtual, setDataAtual] = useState<string>('');
-  const [anoAtual, setAnoAtual] = useState<number>(2025);
 
   useEffect(() => {
-    setDataAtual(new Date().toLocaleString('pt-BR'));
-    setAnoAtual(new Date().getFullYear());
+    // Data fixa: dia vigente às 08:30
+    const hoje = new Date();
+    const dataFormatada = hoje.toLocaleDateString('pt-BR');
+    setDataAtual(`${dataFormatada}, 08:30:00`);
   }, []);
 
   return (
-    <header className="bg-dark-primary">
-      <div className="container mx-auto px-4 py-4">
+    <header 
+      className="bg-dark-primary transition-all duration-300"
+      style={{
+        marginLeft: sidebarCollapsed ? '60px' : '300px',
+      }}
+    >
+      <div className="px-4 py-4">
         <div 
           className="bg-dark-secondary p-5 rounded-lg flex justify-between items-center"
           style={{
@@ -37,9 +47,9 @@ export default function Header() {
             </div>
             
             {/* Título */}
-            <div className="border-l border-gray-600 pl-6 h-14 flex flex-col justify-center">
+            <div className="border-l border-gray-600 pl-6 h-14 flex items-center">
               <h1 
-                className="text-2xl font-bold uppercase tracking-wider mb-1"
+                className="text-3xl font-bold uppercase tracking-wider"
                 style={{ 
                   fontFamily: "'Orbitron', 'Poppins', sans-serif",
                   background: 'linear-gradient(to bottom, #F8F9FA 0%, #ADB5BD 100%)',
@@ -50,9 +60,6 @@ export default function Header() {
               >
                 Dashboard de Vendas
               </h1>
-              <span className="text-xs text-text-secondary">
-                VIVA Eventos Brasil - {anoAtual}
-              </span>
             </div>
           </div>
 

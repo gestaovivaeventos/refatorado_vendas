@@ -80,7 +80,9 @@ export default function MultiSelect({
 }: MultiSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [openUpward, setOpenUpward] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
 
   // Fechar dropdown ao clicar fora
   useEffect(() => {
@@ -96,6 +98,23 @@ export default function MultiSelect({
 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
+
+  // Verificar se deve abrir para cima ou para baixo
+  const checkDropdownDirection = () => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const dropdownHeight = 320; // altura aproximada do dropdown
+      
+      // Se não houver espaço suficiente abaixo, abrir para cima
+      setOpenUpward(spaceBelow < dropdownHeight);
+    }
+  };
+
+  const handleOpen = () => {
+    checkDropdownDirection();
+    setIsOpen(!isOpen);
+  };
 
   const filteredOptions = options.filter((opt) =>
     opt.toLowerCase().includes(searchTerm.toLowerCase())
@@ -137,9 +156,9 @@ export default function MultiSelect({
       </label>
 
       {/* Trigger Button */}
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative' }} ref={triggerRef}>
         <div
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={handleOpen}
           style={triggerStyle}
           onMouseEnter={(e) => {
             e.currentTarget.style.borderColor = '#FF6600';
@@ -163,7 +182,15 @@ export default function MultiSelect({
 
         {/* Dropdown */}
         {isOpen && (
-          <div style={dropdownStyle}>
+          <div style={{
+            ...dropdownStyle,
+            ...(openUpward ? {
+              top: 'auto',
+              bottom: '100%',
+              marginTop: 0,
+              marginBottom: '4px',
+            } : {}),
+          }}>
             {/* Caixa de pesquisa dentro do dropdown */}
             <div style={{ padding: '8px', borderBottom: '1px solid #3a3f46' }}>
               <input
