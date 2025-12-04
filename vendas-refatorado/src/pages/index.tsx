@@ -2441,6 +2441,7 @@ export default function Dashboard() {
               <SimpleBarChart
                 data={dadosContratosAnual}
                 horizontal={true}
+                datasetLabel="Contratos"
                 onBarClick={(label) => {
                   const ano = parseInt(label);
                   if (!isNaN(ano)) setAnoSelecionadoContratos(ano);
@@ -2455,6 +2456,7 @@ export default function Dashboard() {
               <SimpleBarChart
                 data={dadosContratosMensal}
                 horizontal={false}
+                datasetLabel="Contratos"
               />
             </div>
           </Card>

@@ -93,7 +93,7 @@ export default function VVRVsMetaChart({
           backgroundColor: 'rgba(52, 58, 64, 0.8)',
           borderRadius: 4,
           color: 'white',
-          font: { weight: 'bold' as const, size: 13, family: 'Poppins, Arial, sans-serif' },
+          font: { weight: 'bold' as const, size: 15, family: 'Poppins, Arial, sans-serif' },
           padding: 5,
           formatter: formatValue,
         },
@@ -116,7 +116,7 @@ export default function VVRVsMetaChart({
           backgroundColor: 'rgba(0, 0, 0, 0.7)',
           borderRadius: 4,
           color: 'white',
-          font: { size: 12, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
+          font: { size: 14, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
           padding: 4,
           formatter: formatValue,
         },
@@ -136,7 +136,7 @@ export default function VVRVsMetaChart({
         position: 'top' as const,
         labels: {
           color: COLORS.TEXT,
-          font: { size: 14, family: 'Poppins, Arial, sans-serif' },
+          font: { size: 16, family: 'Poppins, Arial, sans-serif' },
           usePointStyle: true,
         },
       },
@@ -148,6 +148,8 @@ export default function VVRVsMetaChart({
         bodyColor: COLORS.TEXT,
         borderColor: COLORS.PRIMARY,
         borderWidth: 1,
+        titleFont: { size: 18, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
+        bodyFont: { size: 16, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
         callbacks: {
           label: function(context: any) {
             let label = context.dataset.label || '';
@@ -164,7 +166,7 @@ export default function VVRVsMetaChart({
       x: {
         ticks: {
           color: '#F8F9FA',
-          font: { size: 12 },
+          font: { size: 14 },
         },
         grid: {
           color: 'rgba(255, 255, 255, 0.05)',
@@ -174,7 +176,7 @@ export default function VVRVsMetaChart({
         beginAtZero: true,
         ticks: {
           color: '#F8F9FA',
-          font: { size: 12 },
+          font: { size: 14 },
           callback: function(value: any) {
             if (value >= 1000000) return (value / 1000000).toFixed(0) + ' mi';
             if (value >= 1000) return (value / 1000).toFixed(0) + ' K';

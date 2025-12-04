@@ -86,7 +86,7 @@ export const FunnelBarChart: React.FC<FunnelBarChartProps> = ({
         text: titulo,
         color: '#F8F9FA',
         font: {
-          size: 16,
+          size: 18,
           weight: 'bold' as const,
         },
       },
@@ -95,10 +95,14 @@ export const FunnelBarChart: React.FC<FunnelBarChartProps> = ({
         titleColor: '#F8F9FA',
         bodyColor: '#F8F9FA',
         titleFont: {
-          size: 14,
+          size: 18,
+          weight: 'bold' as const,
+          family: 'Poppins, Arial, sans-serif',
         },
         bodyFont: {
-          size: 13,
+          size: 16,
+          weight: 'bold' as const,
+          family: 'Poppins, Arial, sans-serif',
         },
         padding: 12,
         cornerRadius: 8,
@@ -108,7 +112,7 @@ export const FunnelBarChart: React.FC<FunnelBarChartProps> = ({
         align: 'right' as const,
         color: '#F8F9FA',
         font: {
-          size: 14,
+          size: 16,
           weight: 'bold' as const,
         },
         formatter: (value: number) => value.toLocaleString('pt-BR'),
@@ -120,7 +124,7 @@ export const FunnelBarChart: React.FC<FunnelBarChartProps> = ({
         ticks: {
           color: '#F8F9FA',
           font: {
-            size: 12,
+            size: 14,
           },
           stepSize: 1,
         },
@@ -132,7 +136,7 @@ export const FunnelBarChart: React.FC<FunnelBarChartProps> = ({
         ticks: {
           color: '#F8F9FA',
           font: {
-            size: 12,
+            size: 14,
           },
         },
         grid: {

@@ -110,7 +110,7 @@ export const CaptacaoStackedBar: React.FC<CaptacaoStackedBarProps> = ({
       datalabels: {
         color: '#FFFFFF',
         font: {
-          size: 14,
+          size: 16,
           weight: 'bold' as const,
         },
         formatter: (value: number) => {

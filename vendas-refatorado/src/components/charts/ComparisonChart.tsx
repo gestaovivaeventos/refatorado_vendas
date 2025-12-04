@@ -76,14 +76,14 @@ export default function ComparisonChart({
         position: 'top' as const,
         labels: {
           color: COLORS.TEXT,
-          font: { size: 12 },
+          font: { size: 14 },
         },
       },
       title: {
         display: !!title,
         text: title,
         color: COLORS.TEXT,
-        font: { size: 16, weight: 'bold' as const },
+        font: { size: 18, weight: 'bold' as const },
       },
       tooltip: {
         backgroundColor: COLORS.DARK_SECONDARY,
@@ -91,6 +91,8 @@ export default function ComparisonChart({
         bodyColor: COLORS.TEXT,
         borderColor: COLORS.PRIMARY,
         borderWidth: 1,
+        titleFont: { size: 18, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
+        bodyFont: { size: 16, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
         callbacks: {
           label: function(context: any) {
             return `${context.dataset.label}: ${formatCurrency(context.raw)}`;

@@ -92,14 +92,14 @@ export default function VVRChart({ data, title = 'Valor Vendido Realizado' }: VV
         position: 'top' as const,
         labels: {
           color: COLORS.TEXT,
-          font: { size: 12 },
+          font: { size: 14 },
         },
       },
       title: {
         display: !!title,
         text: title,
         color: COLORS.TEXT,
-        font: { size: 16, weight: 'bold' as const },
+        font: { size: 18, weight: 'bold' as const },
       },
       tooltip: {
         backgroundColor: COLORS.DARK_SECONDARY,
@@ -107,6 +107,8 @@ export default function VVRChart({ data, title = 'Valor Vendido Realizado' }: VV
         bodyColor: COLORS.TEXT,
         borderColor: COLORS.PRIMARY,
         borderWidth: 1,
+        titleFont: { size: 18, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
+        bodyFont: { size: 16, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
         callbacks: {
           label: function(context: any) {
             return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
@@ -119,7 +121,7 @@ export default function VVRChart({ data, title = 'Valor Vendido Realizado' }: VV
         align: 'top' as const,
         color: '#FFFFFF',
         font: {
-          size: 12,
+          size: 14,
           weight: 'bold' as const,
           family: 'Poppins, Arial, sans-serif',
         },

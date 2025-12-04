@@ -24,14 +24,13 @@ export default function Sidebar({
   onCollapseChange,
   children,
 }: SidebarProps) {
-  // Gerar data no lado do cliente de forma síncrona para evitar flash
-  const [dataAtual] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      const hoje = new Date();
-      return `${hoje.toLocaleDateString('pt-BR')}, 08:30`;
-    }
-    return '';
-  });
+  // Gerar data apenas no cliente para evitar erro de hidratação
+  const [dataAtual, setDataAtual] = useState<string>('');
+  
+  useEffect(() => {
+    const hoje = new Date();
+    setDataAtual(`${hoje.toLocaleDateString('pt-BR')}, ${hoje.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`);
+  }, []);
 
   const getIcon = (pageId: string) => {
     switch (pageId) {

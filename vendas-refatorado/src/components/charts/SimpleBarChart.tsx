@@ -29,6 +29,7 @@ interface SimpleBarChartProps {
   horizontal?: boolean;
   onBarClick?: (label: string) => void;
   formatValue?: (value: number) => string;
+  datasetLabel?: string;
 }
 
 const formatNumber = (value: number): string => {
@@ -46,12 +47,13 @@ export const SimpleBarChart: React.FC<SimpleBarChartProps> = ({
   horizontal = false,
   onBarClick,
   formatValue = formatNumber,
+  datasetLabel = 'Valor',
 }) => {
   const chartData = useMemo(() => ({
     labels: data.labels,
     datasets: [
       {
-        label: 'Valor',
+        label: datasetLabel,
         data: data.values,
         backgroundColor: (context: any) => {
           const chart = context.chart;
@@ -71,7 +73,7 @@ export const SimpleBarChart: React.FC<SimpleBarChartProps> = ({
         barThickness: horizontal ? 20 : undefined,
       },
     ],
-  }), [data, horizontal]);
+  }), [data, horizontal, datasetLabel]);
 
   const maxValue = useMemo(() => Math.max(...data.values) * 1.2, [data.values]);
 
@@ -84,17 +86,25 @@ export const SimpleBarChart: React.FC<SimpleBarChartProps> = ({
       tooltip: {
         padding: 12,
         backgroundColor: 'rgba(0,0,0,0.85)',
-        titleFont: { size: 14, family: 'Poppins, Arial, sans-serif' },
-        bodyFont: { size: 14, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
+        titleColor: '#F8F9FA',
+        bodyColor: '#F8F9FA',
+        titleFont: { size: 18, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
+        bodyFont: { size: 16, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
         cornerRadius: 6,
-        displayColors: false,
+        displayColors: true,
+        boxWidth: 12,
+        boxHeight: 12,
         callbacks: {
-          label: (context: any) => formatValue(context.parsed[horizontal ? 'x' : 'y']),
+          label: (context: any) => {
+            const labelName = context.dataset.label || 'Valor';
+            const value = context.parsed[horizontal ? 'x' : 'y'];
+            return ` ${labelName}: ${formatValue(value)}`;
+          },
         },
       },
       datalabels: {
         color: '#FFFFFF',
-        font: { size: 13, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
+        font: { size: 15, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
         anchor: 'end' as const,
         align: 'end' as const,
         formatter: (value: number) => {
@@ -109,7 +119,7 @@ export const SimpleBarChart: React.FC<SimpleBarChartProps> = ({
         max: horizontal ? maxValue : undefined,
         ticks: {
           color: '#F8F9FA',
-          font: { size: 12, family: 'Poppins, Arial, sans-serif' },
+          font: { size: 14, family: 'Poppins, Arial, sans-serif' },
           callback: horizontal 
             ? (value: any) => formatValue(Number(value)) 
             : function(this: any, value: any) { return this.getLabelForValue(value); },
@@ -121,7 +131,7 @@ export const SimpleBarChart: React.FC<SimpleBarChartProps> = ({
         max: !horizontal ? maxValue : undefined,
         ticks: {
           color: '#F8F9FA',
-          font: { size: 12, family: 'Poppins, Arial, sans-serif' },
+          font: { size: 14, family: 'Poppins, Arial, sans-serif' },
           callback: !horizontal 
             ? (value: any) => formatValue(Number(value)) 
             : function(this: any, value: any) { return this.getLabelForValue(value); },

@@ -90,7 +90,7 @@ export default function TicketMedioChart({
         anchor: 'end' as const,
         align: 'end' as const,
         color: COLORS.TEXT,
-        font: { weight: 'bold' as const, size: 13, family: 'Poppins, sans-serif' },
+        font: { weight: 'bold' as const, size: 15, family: 'Poppins, sans-serif' },
         formatter: function(value: number) {
           if (!value || value === 0) return '';
           if (value >= 1000) return `${(value / 1000).toFixed(1).replace('.0', '')}k`;
@@ -101,8 +101,8 @@ export default function TicketMedioChart({
         backgroundColor: 'rgba(0,0,0,0.85)',
         titleColor: COLORS.TEXT,
         bodyColor: COLORS.TEXT,
-        bodyFont: { size: 14, family: 'Poppins, sans-serif', weight: 'bold' as const },
-        titleFont: { size: 12, family: 'Poppins, sans-serif' },
+        bodyFont: { size: 16, family: 'Poppins, sans-serif', weight: 'bold' as const },
+        titleFont: { size: 18, family: 'Poppins, sans-serif', weight: 'bold' as const },
         padding: 12,
         cornerRadius: 6,
         callbacks: {
@@ -119,7 +119,7 @@ export default function TicketMedioChart({
         afterDataLimits: horizontal ? (scale: any) => { scale.max *= 1.2; } : undefined,
         ticks: {
           color: '#F8F9FA',
-          font: { size: 12, family: 'Poppins, sans-serif' },
+          font: { size: 14, family: 'Poppins, sans-serif' },
           callback: horizontal 
             ? function(value: any) {
                 // Para gráficos horizontais, eixo X mostra valores numéricos
@@ -138,7 +138,7 @@ export default function TicketMedioChart({
         afterDataLimits: !horizontal ? (scale: any) => { scale.max *= 1.15; } : undefined,
         ticks: {
           color: '#F8F9FA',
-          font: { size: 12, family: 'Poppins, sans-serif' },
+          font: { size: 14, family: 'Poppins, sans-serif' },
           callback: !horizontal 
             ? function(value: any) {
                 // Para gráficos verticais, eixo Y mostra valores numéricos

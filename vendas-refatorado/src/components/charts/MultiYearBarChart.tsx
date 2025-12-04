@@ -129,7 +129,7 @@ export const MultiYearBarChart: React.FC<MultiYearBarChartProps> = ({
             backgroundColor: 'rgba(33, 37, 41, 0.85)',
             borderRadius: 4,
             padding: 3,
-            font: { size: 10, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
+            font: { size: 12, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
             formatter: (value: number) => {
               if (!value || value === 0) return '';
               return formatValue(value);
@@ -142,23 +142,28 @@ export const MultiYearBarChart: React.FC<MultiYearBarChartProps> = ({
   const options: any = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {
+      mode: 'index' as const,
+      intersect: false,
+    },
     plugins: {
       legend: {
         display: true,
         position: 'top' as const,
         labels: {
           color: '#F8F9FA',
-          font: { size: 12, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
+          font: { size: 14, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
           usePointStyle: true,
           boxWidth: 12,
         },
       },
       tooltip: {
+        mode: 'index' as const,
+        intersect: false,
         padding: 12,
         backgroundColor: 'rgba(0,0,0,0.85)',
-        titleFont: { size: 14, family: 'Poppins, Arial, sans-serif' },
-        bodyFont: { size: 14, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
-        footerFont: { size: 12, family: 'Poppins, Arial, sans-serif' },
+        titleFont: { size: 18, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
+        bodyFont: { size: 16, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
         cornerRadius: 6,
         displayColors: true,
         callbacks: {
@@ -167,10 +172,6 @@ export const MultiYearBarChart: React.FC<MultiYearBarChartProps> = ({
             const value = context.parsed.y || 0;
             return `${label}: ${formatValue(value)}`;
           },
-          footer: (tooltipItems: any[]) => {
-            const sum = tooltipItems.reduce((acc, item) => acc + item.parsed.y, 0);
-            return `Total: ${formatValue(sum)}`;
-          },
         },
       },
     },
@@ -178,7 +179,7 @@ export const MultiYearBarChart: React.FC<MultiYearBarChartProps> = ({
       x: {
         ticks: {
           color: '#F8F9FA',
-          font: { size: 12, family: 'Poppins, Arial, sans-serif' },
+          font: { size: 14, family: 'Poppins, Arial, sans-serif' },
         },
         grid: { color: 'rgba(255,255,255,0.04)' },
       },
@@ -186,7 +187,7 @@ export const MultiYearBarChart: React.FC<MultiYearBarChartProps> = ({
         beginAtZero: true,
         ticks: {
           color: '#F8F9FA',
-          font: { size: 12, family: 'Poppins, Arial, sans-serif' },
+          font: { size: 14, family: 'Poppins, Arial, sans-serif' },
           callback: (value: any) => formatValue(Number(value)),
         },
         grid: { color: 'rgba(255,255,255,0.04)' },

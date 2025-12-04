@@ -107,7 +107,7 @@ export default function StackedBarChart({
         position: 'top' as const,
         labels: {
           color: COLORS.TEXT,
-          font: { size: 12, family: 'Poppins, sans-serif' },
+          font: { size: 14, family: 'Poppins, sans-serif' },
           usePointStyle: true,
           padding: 20,
         },
@@ -119,7 +119,7 @@ export default function StackedBarChart({
         color: function(context: any) {
           return context.dataset.label === 'Pós Venda' ? '#212529' : '#FFFFFF';
         },
-        font: { weight: 'bold' as const, size: 13, family: 'Poppins, sans-serif' },
+        font: { weight: 'bold' as const, size: 15, family: 'Poppins, sans-serif' },
         anchor: 'center' as const,
         align: 'center' as const,
         formatter: function(value: number) {
@@ -136,8 +136,10 @@ export default function StackedBarChart({
         backgroundColor: 'rgba(0,0,0,0.85)',
         titleColor: COLORS.TEXT,
         bodyColor: COLORS.TEXT,
-        bodyFont: { size: 14, family: 'Poppins, sans-serif', weight: 'bold' as const },
-        titleFont: { size: 12, family: 'Poppins, sans-serif' },
+        footerColor: '#FF6600',
+        bodyFont: { size: 16, family: 'Poppins, sans-serif', weight: 'bold' as const },
+        titleFont: { size: 18, family: 'Poppins, sans-serif', weight: 'bold' as const },
+        footerFont: { size: 18, family: 'Poppins, sans-serif', weight: 'bold' as const },
         padding: 12,
         cornerRadius: 6,
         callbacks: {
@@ -156,7 +158,7 @@ export default function StackedBarChart({
         stacked: true,
         ticks: {
           color: '#F8F9FA',
-          font: { size: 12, family: 'Poppins, sans-serif' },
+          font: { size: 14, family: 'Poppins, sans-serif' },
           callback: function(this: any, value: any) {
             if (horizontal) {
               const num = Number(value);
@@ -173,7 +175,7 @@ export default function StackedBarChart({
         stacked: true,
         ticks: {
           color: '#F8F9FA',
-          font: { size: 12, family: 'Poppins, sans-serif' },
+          font: { size: 14, family: 'Poppins, sans-serif' },
           callback: function(this: any, value: any) {
             if (!horizontal) {
               const num = Number(value);

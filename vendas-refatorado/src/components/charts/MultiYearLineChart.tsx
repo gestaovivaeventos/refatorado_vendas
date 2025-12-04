@@ -128,7 +128,7 @@ export const MultiYearLineChart: React.FC<MultiYearLineChartProps> = ({
             backgroundColor: 'rgba(33, 37, 41, 0.85)',
             borderRadius: 4,
             padding: 4,
-            font: { size: 11, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
+            font: { size: 13, weight: 'bold' as const, family: 'Poppins, Arial, sans-serif' },
             formatter: (value: number) => {
               if (!value || value === 0) return '';
               return formatValue(value);
@@ -151,7 +151,7 @@ export const MultiYearLineChart: React.FC<MultiYearLineChartProps> = ({
         position: 'top' as const,
         labels: {
           color: '#F8F9FA',
-          font: { size: 14, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
+          font: { size: 16, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
           usePointStyle: true,
           pointStyle: 'rect',
           boxWidth: 20,
@@ -162,9 +162,8 @@ export const MultiYearLineChart: React.FC<MultiYearLineChartProps> = ({
       tooltip: {
         padding: 12,
         backgroundColor: 'rgba(33,37,41,0.95)',
-        titleFont: { size: 14, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
-        bodyFont: { size: 14, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
-        footerFont: { size: 12, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
+        titleFont: { size: 18, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
+        bodyFont: { size: 16, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
         cornerRadius: 6,
         displayColors: true,
         boxWidth: 12,
@@ -176,10 +175,6 @@ export const MultiYearLineChart: React.FC<MultiYearLineChartProps> = ({
             const value = context.parsed.y || 0;
             return ` ${label}: R$ ${formatValue(value)}`;
           },
-          footer: (tooltipItems: any[]) => {
-            const sum = tooltipItems.reduce((acc, item) => acc + item.parsed.y, 0);
-            return `Total: R$ ${formatValue(sum)}`;
-          },
         },
       },
     },
@@ -187,7 +182,7 @@ export const MultiYearLineChart: React.FC<MultiYearLineChartProps> = ({
       x: {
         ticks: {
           color: '#F8F9FA',
-          font: { size: 14, family: 'Poppins, Arial, sans-serif' },
+          font: { size: 16, family: 'Poppins, Arial, sans-serif' },
         },
         grid: { color: 'rgba(255,255,255,0.04)' },
       },
@@ -195,7 +190,7 @@ export const MultiYearLineChart: React.FC<MultiYearLineChartProps> = ({
         beginAtZero: true,
         ticks: {
           color: '#F8F9FA',
-          font: { size: 14, family: 'Poppins, Arial, sans-serif' },
+          font: { size: 16, family: 'Poppins, Arial, sans-serif' },
           callback: (value: any) => formatValue(Number(value)),
         },
         grid: { color: 'rgba(255,255,255,0.04)' },

@@ -143,7 +143,7 @@ export default function CumulativeYearChart({
         borderRadius: 4,
         padding: 4,
         font: { 
-          size: 11, 
+          size: 13, 
           weight: 'bold' as const, 
           family: 'Poppins, Arial, sans-serif' 
         },
@@ -169,7 +169,7 @@ export default function CumulativeYearChart({
         position: 'top' as const,
         labels: {
           color: COLORS.TEXT,
-          font: { size: 14, family: 'Poppins, Arial, sans-serif' },
+          font: { size: 16, family: 'Poppins, Arial, sans-serif' },
           usePointStyle: true,
         },
       },
@@ -181,6 +181,8 @@ export default function CumulativeYearChart({
         bodyColor: COLORS.TEXT,
         borderColor: COLORS.PRIMARY,
         borderWidth: 1,
+        titleFont: { size: 18, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
+        bodyFont: { size: 16, family: 'Poppins, Arial, sans-serif', weight: 'bold' as const },
         callbacks: {
           label: function(context: any) {
             let label = context.dataset.label || '';
@@ -197,7 +199,7 @@ export default function CumulativeYearChart({
       x: {
         ticks: {
           color: '#F8F9FA',
-          font: { size: 12 },
+          font: { size: 14 },
         },
         grid: {
           color: 'rgba(255, 255, 255, 0.05)',
@@ -207,7 +209,7 @@ export default function CumulativeYearChart({
         beginAtZero: true,
         ticks: {
           color: '#F8F9FA',
-          font: { size: 12 },
+          font: { size: 14 },
           callback: function(value: any) {
             if (value >= 1000000) return (value / 1000000).toFixed(1) + ' mi';
             if (value >= 1000) return (value / 1000).toFixed(0) + ' K';
