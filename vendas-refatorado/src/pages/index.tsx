@@ -1757,8 +1757,28 @@ export default function Dashboard() {
       });
     }
 
+    // Filtrar por consultor
+    if (filtros.consultores.length > 0) {
+      dados = dados.filter(d => filtros.consultores.includes(d.consultor));
+    }
+
+    // Filtrar por origem do lead
+    if (filtros.origemLead.length > 0) {
+      dados = dados.filter(d => filtros.origemLead.includes(d.origem_lead));
+    }
+
+    // Filtrar por segmentação do lead
+    if (filtros.segmentacaoLead.length > 0) {
+      dados = dados.filter(d => filtros.segmentacaoLead.includes(d.segmentacao_lead));
+    }
+
+    // Filtrar por etiquetas
+    if (filtros.etiquetas.length > 0) {
+      dados = dados.filter(d => filtros.etiquetas.includes(d.etiquetas));
+    }
+
     return dados;
-  }, [funilData, filtros.unidades, periodo, parseDataFunil]);
+  }, [funilData, filtros.unidades, filtros.consultores, filtros.origemLead, filtros.segmentacaoLead, filtros.etiquetas, periodo, parseDataFunil]);
 
   // Dados de negociações por fase (para gráfico do funil)
   const dadosNegociacoesPorFase = useMemo(() => {

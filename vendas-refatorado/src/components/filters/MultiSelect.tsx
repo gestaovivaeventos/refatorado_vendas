@@ -187,6 +187,12 @@ export default function MultiSelect({
     }
   };
 
+  // Selecionar APENAS este item (limpa outros e seleciona só este)
+  const handleSelectOnly = (option: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Evita que o toggle seja acionado
+    onChange([option]);
+  };
+
   const handleSelectAll = () => {
     if (selectedValues.length === options.length) {
       onChange([]);
@@ -314,10 +320,8 @@ export default function MultiSelect({
               return (
                 <div
                   key={option}
-                  onClick={() => handleToggle(option)}
                   style={{
                     padding: '10px 12px',
-                    cursor: 'pointer',
                     fontSize: '0.9rem',
                     fontFamily: 'Poppins, sans-serif',
                     color: isSelected ? '#FF6600' : '#ccc',
@@ -330,37 +334,93 @@ export default function MultiSelect({
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = '#1f2329';
-                    e.currentTarget.style.color = '#FF6600';
                   }}
                   onMouseLeave={(e) => {
-                    if (isSelected) {
-                      e.currentTarget.style.backgroundColor = '#1f2329';
-                      e.currentTarget.style.color = '#FF6600';
-                    } else {
+                    if (!isSelected) {
                       e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.color = '#ccc';
                     }
                   }}
                 >
-                  {/* Checkbox visual */}
-                  <div style={{
-                    width: '16px',
-                    height: '16px',
-                    borderRadius: '3px',
-                    border: isSelected ? '2px solid #FF6600' : '2px solid #555',
-                    backgroundColor: isSelected ? '#FF6600' : 'transparent',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}>
-                    {isSelected && (
-                      <span style={{ color: 'white', fontSize: '10px', fontWeight: 'bold' }}>✓</span>
-                    )}
+                  {/* Área clicável para toggle */}
+                  <div 
+                    onClick={() => handleToggle(option)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      flex: 1,
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                    }}
+                    onMouseEnter={(e) => {
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) parent.style.color = '#FF6600';
+                    }}
+                    onMouseLeave={(e) => {
+                      const parent = e.currentTarget.parentElement;
+                      if (parent && !isSelected) parent.style.color = '#ccc';
+                    }}
+                  >
+                    {/* Checkbox visual */}
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      borderRadius: '3px',
+                      border: isSelected ? '2px solid #FF6600' : '2px solid #555',
+                      backgroundColor: isSelected ? '#FF6600' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}>
+                      {isSelected && (
+                        <span style={{ color: 'white', fontSize: '10px', fontWeight: 'bold' }}>✓</span>
+                      )}
+                    </div>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {option}
+                    </span>
                   </div>
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {option}
-                  </span>
+                  
+                  {/* Botão "Somente" - ícone de check com borda redonda */}
+                  <button
+                    onClick={(e) => handleSelectOnly(option, e)}
+                    style={{
+                      padding: '2px 5px',
+                      background: 'transparent',
+                      color: '#6c757d',
+                      border: '1px solid #444',
+                      borderRadius: '50%',
+                      fontSize: '0.7rem',
+                      fontFamily: 'Poppins, sans-serif',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      flexShrink: 0,
+                      opacity: 0.6,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '20px',
+                      height: '20px',
+                      lineHeight: 1,
+                    }}
+                    onMouseEnter={(e) => { 
+                      e.currentTarget.style.color = '#FF6600'; 
+                      e.currentTarget.style.borderColor = '#FF6600';
+                      e.currentTarget.style.opacity = '1';
+                      e.currentTarget.style.background = 'rgba(255, 102, 0, 0.1)';
+                    }}
+                    onMouseLeave={(e) => { 
+                      e.currentTarget.style.color = '#6c757d'; 
+                      e.currentTarget.style.borderColor = '#444';
+                      e.currentTarget.style.opacity = '0.6';
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                    title={`Selecionar somente "${option}"`}
+                  >
+                    ✓
+                  </button>
                 </div>
               );
             })

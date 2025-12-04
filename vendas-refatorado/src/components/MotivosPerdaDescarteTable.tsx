@@ -36,6 +36,10 @@ const TabelaMotivos: React.FC<{
   const endIndex = startIndex + itemsPerPage;
   const dadosPaginados = dados.slice(startIndex, endIndex);
   
+  // Calcular totais
+  const totalGeral = dados.reduce((sum, item) => sum + item.total, 0);
+  const totalPercentual = dados.reduce((sum, item) => sum + item.percentual, 0);
+  
   const mensagemVazia = colunaNome.includes('Perda') 
     ? 'Nenhum motivo de perda encontrado no período selecionado'
     : colunaNome.includes('Descarte')
@@ -202,6 +206,48 @@ const TabelaMotivos: React.FC<{
                   </td>
                 </tr>
               ))
+            )}
+            {/* Linha de Total */}
+            {dados.length > 0 && (
+              <tr 
+                style={{
+                  backgroundColor: '#1a1d21',
+                  borderTop: '2px solid #FF6600',
+                }}
+              >
+                <td 
+                  style={{
+                    padding: '12px 16px',
+                    textAlign: 'left',
+                    color: '#FF6600',
+                    fontWeight: 700,
+                    fontSize: '0.875rem',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Total
+                </td>
+                <td 
+                  style={{
+                    padding: '12px 16px',
+                    textAlign: 'center',
+                    color: '#FF6600',
+                    fontWeight: 700,
+                  }}
+                >
+                  {totalPercentual.toFixed(1)}%
+                </td>
+                <td 
+                  style={{
+                    padding: '12px 16px',
+                    textAlign: 'center',
+                    color: '#FF6600',
+                    fontWeight: 700,
+                  }}
+                >
+                  {totalGeral.toLocaleString('pt-BR')}
+                </td>
+              </tr>
             )}
           </tbody>
         </table>

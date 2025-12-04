@@ -3,8 +3,28 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, ChevronLeft, BarChart3, TrendingUp, Target, Home, LogOut, Clock } from 'lucide-react';
+import { ChevronRight, ChevronLeft, BarChart3, TrendingUp, Target, Home, LogOut, Clock, Crosshair } from 'lucide-react';
 import { PAGES } from '@/config/app.config';
+
+// Ícone de Funil customizado (similar à imagem de referência)
+const FunnelIcon = ({ size = 20 }: { size?: number }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+  >
+    {/* Funil */}
+    <path d="M3 4h18l-7 8v6l-4 2v-8L3 4z" />
+    {/* Círculo com $ no topo */}
+    <circle cx="12" cy="3" r="2.5" fill="currentColor" stroke="none" />
+    <text x="12" y="4.5" textAnchor="middle" fontSize="4" fill="#212529" fontWeight="bold">$</text>
+  </svg>
+);
 
 interface SidebarProps {
   paginaAtiva: string;
@@ -35,11 +55,11 @@ export default function Sidebar({
   const getIcon = (pageId: string) => {
     switch (pageId) {
       case 'metas':
-        return <BarChart3 size={20} />;
+        return <Crosshair size={20} />;
       case 'indicadores':
-        return <TrendingUp size={20} />;
+        return <BarChart3 size={20} />;
       case 'funil':
-        return <Target size={20} />;
+        return <FunnelIcon size={20} />;
       default:
         return <BarChart3 size={20} />;
     }
