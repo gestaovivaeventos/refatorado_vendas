@@ -944,13 +944,47 @@ export default function Dashboard() {
 
   // Dados para ranking de unidades (por tipo: total, vendas, posvendas)
   const rankingUnidades = useMemo(() => {
-    if (dadosFiltrados.length === 0) return [];
-
     const normalizeText = (text: string | undefined | null) => 
       (text || '').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
     const porUnidade: Record<string, { valorRealizado: number; valorMeta: number }> = {};
+    const multiplicador = filtros.isMetaInterna ? META_CONFIG.META_INTERNA_MULTIPLICADOR : 1;
     
+    // PRIMEIRO: Adicionar todas as unidades que têm meta no período
+    if (metasData && periodo?.startDate && periodo?.endDate) {
+      const startDate = periodo.startDate;
+      const endDate = periodo.endDate;
+      
+      metasData.forEach((meta, key) => {
+        const [unidade, anoStr, mesStr] = key.split('-');
+        const metaDate = new Date(parseInt(anoStr), parseInt(mesStr) - 1, 1);
+        
+        // Verificar se a meta está no período selecionado
+        if (metaDate >= startDate && metaDate <= endDate) {
+          // Verificar filtro de unidades
+          if (filtros.unidades.length > 0 && !filtros.unidades.includes(unidade)) {
+            return;
+          }
+          
+          if (!porUnidade[unidade]) {
+            porUnidade[unidade] = { valorRealizado: 0, valorMeta: 0 };
+          }
+          
+          // Usar meta específica por tipo
+          let metaValor = 0;
+          if (tipoTabelaDados === 'vendas') {
+            metaValor = meta.meta_vvr_vendas || 0;
+          } else if (tipoTabelaDados === 'posvendas') {
+            metaValor = meta.meta_vvr_posvendas || 0;
+          } else {
+            metaValor = meta.meta_vvr_total || 0;
+          }
+          porUnidade[unidade].valorMeta += metaValor * multiplicador;
+        }
+      });
+    }
+    
+    // SEGUNDO: Adicionar os valores realizados das vendas
     dadosFiltrados.forEach((item) => {
       const unidade = item.nm_unidade || 'Não informado';
       const tipoVenda = normalizeText(item.venda_posvenda);
@@ -965,30 +999,8 @@ export default function Dashboard() {
       porUnidade[unidade].valorRealizado += item.vl_plano || 0;
     });
 
-    // Adicionar metas
-    const multiplicador = filtros.isMetaInterna ? META_CONFIG.META_INTERNA_MULTIPLICADOR : 1;
-    
-    if (metasData && periodo?.startDate) {
-      const mes = periodo.startDate.getMonth() + 1;
-      const ano = periodo.startDate.getFullYear();
-      
-      Object.keys(porUnidade).forEach((unidade) => {
-        const key = `${unidade}-${ano}-${String(mes).padStart(2, '0')}`;
-        const meta = metasData.get(key);
-        if (meta) {
-          // Usar meta específica por tipo
-          let metaValor = 0;
-          if (tipoTabelaDados === 'vendas') {
-            metaValor = meta.meta_vvr_vendas || 0;
-          } else if (tipoTabelaDados === 'posvendas') {
-            metaValor = meta.meta_vvr_posvendas || 0;
-          } else {
-            metaValor = meta.meta_vvr_total || 0;
-          }
-          porUnidade[unidade].valorMeta = metaValor * multiplicador;
-        }
-      });
-    }
+    // Se não há dados, retornar vazio
+    if (Object.keys(porUnidade).length === 0) return [];
 
     return Object.entries(porUnidade)
       .map(([nome, dados]) => ({
@@ -1000,7 +1012,7 @@ export default function Dashboard() {
       }))
       .sort((a, b) => b.percentual - a.percentual)
       .map((item, index) => ({ ...item, posicao: index + 1 }));
-  }, [dadosFiltrados, metasData, filtros.isMetaInterna, periodo, tipoTabelaDados, periodoLabelTabela]);
+  }, [dadosFiltrados, metasData, filtros.isMetaInterna, filtros.unidades, periodo, tipoTabelaDados, periodoLabelTabela]);
 
   // Dados para tabela de Atingimento Indicadores Operacionais (por unidade)
   const indicadoresOperacionaisPorUnidade = useMemo(() => {

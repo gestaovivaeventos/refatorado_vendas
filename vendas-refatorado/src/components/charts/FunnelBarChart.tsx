@@ -118,7 +118,7 @@ export const FunnelBarChart: React.FC<FunnelBarChartProps> = ({
       x: {
         beginAtZero: true,
         ticks: {
-          color: '#adb5bd',
+          color: '#F8F9FA',
           font: {
             size: 12,
           },

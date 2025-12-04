@@ -134,13 +134,13 @@ export default function CumulativeChart({
     },
     scales: {
       x: {
-        ticks: { color: COLORS.TEXT_MUTED },
+        ticks: { color: '#F8F9FA' },
         grid: { color: 'rgba(255,255,255,0.05)' },
       },
       y: {
         beginAtZero: true,
         ticks: {
-          color: COLORS.TEXT_MUTED,
+          color: '#F8F9FA',
           callback: function(value: any) {
             if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
             if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;

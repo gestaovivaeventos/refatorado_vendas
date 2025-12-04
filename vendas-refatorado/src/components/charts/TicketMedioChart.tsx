@@ -102,7 +102,7 @@ export default function TicketMedioChart({
         beginAtZero: true,
         afterDataLimits: (scale: any) => { scale.max *= 1.2; },
         ticks: {
-          color: COLORS.TEXT_MUTED,
+          color: '#F8F9FA',
           font: { size: 12, family: 'Poppins, sans-serif' },
           callback: function(this: any, value: any) {
             if (horizontal) {
@@ -119,7 +119,7 @@ export default function TicketMedioChart({
       },
       y: {
         ticks: {
-          color: COLORS.TEXT_MUTED,
+          color: '#F8F9FA',
           font: { size: 12, family: 'Poppins, sans-serif' },
           callback: function(this: any, value: any) {
             if (!horizontal) {

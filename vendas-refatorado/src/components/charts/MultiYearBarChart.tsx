@@ -148,7 +148,7 @@ export const MultiYearBarChart: React.FC<MultiYearBarChartProps> = ({
     scales: {
       x: {
         ticks: {
-          color: '#ADB5BD',
+          color: '#F8F9FA',
           font: { size: 12, family: 'Poppins, Arial, sans-serif' },
         },
         grid: { color: 'rgba(255,255,255,0.04)' },
@@ -156,7 +156,7 @@ export const MultiYearBarChart: React.FC<MultiYearBarChartProps> = ({
       y: {
         beginAtZero: true,
         ticks: {
-          color: '#ADB5BD',
+          color: '#F8F9FA',
           font: { size: 12, family: 'Poppins, Arial, sans-serif' },
           callback: (value: any) => formatValue(Number(value)),
         },

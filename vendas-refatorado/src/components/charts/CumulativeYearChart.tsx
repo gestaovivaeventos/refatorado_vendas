@@ -196,7 +196,7 @@ export default function CumulativeYearChart({
     scales: {
       x: {
         ticks: {
-          color: '#adb5bd',
+          color: '#F8F9FA',
           font: { size: 12 },
         },
         grid: {
@@ -206,7 +206,7 @@ export default function CumulativeYearChart({
       y: {
         beginAtZero: true,
         ticks: {
-          color: '#adb5bd',
+          color: '#F8F9FA',
           font: { size: 12 },
           callback: function(value: any) {
             if (value >= 1000000) return (value / 1000000).toFixed(1) + ' mi';

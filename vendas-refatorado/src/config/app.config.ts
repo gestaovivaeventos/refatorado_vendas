@@ -66,6 +66,7 @@ export const COLORS = {
   TEXT_SECONDARY: '#ADB5BD',
   TEXT_MUTED: '#6c757d',
   TEXT: '#F8F9FA', // Alias
+  CHART_AXIS: '#F8F9FA', // Cor dos eixos dos gráficos (branco)
   
   // Status
   SUCCESS: '#28a745',

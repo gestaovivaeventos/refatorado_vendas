@@ -113,7 +113,7 @@ export default function ComparisonChart({
     scales: {
       x: {
         ticks: { 
-          color: COLORS.TEXT_MUTED,
+          color: '#F8F9FA',
           callback: horizontal ? function(value: any) {
             if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
             if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
@@ -124,7 +124,7 @@ export default function ComparisonChart({
       },
       y: {
         ticks: {
-          color: COLORS.TEXT_MUTED,
+          color: '#F8F9FA',
           callback: !horizontal ? function(value: any) {
             if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
             if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;

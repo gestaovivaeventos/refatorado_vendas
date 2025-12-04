@@ -163,7 +163,7 @@ export default function VVRVsMetaChart({
     scales: {
       x: {
         ticks: {
-          color: '#adb5bd',
+          color: '#F8F9FA',
           font: { size: 12 },
         },
         grid: {
@@ -173,7 +173,7 @@ export default function VVRVsMetaChart({
       y: {
         beginAtZero: true,
         ticks: {
-          color: '#adb5bd',
+          color: '#F8F9FA',
           font: { size: 12 },
           callback: function(value: any) {
             if (value >= 1000000) return (value / 1000000).toFixed(0) + ' mi';

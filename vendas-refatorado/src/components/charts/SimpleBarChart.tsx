@@ -95,7 +95,7 @@ export const SimpleBarChart: React.FC<SimpleBarChartProps> = ({
         beginAtZero: true,
         max: horizontal ? maxValue : undefined,
         ticks: {
-          color: '#ADB5BD',
+          color: '#F8F9FA',
           font: { size: 12, family: 'Poppins, Arial, sans-serif' },
           callback: horizontal 
             ? (value: any) => formatValue(Number(value)) 
@@ -107,7 +107,7 @@ export const SimpleBarChart: React.FC<SimpleBarChartProps> = ({
         beginAtZero: !horizontal,
         max: !horizontal ? maxValue : undefined,
         ticks: {
-          color: '#ADB5BD',
+          color: '#F8F9FA',
           font: { size: 12, family: 'Poppins, Arial, sans-serif' },
           callback: !horizontal 
             ? (value: any) => formatValue(Number(value)) 

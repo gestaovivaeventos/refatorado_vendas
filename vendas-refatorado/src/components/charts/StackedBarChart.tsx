@@ -129,7 +129,7 @@ export default function StackedBarChart({
       x: {
         stacked: true,
         ticks: {
-          color: COLORS.TEXT_MUTED,
+          color: '#F8F9FA',
           font: { size: 12, family: 'Poppins, sans-serif' },
           callback: function(this: any, value: any) {
             if (horizontal) {
@@ -146,7 +146,7 @@ export default function StackedBarChart({
       y: {
         stacked: true,
         ticks: {
-          color: COLORS.TEXT_MUTED,
+          color: '#F8F9FA',
           font: { size: 12, family: 'Poppins, sans-serif' },
           callback: function(this: any, value: any) {
             if (!horizontal) {
