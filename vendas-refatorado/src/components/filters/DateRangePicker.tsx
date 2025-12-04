@@ -200,11 +200,18 @@ export default function DateRangePicker({
     setIsOpen(false);
   };
 
-  // Obter texto de exibição
+  // Função para formatar data no padrão DD/MM/YYYY
+  const formatDateForDisplay = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+  };
+
+  // Obter texto de exibição - sempre mostrar as datas selecionadas
   const getDisplayText = (): string => {
-    const found = QUICK_PERIODS.find((p) => p.value === periodoSelecionado);
-    if (found) return found.label;
-    if (periodoSelecionado === 'personalizado') return 'Período personalizado';
+    if (dataInicio && dataFim) {
+      return `${formatDateForDisplay(dataInicio)} - ${formatDateForDisplay(dataFim)}`;
+    }
     return 'Selecione o período';
   };
 

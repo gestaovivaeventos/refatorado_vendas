@@ -77,39 +77,39 @@ export default function Dashboard() {
   
   // Estados - inicializa com base no router.asPath (funciona no SSR)
   const [paginaAtiva, setPaginaAtiva] = useState<PaginaAtiva>(() => getPaginaFromPath(router.asPath));
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    // Recuperar estado da sidebar do localStorage (se disponível)
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('sidebarCollapsed');
-      return saved === 'true';
-    }
-    return false;
-  });
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
-  // Inicializar filtros com valores salvos no localStorage (período e unidades persistem entre páginas)
-  const [filtros, setFiltros] = useState<FiltrosState>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const savedFilters = localStorage.getItem('dashboardFilters');
-        if (savedFilters) {
-          const parsed = JSON.parse(savedFilters);
-          return {
-            ...INITIAL_FILTERS,
-            periodoSelecionado: parsed.periodoSelecionado || INITIAL_FILTERS.periodoSelecionado,
-            dataInicio: parsed.dataInicio || INITIAL_FILTERS.dataInicio,
-            dataFim: parsed.dataFim || INITIAL_FILTERS.dataFim,
-            isMetaInterna: parsed.isMetaInterna ?? INITIAL_FILTERS.isMetaInterna,
-            unidades: parsed.unidades || INITIAL_FILTERS.unidades,
-          };
-        }
-      } catch (e) {
-        console.warn('Erro ao recuperar filtros do localStorage:', e);
-      }
-    }
-    return INITIAL_FILTERS;
-  });
+  // Inicializar filtros com valores padrão (será carregado do localStorage após montagem)
+  const [filtros, setFiltros] = useState<FiltrosState>(INITIAL_FILTERS);
   const [tipoGraficoVVR, setTipoGraficoVVR] = useState<'total' | 'vendas' | 'posvendas'>('total');
   const [tipoTabelaDados, setTipoTabelaDados] = useState<'total' | 'vendas' | 'posvendas'>('total');
+
+  // Carregar estados do localStorage após montagem (evita erro de hidratação)
+  useEffect(() => {
+    // Carregar sidebar collapsed
+    const savedSidebar = localStorage.getItem('sidebarCollapsed');
+    if (savedSidebar) {
+      setSidebarCollapsed(savedSidebar === 'true');
+    }
+    
+    // Carregar filtros
+    try {
+      const savedFilters = localStorage.getItem('dashboardFilters');
+      if (savedFilters) {
+        const parsed = JSON.parse(savedFilters);
+        setFiltros(prev => ({
+          ...prev,
+          periodoSelecionado: parsed.periodoSelecionado || prev.periodoSelecionado,
+          dataInicio: parsed.dataInicio || prev.dataInicio,
+          dataFim: parsed.dataFim || prev.dataFim,
+          isMetaInterna: parsed.isMetaInterna ?? prev.isMetaInterna,
+          unidades: parsed.unidades || prev.unidades,
+        }));
+      }
+    } catch (e) {
+      // Ignorar erros de parse
+    }
+  }, []);
 
   // Salvar filtros de período e unidades no localStorage quando mudarem
   useEffect(() => {
@@ -453,25 +453,37 @@ export default function Dashboard() {
     // Calcular TK (Ticket Médio)
     const tk = qav > 0 ? vvrTotal / qav : 0;
     
-    // Buscar metas
+    // Buscar metas - iterar por todos os meses do período selecionado
     let metaVVRTotal = 0;
     let metaVVRVendas = 0;
     let metaVVRPosVendas = 0;
     let metaQAV = 0;
     
-    if (metasData && periodo?.startDate) {
-      const mes = periodo.startDate.getMonth() + 1;
-      const ano = periodo.startDate.getFullYear();
+    if (metasData && periodo?.startDate && periodo?.endDate) {
       const unidadesAtivas = filtros.unidades.length > 0 ? filtros.unidades : opcoesFiltros.unidades;
+      const hasUnidadeFilter = unidadesAtivas.length > 0;
+      const unidadesNorm = unidadesAtivas.map((u: string) => u.toString().toLowerCase().trim());
       
-      unidadesAtivas.forEach((unidade: string) => {
-        const key = `${unidade}-${ano}-${String(mes).padStart(2, '0')}`;
-        const meta = metasData.get(key);
-        if (meta) {
-          metaVVRVendas += meta.meta_vvr_vendas || 0;
-          metaVVRPosVendas += meta.meta_vvr_posvendas || 0;
-          metaVVRTotal += meta.meta_vvr_total || 0;
-          metaQAV += meta.meta_adesoes || 0;
+      metasData.forEach((metaInfo, chave) => {
+        const [unidadeMetaRaw, anoMeta, mesMeta] = chave.split('-');
+        const unidadeMeta = unidadeMetaRaw?.toString().toLowerCase().trim() || '';
+        
+        if (!unidadeMeta) return;
+        
+        // Verificar unidade - se não há filtro, aceitar todas
+        if (hasUnidadeFilter && !unidadesNorm.includes(unidadeMeta)) return;
+        
+        // Verificar se o mês/ano da meta está dentro do período
+        if (anoMeta && mesMeta) {
+          const metaRangeStart = new Date(Number(anoMeta), Number(mesMeta) - 1, 1);
+          const metaRangeEnd = new Date(Number(anoMeta), Number(mesMeta), 1);
+          
+          if (metaRangeStart <= periodo.endDate && metaRangeEnd > periodo.startDate) {
+            metaVVRVendas += metaInfo.meta_vvr_vendas || 0;
+            metaVVRPosVendas += metaInfo.meta_vvr_posvendas || 0;
+            metaVVRTotal += metaInfo.meta_vvr_total || 0;
+            metaQAV += metaInfo.meta_adesoes || 0;
+          }
         }
       });
     }
@@ -538,23 +550,35 @@ export default function Dashboard() {
     const vvrVendas = vendas.reduce((sum, d) => sum + (d.vl_plano || 0), 0);
     const vvrPosVendas = posVendas.reduce((sum, d) => sum + (d.vl_plano || 0), 0);
 
-    // Buscar metas do ano anterior
+    // Buscar metas do ano anterior - iterar por todos os meses do período
     let metaVVRTotal = 0;
     let metaVVRVendas = 0;
     let metaVVRPosVendas = 0;
 
     if (metasData) {
-      const mes = startDateAnoAnterior.getMonth() + 1;
-      const ano = startDateAnoAnterior.getFullYear();
       const unidadesAtivas = filtros.unidades.length > 0 ? filtros.unidades : opcoesFiltros.unidades;
-
-      unidadesAtivas.forEach((unidade: string) => {
-        const key = `${unidade}-${ano}-${String(mes).padStart(2, '0')}`;
-        const meta = metasData.get(key);
-        if (meta) {
-          metaVVRVendas += meta.meta_vvr_vendas || 0;
-          metaVVRPosVendas += meta.meta_vvr_posvendas || 0;
-          metaVVRTotal += meta.meta_vvr_total || 0;
+      const hasUnidadeFilter = unidadesAtivas.length > 0;
+      const unidadesNorm = unidadesAtivas.map((u: string) => u.toString().toLowerCase().trim());
+      
+      metasData.forEach((metaInfo, chave) => {
+        const [unidadeMetaRaw, anoMeta, mesMeta] = chave.split('-');
+        const unidadeMeta = unidadeMetaRaw?.toString().toLowerCase().trim() || '';
+        
+        if (!unidadeMeta) return;
+        
+        // Verificar unidade - se não há filtro, aceitar todas
+        if (hasUnidadeFilter && !unidadesNorm.includes(unidadeMeta)) return;
+        
+        // Verificar se o mês/ano da meta está dentro do período do ano anterior
+        if (anoMeta && mesMeta) {
+          const metaRangeStart = new Date(Number(anoMeta), Number(mesMeta) - 1, 1);
+          const metaRangeEnd = new Date(Number(anoMeta), Number(mesMeta), 1);
+          
+          if (metaRangeStart <= endDateAnoAnterior && metaRangeEnd > startDateAnoAnterior) {
+            metaVVRVendas += metaInfo.meta_vvr_vendas || 0;
+            metaVVRPosVendas += metaInfo.meta_vvr_posvendas || 0;
+            metaVVRTotal += metaInfo.meta_vvr_total || 0;
+          }
         }
       });
     }

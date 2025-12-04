@@ -24,9 +24,11 @@ export default function Sidebar({
   onCollapseChange,
   children,
 }: SidebarProps) {
+  const [mounted, setMounted] = useState(false);
   const [dataAtual, setDataAtual] = useState<string>('');
 
   useEffect(() => {
+    setMounted(true);
     // Data fixa: dia vigente às 08:30
     const hoje = new Date();
     const dataFormatada = hoje.toLocaleDateString('pt-BR');
@@ -81,7 +83,7 @@ export default function Sidebar({
           style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}
         >
           {/* Última Atualização */}
-          {!isCollapsed && (
+          {!isCollapsed && mounted && (
             <div
               style={{
                 display: 'flex',

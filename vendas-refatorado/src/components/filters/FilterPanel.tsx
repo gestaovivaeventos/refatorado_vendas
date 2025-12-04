@@ -71,20 +71,24 @@ export default function FilterPanel({
   showEtiquetas,
 }: FilterPanelProps) {
   // Estado para controlar expansão/colapso de todos os filtros
-  const [isExpanded, setIsExpanded] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('filtrosPanelExpanded');
-      return saved !== null ? JSON.parse(saved) : true;
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  // Carregar estado do localStorage após montagem
+  useEffect(() => {
+    setMounted(true);
+    const saved = localStorage.getItem('filtrosPanelExpanded');
+    if (saved !== null) {
+      setIsExpanded(JSON.parse(saved));
     }
-    return true;
-  });
+  }, []);
 
   // Salvar estado no localStorage
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (mounted) {
       localStorage.setItem('filtrosPanelExpanded', JSON.stringify(isExpanded));
     }
-  }, [isExpanded]);
+  }, [isExpanded, mounted]);
 
   // Determinar quais filtros mostrar baseado na página ativa
   const isMetasPage = paginaAtiva === 'metas';

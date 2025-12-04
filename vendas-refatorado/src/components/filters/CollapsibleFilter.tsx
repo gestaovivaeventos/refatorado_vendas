@@ -21,22 +21,26 @@ export default function CollapsibleFilter({
   badge,
 }: CollapsibleFilterProps) {
   // Estado para controlar se está expandido ou colapsado
-  const [isExpanded, setIsExpanded] = useState(() => {
-    if (typeof window !== 'undefined' && storageKey) {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const [mounted, setMounted] = useState(false);
+
+  // Carregar estado do localStorage após montagem
+  useEffect(() => {
+    setMounted(true);
+    if (storageKey) {
       const saved = localStorage.getItem(`filter_${storageKey}`);
       if (saved !== null) {
-        return saved === 'true';
+        setIsExpanded(saved === 'true');
       }
     }
-    return defaultExpanded;
-  });
+  }, [storageKey, defaultExpanded]);
 
   // Salvar estado no localStorage quando mudar
   useEffect(() => {
-    if (typeof window !== 'undefined' && storageKey) {
+    if (mounted && storageKey) {
       localStorage.setItem(`filter_${storageKey}`, String(isExpanded));
     }
-  }, [isExpanded, storageKey]);
+  }, [isExpanded, storageKey, mounted]);
 
   return (
     <div style={{ marginBottom: '16px' }}>
