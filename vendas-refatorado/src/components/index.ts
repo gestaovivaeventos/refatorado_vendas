@@ -1,6 +1,7 @@
 // Re-exportar todos os componentes
 export { default as Header } from './Header';
 export { default as Sidebar } from './Sidebar';
+export { default as Footer } from './Footer';
 export { default as Card } from './Card';
 export { default as KPICard } from './KPICard';
 export { default as IndicadorCard } from './IndicadorCard';

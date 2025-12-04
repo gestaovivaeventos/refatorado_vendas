@@ -228,23 +228,24 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
         </div>
       </div>
 
-      {/* Tabela */}
+      {/* Tabela com scroll apenas no corpo de dados */}
       <div 
         style={{ 
-          maxHeight: '500px', 
-          overflowY: 'auto',
           borderRadius: '8px',
           border: '1px solid #444',
+          overflow: 'hidden',
         }}
       >
+        {/* Cabeçalho fixo */}
         <table 
           style={{ 
             width: '100%', 
             borderCollapse: 'collapse',
             fontSize: '0.875rem',
+            tableLayout: 'fixed',
           }}
         >
-          <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+          <thead>
             <tr style={{ backgroundColor: '#2a2f36' }}>
               <th
                 onClick={() => handleOrdenacao('nome')}
@@ -259,6 +260,7 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
                   fontSize: '0.75rem',
                   letterSpacing: '0.05em',
                   transition: 'background-color 0.2s ease',
+                  width: '20%',
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a2f36'}
@@ -278,6 +280,7 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
                   fontSize: '0.75rem',
                   letterSpacing: '0.05em',
                   transition: 'background-color 0.2s ease',
+                  width: '15%',
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a2f36'}
@@ -297,6 +300,7 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
                   fontSize: '0.75rem',
                   letterSpacing: '0.05em',
                   transition: 'background-color 0.2s ease',
+                  width: '22%',
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a2f36'}
@@ -316,6 +320,7 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
                   fontSize: '0.75rem',
                   letterSpacing: '0.05em',
                   transition: 'background-color 0.2s ease',
+                  width: '22%',
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a2f36'}
@@ -335,6 +340,7 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
                   fontSize: '0.75rem',
                   letterSpacing: '0.05em',
                   transition: 'background-color 0.2s ease',
+                  width: '21%',
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2a2f36'}
@@ -343,23 +349,34 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
               </th>
             </tr>
           </thead>
-          <tbody>
-            {dadosPaginados.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={5}
-                  style={{
-                    textAlign: 'center',
-                    padding: '40px',
-                    color: '#adb5bd',
-                  }}
-                >
-                  Nenhum registro encontrado
-                </td>
-              </tr>
-            ) : (
-              <>
-                {dadosPaginados.map((item, index) => (
+        </table>
+
+        {/* Corpo da tabela com scroll */}
+        <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+          <table 
+            style={{ 
+              width: '100%', 
+              borderCollapse: 'collapse',
+              fontSize: '0.875rem',
+              tableLayout: 'fixed',
+            }}
+          >
+            <tbody>
+              {dadosPaginados.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    style={{
+                      textAlign: 'center',
+                      padding: '40px',
+                      color: '#adb5bd',
+                    }}
+                  >
+                    Nenhum registro encontrado
+                  </td>
+                </tr>
+              ) : (
+                dadosPaginados.map((item, index) => (
                   <tr
                     key={`${item.nome}-${index}`}
                     style={{
@@ -370,76 +387,94 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d4349'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = index % 2 === 0 ? '#343A40' : '#2c3136'}
                   >
-                    <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA' }}>{item.nome}</td>
-                    <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA' }}>{item.periodo || periodoLabel}</td>
-                    <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA' }}>{formatCurrency(item.valorRealizado)}</td>
-                    <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA' }}>{formatCurrency(item.valorMeta)}</td>
-                    <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA' }}>{formatPercent(item.percentual)}</td>
+                    <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA', width: '20%' }}>{item.nome}</td>
+                    <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA', width: '15%' }}>{item.periodo || periodoLabel}</td>
+                    <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA', width: '22%' }}>{formatCurrency(item.valorRealizado)}</td>
+                    <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA', width: '22%' }}>{formatCurrency(item.valorMeta)}</td>
+                    <td style={{ padding: '10px 16px', textAlign: 'center', color: '#F8F9FA', width: '21%' }}>{formatPercent(item.percentual)}</td>
                   </tr>
-                ))}
-                
-                {/* Linha de total */}
-                <tr
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Linha de Total Geral - sempre visível fora do scroll */}
+        {dadosPaginados.length > 0 && (
+          <table 
+            style={{ 
+              width: '100%', 
+              borderCollapse: 'collapse',
+              fontSize: '0.875rem',
+              tableLayout: 'fixed',
+            }}
+          >
+            <tfoot>
+              <tr
+                style={{
+                  backgroundColor: '#2a2f36',
+                  borderTop: '2px solid #ff6600',
+                }}
+              >
+                <td
                   style={{
-                    backgroundColor: '#2a2f36',
-                    borderTop: '2px solid #ff6600',
+                    padding: '12px 16px',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    color: '#ff6600',
+                    width: '20%',
                   }}
                 >
-                  <td
-                    style={{
-                      padding: '12px 16px',
-                      textAlign: 'center',
-                      fontWeight: 700,
-                      color: '#ff6600',
-                    }}
-                  >
-                    TOTAL GERAL
-                  </td>
-                  <td
-                    style={{
-                      padding: '12px 16px',
-                      textAlign: 'center',
-                      fontWeight: 700,
-                      color: '#ff6600',
-                    }}
-                  >
-                    {periodoLabel}
-                  </td>
-                  <td
-                    style={{
-                      padding: '12px 16px',
-                      textAlign: 'center',
-                      fontWeight: 700,
-                      color: '#ff6600',
-                    }}
-                  >
-                    {formatCurrency(totais.totalRealizado)}
-                  </td>
-                  <td
-                    style={{
-                      padding: '12px 16px',
-                      textAlign: 'center',
-                      fontWeight: 700,
-                      color: '#ff6600',
-                    }}
-                  >
-                    {formatCurrency(totais.totalMeta)}
-                  </td>
-                  <td
-                    style={{
-                      padding: '12px 16px',
-                      textAlign: 'center',
-                      fontWeight: 700,
-                      color: '#ff6600',
-                    }}
-                  >
-                    {formatPercent(totais.atingimentoTotal)}
-                  </td>
-                </tr>
-              </>
-            )}
-          </tbody>
-        </table>
+                  TOTAL GERAL
+                </td>
+                <td
+                  style={{
+                    padding: '12px 16px',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    color: '#ff6600',
+                    width: '15%',
+                  }}
+                >
+                  {periodoLabel}
+                </td>
+                <td
+                  style={{
+                    padding: '12px 16px',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    color: '#ff6600',
+                    width: '22%',
+                  }}
+                >
+                  {formatCurrency(totais.totalRealizado)}
+                </td>
+                <td
+                  style={{
+                    padding: '12px 16px',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    color: '#ff6600',
+                    width: '22%',
+                  }}
+                >
+                  {formatCurrency(totais.totalMeta)}
+                </td>
+                <td
+                  style={{
+                    padding: '12px 16px',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    color: '#ff6600',
+                    width: '21%',
+                  }}
+                >
+                  {formatPercent(totais.atingimentoTotal)}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        )}
       </div>
 
       {/* Paginação */}

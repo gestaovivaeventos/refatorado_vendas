@@ -6,7 +6,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { Header, Sidebar, Loading, KPICard, IndicadoresOperacionais, Card, FunilHorizontal } from '@/components';
+import { Header, Sidebar, Loading, KPICard, IndicadoresOperacionais, Card, FunilHorizontal, Footer } from '@/components';
 import { FilterPanel } from '@/components/filters';
 import { 
   VVRVsMetaChart, 
@@ -2608,7 +2608,7 @@ export default function Dashboard() {
 
           {/* Conteúdo principal */}
           <main 
-            className="flex-1 p-6 transition-all duration-300 overflow-x-hidden"
+            className="flex-1 pt-6 px-6 pb-2 transition-all duration-300 overflow-x-hidden"
             style={{ 
               marginLeft: sidebarCollapsed ? '60px' : '300px',
               width: sidebarCollapsed ? 'calc(100vw - 60px)' : 'calc(100vw - 300px)',
@@ -2616,6 +2616,9 @@ export default function Dashboard() {
           >
             {/* Conteúdo */}
             {renderContent()}
+            
+            {/* Footer */}
+            <Footer />
           </main>
         </div>
       </div>
