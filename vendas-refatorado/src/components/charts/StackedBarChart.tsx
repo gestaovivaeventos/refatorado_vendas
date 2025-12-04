@@ -54,19 +54,45 @@ export default function StackedBarChart({
       {
         label: 'Pós Venda',
         data: data.map(d => d.posVendas),
-        backgroundColor: '#6c757d',
+        backgroundColor: (context: any) => {
+          const chart = context.chart;
+          const { ctx, chartArea } = chart;
+          if (!chartArea) return '#6c757d';
+          
+          const gradient = horizontal
+            ? ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0)
+            : ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          
+          gradient.addColorStop(0, '#868e96');
+          gradient.addColorStop(0.5, '#6c757d');
+          gradient.addColorStop(1, '#495057');
+          return gradient;
+        },
         borderRadius: 4,
         barPercentage: 0.7,
       },
       {
         label: 'Venda',
         data: data.map(d => d.vendas),
-        backgroundColor: COLORS.PRIMARY,
+        backgroundColor: (context: any) => {
+          const chart = context.chart;
+          const { ctx, chartArea } = chart;
+          if (!chartArea) return '#FF6600';
+          
+          const gradient = horizontal
+            ? ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0)
+            : ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          
+          gradient.addColorStop(0, '#ff8a33');
+          gradient.addColorStop(0.5, '#FF6600');
+          gradient.addColorStop(1, '#e65500');
+          return gradient;
+        },
         borderRadius: 4,
         barPercentage: 0.7,
       },
     ],
-  }), [data]);
+  }), [data, horizontal]);
 
   const options = useMemo(() => ({
     responsive: true,

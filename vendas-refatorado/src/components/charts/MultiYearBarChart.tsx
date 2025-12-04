@@ -58,6 +58,24 @@ const generatePalette = (count: number): string[] => {
   return colors;
 };
 
+// Função para ajustar o brilho de uma cor RGB
+const adjustColorBrightness = (color: string, amount: number): string => {
+  // Extrair valores RGB da cor
+  const match = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  if (!match) return color;
+  
+  let r = parseInt(match[1], 10);
+  let g = parseInt(match[2], 10);
+  let b = parseInt(match[3], 10);
+  
+  // Ajustar brilho
+  r = Math.min(255, Math.max(0, r + amount));
+  g = Math.min(255, Math.max(0, g + amount));
+  b = Math.min(255, Math.max(0, b + amount));
+  
+  return `rgb(${r}, ${g}, ${b})`;
+};
+
 const formatNumber = (value: number): string => {
   if (Math.abs(value) >= 1000000) {
     return (value / 1000000).toFixed(1).replace('.0', '') + ' mi';
@@ -85,11 +103,22 @@ export const MultiYearBarChart: React.FC<MultiYearBarChartProps> = ({
       .filter(yearData => activeYears.includes(yearData.year))
       .map((yearData) => {
         const index = allYears.indexOf(yearData.year);
-        const color = palette[index];
+        const baseColor = palette[index];
         return {
           label: String(yearData.year),
           data: yearData.monthlyData,
-          backgroundColor: color,
+          backgroundColor: (context: any) => {
+            const chart = context.chart;
+            const { ctx, chartArea } = chart;
+            if (!chartArea) return baseColor;
+            
+            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            // Criar variações mais claras e escuras da cor base
+            gradient.addColorStop(0, adjustColorBrightness(baseColor, 30));
+            gradient.addColorStop(0.5, baseColor);
+            gradient.addColorStop(1, adjustColorBrightness(baseColor, -30));
+            return gradient;
+          },
           borderRadius: 4,
           datalabels: {
             display: true,

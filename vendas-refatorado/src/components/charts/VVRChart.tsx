@@ -46,7 +46,17 @@ export default function VVRChart({ data, title = 'Valor Vendido Realizado' }: VV
       {
         label: 'Realizado',
         data: data.map(d => d.realizado),
-        backgroundColor: COLORS.PRIMARY,
+        backgroundColor: (context: any) => {
+          const chart = context.chart;
+          const { ctx, chartArea } = chart;
+          if (!chartArea) return '#FF6600';
+          
+          const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          gradient.addColorStop(0, '#ff8a33');
+          gradient.addColorStop(0.5, '#FF6600');
+          gradient.addColorStop(1, '#e65500');
+          return gradient;
+        },
         borderColor: COLORS.PRIMARY,
         borderWidth: 1,
         borderRadius: 4,
@@ -55,7 +65,17 @@ export default function VVRChart({ data, title = 'Valor Vendido Realizado' }: VV
       {
         label: 'Meta',
         data: data.map(d => d.meta),
-        backgroundColor: 'rgba(108, 117, 125, 0.6)',
+        backgroundColor: (context: any) => {
+          const chart = context.chart;
+          const { ctx, chartArea } = chart;
+          if (!chartArea) return '#6c757d';
+          
+          const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          gradient.addColorStop(0, '#868e96');
+          gradient.addColorStop(0.5, '#6c757d');
+          gradient.addColorStop(1, '#495057');
+          return gradient;
+        },
         borderColor: '#6c757d',
         borderWidth: 1,
         borderRadius: 4,

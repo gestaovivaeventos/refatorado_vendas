@@ -53,7 +53,20 @@ export const SimpleBarChart: React.FC<SimpleBarChartProps> = ({
       {
         label: 'Valor',
         data: data.values,
-        backgroundColor: '#FF6600',
+        backgroundColor: (context: any) => {
+          const chart = context.chart;
+          const { ctx, chartArea } = chart;
+          if (!chartArea) return '#FF6600';
+          
+          const gradient = horizontal
+            ? ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0)
+            : ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          
+          gradient.addColorStop(0, '#ff8a33');
+          gradient.addColorStop(0.5, '#FF6600');
+          gradient.addColorStop(1, '#e65500');
+          return gradient;
+        },
         borderRadius: 4,
         barThickness: horizontal ? 20 : undefined,
       },

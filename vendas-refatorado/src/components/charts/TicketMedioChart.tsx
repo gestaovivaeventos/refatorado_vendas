@@ -53,12 +53,27 @@ export default function TicketMedioChart({
       {
         label: 'Ticket Médio',
         data: data.map(d => d.ticketMedio),
-        backgroundColor: COLORS.PRIMARY,
+        backgroundColor: (context: any) => {
+          const chart = context.chart;
+          const { ctx, chartArea } = chart;
+          if (!chartArea) return '#FF6600';
+          
+          // Gradiente vertical (top to bottom) para barras verticais
+          // Gradiente horizontal (left to right) para barras horizontais
+          const gradient = horizontal
+            ? ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0)
+            : ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          
+          gradient.addColorStop(0, '#ff8a33');
+          gradient.addColorStop(0.5, '#FF6600');
+          gradient.addColorStop(1, '#e65500');
+          return gradient;
+        },
         borderRadius: 4,
         barPercentage: 0.6,
       },
     ],
-  }), [data]);
+  }), [data, horizontal]);
 
   const options = useMemo(() => ({
     responsive: true,
@@ -99,38 +114,40 @@ export default function TicketMedioChart({
     },
     scales: {
       x: {
-        beginAtZero: true,
-        afterDataLimits: (scale: any) => { scale.max *= 1.2; },
+        display: true,
+        beginAtZero: horizontal,
+        afterDataLimits: horizontal ? (scale: any) => { scale.max *= 1.2; } : undefined,
         ticks: {
           color: '#F8F9FA',
           font: { size: 12, family: 'Poppins, sans-serif' },
-          callback: function(this: any, value: any) {
-            if (horizontal) {
-              const num = Number(value);
-              if (Math.abs(num) >= 1000000) return `${(num / 1000000).toFixed(1).replace('.0', '')}mi`;
-              if (Math.abs(num) >= 1000) return `${(num / 1000).toFixed(0)}k`;
-              return num;
-            }
-            // Para gráficos verticais, retorna o label do eixo X (meses)
-            return this.getLabelForValue(value);
-          },
+          callback: horizontal 
+            ? function(value: any) {
+                // Para gráficos horizontais, eixo X mostra valores numéricos
+                const num = Number(value);
+                if (Math.abs(num) >= 1000000) return `${(num / 1000000).toFixed(1).replace('.0', '')}mi`;
+                if (Math.abs(num) >= 1000) return `${(num / 1000).toFixed(0)}k`;
+                return num;
+              }
+            : function(this: any, value: any) { return this.getLabelForValue(value); },
         },
         grid: { color: 'rgba(255,255,255,0.04)' },
       },
       y: {
+        display: true,
+        beginAtZero: !horizontal,
+        afterDataLimits: !horizontal ? (scale: any) => { scale.max *= 1.15; } : undefined,
         ticks: {
           color: '#F8F9FA',
           font: { size: 12, family: 'Poppins, sans-serif' },
-          callback: function(this: any, value: any) {
-            if (!horizontal) {
-              const num = Number(value);
-              if (Math.abs(num) >= 1000000) return `${(num / 1000000).toFixed(1).replace('.0', '')}mi`;
-              if (Math.abs(num) >= 1000) return `${(num / 1000).toFixed(0)}k`;
-              return num;
-            }
-            // Para gráficos horizontais, retorna o label do eixo Y (anos/meses)
-            return this.getLabelForValue(value);
-          },
+          callback: !horizontal 
+            ? function(value: any) {
+                // Para gráficos verticais, eixo Y mostra valores numéricos
+                const num = Number(value);
+                if (Math.abs(num) >= 1000000) return `${(num / 1000000).toFixed(1).replace('.0', '')}mi`;
+                if (Math.abs(num) >= 1000) return `${(num / 1000).toFixed(0)}k`;
+                return num;
+              }
+            : function(this: any, value: any) { return this.getLabelForValue(value); },
         },
         grid: { color: 'rgba(255,255,255,0.04)' },
       },

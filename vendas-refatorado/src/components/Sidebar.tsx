@@ -24,16 +24,14 @@ export default function Sidebar({
   onCollapseChange,
   children,
 }: SidebarProps) {
-  const [mounted, setMounted] = useState(false);
-  const [dataAtual, setDataAtual] = useState<string>('');
-
-  useEffect(() => {
-    setMounted(true);
-    // Data fixa: dia vigente às 08:30
-    const hoje = new Date();
-    const dataFormatada = hoje.toLocaleDateString('pt-BR');
-    setDataAtual(`${dataFormatada}, 08:30`);
-  }, []);
+  // Gerar data no lado do cliente de forma síncrona para evitar flash
+  const [dataAtual] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const hoje = new Date();
+      return `${hoje.toLocaleDateString('pt-BR')}, 08:30`;
+    }
+    return '';
+  });
 
   const getIcon = (pageId: string) => {
     switch (pageId) {
@@ -82,14 +80,15 @@ export default function Sidebar({
           className={`${isCollapsed ? 'px-2 pt-16' : 'p-5 pt-16'} flex flex-col`}
           style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}
         >
-          {/* Última Atualização */}
-          {!isCollapsed && mounted && (
+          {/* Última Atualização - altura fixa para evitar deslocamento */}
+          {!isCollapsed && (
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 marginBottom: '12px',
+                minHeight: '20px',
               }}
             >
               <Clock size={14} style={{ color: '#FF6600' }} />
@@ -111,7 +110,7 @@ export default function Sidebar({
                     fontFamily: 'Poppins, sans-serif',
                   }}
                 >
-                  {dataAtual}
+                  {dataAtual || '...'}
                 </span>
               </div>
             </div>
@@ -127,7 +126,7 @@ export default function Sidebar({
                 onClick={() => onPaginaChange(page.id)}
                 className={`
                   group flex items-center rounded-lg transition-all duration-200
-                  ${isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-4 py-2.5'}
+                  ${isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-4'}
                   ${paginaAtiva === page.id
                     ? 'bg-orange-500/10 border border-orange-500 text-orange-500'
                     : 'text-gray-400 border border-gray-600/50 hover:bg-white/5'
@@ -135,9 +134,11 @@ export default function Sidebar({
                 `}
                 style={{
                   fontFamily: 'Poppins, sans-serif',
-                  fontSize: '0.95rem',
+                  fontSize: '0.85rem',
                   fontWeight: paginaAtiva === page.id ? 600 : 500,
                   boxShadow: paginaAtiva !== page.id ? '0 2px 8px rgba(0, 0, 0, 0.3)' : 'none',
+                  height: '42px',
+                  whiteSpace: 'nowrap',
                 }}
                 title={isCollapsed ? page.label : undefined}
               >

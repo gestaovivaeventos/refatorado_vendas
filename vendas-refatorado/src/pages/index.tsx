@@ -166,9 +166,12 @@ export default function Dashboard() {
   // Calcular período ANTES das opções de filtros (para usar na hierarquia)
   const periodo = useMemo(() => {
     if (filtros.periodoSelecionado === 'personalizado') {
+      // Criar datas com horários corretos para comparação
+      const start = filtros.dataInicio ? new Date(filtros.dataInicio) : new Date();
+      const end = filtros.dataFim ? new Date(filtros.dataFim) : new Date();
       return {
-        startDate: filtros.dataInicio ? new Date(filtros.dataInicio) : new Date(),
-        endDate: filtros.dataFim ? new Date(filtros.dataFim) : new Date(),
+        startDate: new Date(start.getFullYear(), start.getMonth(), start.getDate(), 0, 0, 0, 0),
+        endDate: new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59, 999),
       };
     }
     return getPeriodoDatas(filtros.periodoSelecionado as any);
@@ -517,16 +520,18 @@ export default function Dashboard() {
 
     const multiplicador = filtros.isMetaInterna ? META_CONFIG.META_INTERNA_MULTIPLICADOR : 1;
     
-    // Período do ano anterior
+    // Período do ano anterior - com horários corretos (igual ao original)
     const startDateAnoAnterior = new Date(
       periodo.startDate.getFullYear() - 1,
       periodo.startDate.getMonth(),
-      periodo.startDate.getDate()
+      periodo.startDate.getDate(),
+      0, 0, 0, 0  // 00:00:00.000
     );
     const endDateAnoAnterior = new Date(
       periodo.endDate.getFullYear() - 1,
       periodo.endDate.getMonth(),
-      periodo.endDate.getDate()
+      periodo.endDate.getDate(),
+      23, 59, 59, 999  // 23:59:59.999
     );
 
     // Filtrar dados do ano anterior
@@ -2602,42 +2607,84 @@ export default function Dashboard() {
               NEGOCIAÇÕES E PERDAS POR FASE
             </h2>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-5">
               {/* Gráfico de Negociações */}
-              <div>
-                <h3 className="text-text-primary text-sm font-medium mb-3">
+              <div 
+                className="rounded-lg p-5 flex flex-col"
+                style={{
+                  background: 'linear-gradient(135deg, #343a40 0%, #495057 100%)',
+                  border: '1px solid #495057',
+                  minHeight: '500px',
+                }}
+              >
+                <h3 
+                  style={{
+                    color: '#adb5bd',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    borderBottom: '2px solid #FF6600',
+                    paddingBottom: '8px',
+                    marginBottom: '16px',
+                    textAlign: 'left',
+                  }}
+                >
                   QUANTIDADE DE TURMAS NEGOCIADAS POR FASE DO CRM
                 </h3>
-                {dadosNegociacoesPorFase.length > 0 ? (
-                  <FunnelBarChart
-                    dados={dadosNegociacoesPorFase}
-                    height={400}
-                  />
-                ) : (
-                  <div className="text-center text-text-muted py-10">
-                    {funilData && funilData.length > 0 
-                      ? 'Nenhuma negociação encontrada'
-                      : 'Sem dados disponíveis'
-                    }
-                  </div>
-                )}
+                <div className="flex-1">
+                  {dadosNegociacoesPorFase.length > 0 ? (
+                    <FunnelBarChart
+                      dados={dadosNegociacoesPorFase}
+                      height={400}
+                    />
+                  ) : (
+                    <div className="text-center text-text-muted py-10">
+                      {funilData && funilData.length > 0 
+                        ? 'Nenhuma negociação encontrada'
+                        : 'Sem dados disponíveis'
+                      }
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Gráfico de Perdas */}
-              <div>
-                <h3 className="text-text-primary text-sm font-medium mb-3">
+              <div 
+                className="rounded-lg p-5 flex flex-col"
+                style={{
+                  background: 'linear-gradient(135deg, #343a40 0%, #495057 100%)',
+                  border: '1px solid #495057',
+                  minHeight: '500px',
+                }}
+              >
+                <h3 
+                  style={{
+                    color: '#adb5bd',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    borderBottom: '2px solid #FF6600',
+                    paddingBottom: '8px',
+                    marginBottom: '16px',
+                    textAlign: 'left',
+                  }}
+                >
                   QUANTIDADE DE PERDAS POR FASE
                 </h3>
-                {dadosPerdasPorFase.some(d => d.quantidade > 0) ? (
-                  <FunnelBarChart
-                    dados={dadosPerdasPorFase}
-                    height={400}
-                  />
-                ) : (
-                  <div className="text-center text-text-muted py-10">
-                    Nenhuma perda registrada
-                  </div>
-                )}
+                <div className="flex-1">
+                  {dadosPerdasPorFase.some(d => d.quantidade > 0) ? (
+                    <FunnelBarChart
+                      dados={dadosPerdasPorFase}
+                      height={400}
+                    />
+                  ) : (
+                    <div className="text-center text-text-muted py-10">
+                      Nenhuma perda registrada
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

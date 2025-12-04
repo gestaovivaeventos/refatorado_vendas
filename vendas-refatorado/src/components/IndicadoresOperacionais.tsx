@@ -5,8 +5,7 @@
 
 import React from 'react';
 import { formatPercent } from '@/utils/formatacao';
-import { getSolidColorForPercentage } from '@/utils/calculos';
-import { COLORS } from '@/config/app.config';
+import { getColorForPercentage, getSolidColorForPercentage } from '@/utils/calculos';
 
 interface IndicadorData {
   valor: number;
@@ -31,12 +30,8 @@ function IndicadorOperacionalCard({ label, valor, meta }: IndicadorCardProps) {
   const progressWidth = Math.min(percent * 100, 100);
   const percentColor = getSolidColorForPercentage(percent);
   
-  // Cor da barra de progresso baseada no percentual
-  const progressBarColor = percent >= 1 
-    ? COLORS.SUCCESS 
-    : percent >= 0.5 
-      ? COLORS.PRIMARY 
-      : COLORS.DANGER;
+  // Gradiente da barra de progresso baseada no percentual (igual ao original)
+  const progressBarGradient = getColorForPercentage(percent);
 
   return (
     <div 
@@ -69,12 +64,12 @@ function IndicadorOperacionalCard({ label, valor, meta }: IndicadorCardProps) {
       </span>
       
       {/* Barra de Progresso */}
-      <div className="w-full h-1.5 bg-dark-tertiary rounded-full overflow-hidden mt-1">
+      <div className="w-full h-2.5 bg-dark-tertiary rounded-full overflow-hidden mt-1">
         <div 
           className="h-full rounded-full transition-all duration-500"
           style={{ 
             width: `${progressWidth}%`,
-            backgroundColor: progressBarColor,
+            background: progressBarGradient,
           }}
         />
       </div>
