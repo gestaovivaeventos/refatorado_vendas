@@ -28,11 +28,11 @@ export default function IndicadorCard({ label, valor, meta }: IndicadorCardProps
       
       {/* Meta e Percentual */}
       <div className="indicator-meta">
-        <span className="font-bold text-base" style={{ color: percentColor }}>
+        <span style={{ color: percentColor, fontWeight: 'bold', fontSize: '1.2rem' }}>
           {formatPercent(percent)}
         </span>
         {' de '}
-        <span className="font-semibold">{meta.toLocaleString('pt-BR')}</span>
+        <span style={{ fontWeight: '600', fontSize: '1.05rem', color: '#ADB5BD' }}>{meta.toLocaleString('pt-BR')}</span>
         {' META'}
       </div>
       

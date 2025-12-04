@@ -107,8 +107,11 @@ body {
   }
 
   .kpi-card-title {
-    @apply text-sm font-bold;
-    color: var(--text-secondary);
+    @apply font-semibold;
+    font-size: 0.9rem;
+    color: #adb5bd;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .kpi-card-value {
@@ -117,8 +120,14 @@ body {
   }
 
   .kpi-card-details {
-    @apply text-xs;
-    color: var(--text-secondary);
+    font-size: 0.75rem;
+    color: #adb5bd;
+  }
+
+  .kpi-meta-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #adb5bd;
   }
 
   /* Progress Bar */
@@ -293,18 +302,20 @@ body {
   }
 
   .indicator-label {
-    @apply text-sm font-bold;
-    color: var(--text-secondary);
+    font-size: 0.9em !important;
+    font-weight: bold !important;
+    color: #ADB5BD !important;
   }
 
   .indicator-value {
-    @apply text-3xl font-bold;
-    color: var(--text-primary);
+    font-size: 1.7em !important;
+    font-weight: bold !important;
+    color: #F8F9FA !important;
   }
 
   .indicator-meta {
-    @apply text-xs;
-    color: var(--text-secondary);
+    font-size: 0.75rem !important;
+    color: #ADB5BD !important;
   }
 
   /* Section Title - Estilo original do dashboard */

@@ -43,7 +43,7 @@ export default function KPICard({
       }}
     >
       {/* Título */}
-      <span className="text-text-muted text-xs font-semibold uppercase tracking-wider">
+      <span className="kpi-card-title">
         {titulo}
       </span>
       
@@ -57,7 +57,7 @@ export default function KPICard({
         <span className="font-bold" style={{ color: percentColor }}>
           {formatPercent(percent)}
         </span>
-        <span className="text-text-muted">
+        <span className="kpi-meta-value">
           {' de '}
           {formatarComoMoeda ? formatCurrency(valorMeta) : valorMeta.toLocaleString('pt-BR')}
           {' '}{labelMeta}

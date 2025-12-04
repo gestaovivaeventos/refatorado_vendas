@@ -47,25 +47,25 @@ function IndicadorOperacionalCard({ label, valor, meta }: IndicadorCardProps) {
       }}
     >
       {/* Label */}
-      <span className="text-text-muted text-xs font-semibold uppercase tracking-wider">
+      <span style={{ fontSize: '0.9em', fontWeight: 'bold', color: '#ADB5BD' }}>
         {label}
       </span>
       
       {/* Valor */}
-      <span className="text-text-primary text-3xl font-bold">
+      <span style={{ fontSize: '1.7em', fontWeight: 'bold', color: '#F8F9FA' }}>
         {valor.toLocaleString('pt-BR')}
       </span>
       
       {/* Percentual + Meta */}
-      <span className="text-sm">
-        <span className="font-bold" style={{ color: percentColor }}>
+      <span style={{ fontSize: '0.75rem', color: '#ADB5BD' }}>
+        <span style={{ fontWeight: 'bold', fontSize: '1.2rem', color: percentColor }}>
           {formatPercent(percent)}
         </span>
-        <span className="text-text-muted">
-          {' de '}
+        {' de '}
+        <span style={{ fontWeight: '600', fontSize: '1.05rem', color: '#ADB5BD' }}>
           {meta.toLocaleString('pt-BR')}
-          {' META'}
         </span>
+        {' META'}
       </span>
       
       {/* Barra de Progresso */}
