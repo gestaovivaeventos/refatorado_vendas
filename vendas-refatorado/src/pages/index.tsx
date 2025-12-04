@@ -435,14 +435,13 @@ export default function Dashboard() {
   const kpis = useMemo(() => {
     const multiplicador = filtros.isMetaInterna ? META_CONFIG.META_INTERNA_MULTIPLICADOR : 1;
     
-    // Separar vendas e pós-vendas
-    const vendas = dadosFiltrados.filter(d => 
-      (d.venda_posvenda || '').toUpperCase().includes('VENDA') && 
-      !(d.venda_posvenda || '').toUpperCase().includes('POS')
-    );
-    const posVendas = dadosFiltrados.filter(d => 
-      (d.venda_posvenda || '').toUpperCase().includes('POS')
-    );
+    // Função para normalizar texto (mesma do original)
+    const normalizeText = (text: string | undefined | null) => 
+      (text || '').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    
+    // Separar vendas e pós-vendas usando comparação exata como no original
+    const vendas = dadosFiltrados.filter(d => normalizeText(d.venda_posvenda) === 'VENDA');
+    const posVendas = dadosFiltrados.filter(d => normalizeText(d.venda_posvenda) === 'POS VENDA');
     
     // Calcular VVR (Valor Vendido Realizado)
     const vvrTotal = dadosFiltrados.reduce((sum, d) => sum + (d.vl_plano || 0), 0);
@@ -462,9 +461,12 @@ export default function Dashboard() {
     let metaQAV = 0;
     
     if (metasData && periodo?.startDate && periodo?.endDate) {
-      const unidadesAtivas = filtros.unidades.length > 0 ? filtros.unidades : opcoesFiltros.unidades;
-      const hasUnidadeFilter = unidadesAtivas.length > 0;
-      const unidadesNorm = unidadesAtivas.map((u: string) => u.toString().toLowerCase().trim());
+      // Se há filtro de unidades, usar as unidades selecionadas
+      // Se não há filtro, considerar TODAS as unidades que têm meta (como no original)
+      const hasUnidadeFilter = filtros.unidades.length > 0;
+      const unidadesNorm = hasUnidadeFilter 
+        ? filtros.unidades.map((u: string) => u.toString().toLowerCase().trim())
+        : [];
       
       metasData.forEach((metaInfo, chave) => {
         const [unidadeMetaRaw, anoMeta, mesMeta] = chave.split('-');
@@ -472,22 +474,25 @@ export default function Dashboard() {
         
         if (!unidadeMeta) return;
         
-        // Verificar unidade - se não há filtro, aceitar todas
+        // Verificar unidade - só filtra se houver filtro de unidades ativo
         if (hasUnidadeFilter && !unidadesNorm.includes(unidadeMeta)) return;
         
-        // Verificar se o mês/ano da meta está dentro do período
+        // Verificar se o mês/ano da meta está dentro do período (lógica igual ao original)
         if (anoMeta && mesMeta) {
-          const metaRangeStart = new Date(Number(anoMeta), Number(mesMeta) - 1, 1);
-          const metaRangeEnd = new Date(Number(anoMeta), Number(mesMeta), 1);
+          const metaDate = new Date(Number(anoMeta), Number(mesMeta) - 1, 1);
+          const metaRangeStart = new Date(metaDate.getFullYear(), metaDate.getMonth(), 1, 0, 0, 0, 0);
+          const metaRangeEnd = new Date(metaDate.getFullYear(), metaDate.getMonth() + 1, 0, 23, 59, 59, 999); // último dia do mês
           
-          if (metaRangeStart <= periodo.endDate && metaRangeEnd > periodo.startDate) {
+          if (metaRangeStart <= periodo.endDate && metaRangeEnd >= periodo.startDate) {
             metaVVRVendas += metaInfo.meta_vvr_vendas || 0;
             metaVVRPosVendas += metaInfo.meta_vvr_posvendas || 0;
-            metaVVRTotal += metaInfo.meta_vvr_total || 0;
             metaQAV += metaInfo.meta_adesoes || 0;
           }
         }
       });
+      
+      // Meta total é a soma de vendas + pós-vendas (como no original)
+      metaVVRTotal = metaVVRVendas + metaVVRPosVendas;
     }
     
     return {
@@ -539,14 +544,13 @@ export default function Dashboard() {
       instituicao: filtros.instituicao,
     });
 
-    // Separar vendas e pós-vendas
-    const vendas = dadosAnoAnterior.filter(d => 
-      (d.venda_posvenda || '').toUpperCase().includes('VENDA') && 
-      !(d.venda_posvenda || '').toUpperCase().includes('POS')
-    );
-    const posVendas = dadosAnoAnterior.filter(d => 
-      (d.venda_posvenda || '').toUpperCase().includes('POS')
-    );
+    // Função para normalizar texto (mesma do original)
+    const normalizeText = (text: string | undefined | null) => 
+      (text || '').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    // Separar vendas e pós-vendas usando comparação exata como no original
+    const vendas = dadosAnoAnterior.filter(d => normalizeText(d.venda_posvenda) === 'VENDA');
+    const posVendas = dadosAnoAnterior.filter(d => normalizeText(d.venda_posvenda) === 'POS VENDA');
 
     const vvrTotal = dadosAnoAnterior.reduce((sum, d) => sum + (d.vl_plano || 0), 0);
     const vvrVendas = vendas.reduce((sum, d) => sum + (d.vl_plano || 0), 0);
@@ -558,9 +562,12 @@ export default function Dashboard() {
     let metaVVRPosVendas = 0;
 
     if (metasData) {
-      const unidadesAtivas = filtros.unidades.length > 0 ? filtros.unidades : opcoesFiltros.unidades;
-      const hasUnidadeFilter = unidadesAtivas.length > 0;
-      const unidadesNorm = unidadesAtivas.map((u: string) => u.toString().toLowerCase().trim());
+      // Se há filtro de unidades, usar as unidades selecionadas
+      // Se não há filtro, considerar TODAS as unidades que têm meta (como no original)
+      const hasUnidadeFilter = filtros.unidades.length > 0;
+      const unidadesNorm = hasUnidadeFilter 
+        ? filtros.unidades.map((u: string) => u.toString().toLowerCase().trim())
+        : [];
       
       metasData.forEach((metaInfo, chave) => {
         const [unidadeMetaRaw, anoMeta, mesMeta] = chave.split('-');
@@ -568,21 +575,24 @@ export default function Dashboard() {
         
         if (!unidadeMeta) return;
         
-        // Verificar unidade - se não há filtro, aceitar todas
+        // Verificar unidade - só filtra se houver filtro de unidades ativo
         if (hasUnidadeFilter && !unidadesNorm.includes(unidadeMeta)) return;
         
-        // Verificar se o mês/ano da meta está dentro do período do ano anterior
+        // Verificar se o mês/ano da meta está dentro do período do ano anterior (lógica igual ao original)
         if (anoMeta && mesMeta) {
-          const metaRangeStart = new Date(Number(anoMeta), Number(mesMeta) - 1, 1);
-          const metaRangeEnd = new Date(Number(anoMeta), Number(mesMeta), 1);
+          const metaDate = new Date(Number(anoMeta), Number(mesMeta) - 1, 1);
+          const metaRangeStart = new Date(metaDate.getFullYear(), metaDate.getMonth(), 1, 0, 0, 0, 0);
+          const metaRangeEnd = new Date(metaDate.getFullYear(), metaDate.getMonth() + 1, 0, 23, 59, 59, 999); // último dia do mês
           
-          if (metaRangeStart <= endDateAnoAnterior && metaRangeEnd > startDateAnoAnterior) {
+          if (metaRangeStart <= endDateAnoAnterior && metaRangeEnd >= startDateAnoAnterior) {
             metaVVRVendas += metaInfo.meta_vvr_vendas || 0;
             metaVVRPosVendas += metaInfo.meta_vvr_posvendas || 0;
-            metaVVRTotal += metaInfo.meta_vvr_total || 0;
           }
         }
       });
+      
+      // Meta total é a soma de vendas + pós-vendas (como no original)
+      metaVVRTotal = metaVVRVendas + metaVVRPosVendas;
     }
 
     return {
