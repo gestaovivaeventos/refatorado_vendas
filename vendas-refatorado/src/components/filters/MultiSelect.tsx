@@ -73,6 +73,7 @@ export default function MultiSelect({
   placeholder = 'Selecione...',
 }: MultiSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isPositioned, setIsPositioned] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition>({ top: 0, left: 0, width: 0, openUpward: false });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -102,8 +103,18 @@ export default function MultiSelect({
   // Recalcular posição quando a janela é redimensionada ou rolada
   useEffect(() => {
     const updatePosition = () => {
-      if (isOpen && triggerRef.current) {
-        calculatePosition();
+      if (isOpen && isPositioned && triggerRef.current && dropdownRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        const actualHeight = dropdownRef.current.offsetHeight;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const openUpward = spaceBelow < actualHeight && rect.top > actualHeight;
+        
+        setDropdownPosition({
+          top: openUpward ? rect.top - actualHeight - 4 : rect.bottom + 4,
+          left: rect.left,
+          width: rect.width,
+          openUpward,
+        });
       }
     };
 
@@ -116,31 +127,50 @@ export default function MultiSelect({
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition, true);
     };
-  }, [isOpen]);
+  }, [isOpen, isPositioned]);
 
-  // Calcular posição do dropdown
-  const calculatePosition = () => {
-    if (triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      const dropdownHeight = 320; // altura aproximada do dropdown
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const spaceAbove = rect.top;
-      
-      // Se não houver espaço suficiente abaixo E houver espaço acima, abrir para cima
-      const openUpward = spaceBelow < dropdownHeight && spaceAbove > dropdownHeight;
-      
-      setDropdownPosition({
-        top: openUpward ? rect.top - dropdownHeight - 4 : rect.bottom + 4,
-        left: rect.left,
-        width: rect.width,
-        openUpward,
+  // Calcular posição real após o dropdown renderizar (invisível)
+  useEffect(() => {
+    if (isOpen && !isPositioned && dropdownRef.current && triggerRef.current) {
+      // Pequeno delay para garantir que o DOM renderizou
+      requestAnimationFrame(() => {
+        if (dropdownRef.current && triggerRef.current) {
+          const rect = triggerRef.current.getBoundingClientRect();
+          const actualHeight = dropdownRef.current.offsetHeight;
+          const spaceBelow = window.innerHeight - rect.bottom;
+          const openUpward = spaceBelow < actualHeight && rect.top > actualHeight;
+          
+          setDropdownPosition({
+            top: openUpward ? rect.top - actualHeight - 4 : rect.bottom + 4,
+            left: rect.left,
+            width: rect.width,
+            openUpward,
+          });
+          setIsPositioned(true);
+        }
       });
     }
-  };
+  }, [isOpen, isPositioned]);
+
+  // Reset isPositioned quando fecha
+  useEffect(() => {
+    if (!isOpen) {
+      setIsPositioned(false);
+    }
+  }, [isOpen]);
 
   const handleOpen = () => {
     if (!isOpen) {
-      calculatePosition();
+      // Posição inicial fora da tela (invisível)
+      if (triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        setDropdownPosition({
+          top: -9999,
+          left: rect.left,
+          width: rect.width,
+          openUpward: false,
+        });
+      }
     }
     setIsOpen(!isOpen);
   };
@@ -197,6 +227,8 @@ export default function MultiSelect({
           maxHeight: '300px',
           overflow: 'hidden',
           boxShadow: '0 8px 16px rgba(0, 0, 0, 0.5)',
+          opacity: isPositioned ? 1 : 0,
+          pointerEvents: isPositioned ? 'auto' : 'none',
         }}
       >
         {/* Caixa de pesquisa dentro do dropdown */}

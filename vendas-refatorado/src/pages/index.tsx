@@ -77,21 +77,23 @@ export default function Dashboard() {
   
   // Estados - inicializa com base no router.asPath (funciona no SSR)
   const [paginaAtiva, setPaginaAtiva] = useState<PaginaAtiva>(() => getPaginaFromPath(router.asPath));
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  
+  // Carregar sidebar collapsed do localStorage de forma síncrona durante a inicialização no client
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebarCollapsed');
+      return saved === 'true';
+    }
+    return false;
+  });
   
   // Inicializar filtros com valores padrão (será carregado do localStorage após montagem)
   const [filtros, setFiltros] = useState<FiltrosState>(INITIAL_FILTERS);
   const [tipoGraficoVVR, setTipoGraficoVVR] = useState<'total' | 'vendas' | 'posvendas'>('total');
   const [tipoTabelaDados, setTipoTabelaDados] = useState<'total' | 'vendas' | 'posvendas'>('total');
 
-  // Carregar estados do localStorage após montagem (evita erro de hidratação)
+  // Carregar filtros do localStorage após montagem (evita erro de hidratação)
   useEffect(() => {
-    // Carregar sidebar collapsed
-    const savedSidebar = localStorage.getItem('sidebarCollapsed');
-    if (savedSidebar) {
-      setSidebarCollapsed(savedSidebar === 'true');
-    }
-    
     // Carregar filtros
     try {
       const savedFilters = localStorage.getItem('dashboardFilters');
@@ -1903,10 +1905,15 @@ export default function Dashboard() {
       item.qualificacao_comissao && item.qualificacao_comissao.trim() !== ''
     ).length;
 
-    // Reunião Realizada (diagnóstico realizado)
-    const reuniaoRealizada = leadsValidos.filter(item => 
-      item.diagnostico_realizado && item.diagnostico_realizado.trim() !== ''
-    ).length;
+    // Reunião Realizada
+    // Regra: Se "Diagnóstico Realizado" é vazio E "Proposta Enviada" é vazio = não conta
+    // Se pelo menos UM deles tem valor = conta como 1
+    const reuniaoRealizada = leadsValidos.filter(item => {
+      const diagnosticoVazio = !item.diagnostico_realizado || item.diagnostico_realizado.trim() === '';
+      const propostaVazia = !item.proposta_enviada || item.proposta_enviada.trim() === '';
+      // Se NÃO for verdade que ambos estão vazios, então conta
+      return !(diagnosticoVazio && propostaVazia);
+    }).length;
 
     // Propostas Enviadas
     const propostasEnviadas = leadsValidos.filter(item => 
@@ -1918,16 +1925,75 @@ export default function Dashboard() {
       item.fechamento_comissao && item.fechamento_comissao.trim() !== ''
     ).length;
 
-    // Leads Perdidos (fase = "7.2 Perdido")
-    const leadsPerdidos = leadsValidos.filter(item => 
-      item.fase_perdido === '7.2 Perdido'
-    ).length;
+    // Leads Perdidos (fase contém "7.2" ou "perdido", tem motivo de perda, e NÃO é descarte)
+    const leadsPerdidos = leadsValidos.filter(item => {
+      const estaNaFasePerdido = item.fase_perdido && 
+        item.fase_perdido.trim() !== '' && 
+        (item.fase_perdido.includes("7.2") || 
+         item.fase_perdido.toLowerCase().includes("perdido"));
 
-    // Leads Descartados (motivo de perda começa com "Descarte")
-    const leadsDescartados = leadsValidos.filter(item => {
-      const motivo = item.concat_motivo_perda || '';
-      return motivo.toLowerCase().startsWith('descarte');
+      if (!estaNaFasePerdido) return false;
+
+      if (!item.concat_motivo_perda || item.concat_motivo_perda.trim() === '') return false;
+
+      // Usar getCampoAuxiliar para mapear o motivo corretamente
+      const campoAuxiliar = getCampoAuxiliarLocal(item.concat_motivo_perda);
+      return !campoAuxiliar.startsWith('Descarte');
     }).length;
+
+    // Leads Descartados (fase contém "7.2" ou "perdido", tem motivo de perda, e COMEÇA com "Descarte")
+    const leadsDescartados = leadsValidos.filter(item => {
+      const estaNaFasePerdido = item.fase_perdido && 
+        item.fase_perdido.trim() !== '' && 
+        (item.fase_perdido.includes("7.2") || 
+         item.fase_perdido.toLowerCase().includes("perdido"));
+
+      if (!estaNaFasePerdido) return false;
+
+      if (!item.concat_motivo_perda || item.concat_motivo_perda.trim() === '') return false;
+
+      // Usar getCampoAuxiliar para mapear o motivo corretamente
+      const campoAuxiliar = getCampoAuxiliarLocal(item.concat_motivo_perda);
+      return campoAuxiliar.startsWith('Descarte');
+    }).length;
+
+    // Função auxiliar local para processar motivo de perda
+    function getCampoAuxiliarLocal(concatMotivoPerda: string): string {
+      if (!concatMotivoPerda || concatMotivoPerda.trim() === '') return '';
+      
+      const motivo = concatMotivoPerda.trim();
+      
+      switch (motivo) {
+        case "Outro Motivo (especifique no campo de texto)":
+          return "Outro Motivo (especifique no campo de texto)";
+        case "Fechou com o Concorrente":
+          return "Fechou com o Concorrente";
+        case "Desistiu de Fazer o Fundo de Formatura":
+          return "Desistiu de Fazer o Fundo de Formatura";
+        case "Lead Duplicado (já existe outra pessoa da turma negociando - especifique o nome)":
+          return "Descarte - Lead Duplicado";
+        case "Falta de Contato no Grupo (durante negociação)":
+          return "Falta de Contato no Grupo (durante negociação)";
+        case "Falta de Contato Inicial (não responde)":
+          return "Falta de Contato Inicial (não responde)";
+        case "Território Inviável (não atendido por franquia VIVA)":
+          return "Descarte - Território Inviável (não atendido por franquia VIVA)";
+        case "Falta de Contato Inicial (telefone errado)":
+          return "Descarte - Falta de Contato Inicial (telefone errado)";
+        case "Pediu para retomar contato no próximo semestre":
+          return "Descarte - Pediu para retomar contato no próximo semestre";
+        case "Tipo de Ensino/Curso não atendido":
+          return "Descarte - Tipo de Ensino/Curso não atendido";
+        case "Adesão individual":
+          return "Descarte - Adesão Individual";
+        case "Adesão individual:":
+          return "Descarte - Adesão Individual";
+        case "Tipo de Ensino/Curso não atendido:":
+          return "Descarte - Tipo de Ensino/Curso não atendido";
+        default:
+          return motivo;
+      }
+    }
 
     return {
       indicadores: [
