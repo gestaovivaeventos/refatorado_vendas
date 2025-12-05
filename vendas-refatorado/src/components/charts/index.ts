@@ -13,3 +13,4 @@ export { SimpleBarChart } from './SimpleBarChart';
 export { MultiYearBarChart } from './MultiYearBarChart';
 export { FunnelBarChart, CORES_FASES_FUNIL, CORES_FASES_PERDAS, getCorFase } from './FunnelBarChart';
 export { CaptacaoStackedBar } from './CaptacaoStackedBar';
+export { TaxaConversaoFunil } from './TaxaConversaoFunil';

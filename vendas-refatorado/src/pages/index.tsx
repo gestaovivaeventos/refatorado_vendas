@@ -20,6 +20,7 @@ import {
   MultiYearBarChart,
   FunnelBarChart,
   CaptacaoStackedBar,
+  TaxaConversaoFunil,
   CORES_FASES_FUNIL,
   CORES_FASES_PERDAS,
   getCorFase,
@@ -78,19 +79,24 @@ export default function Dashboard() {
   // Estados - inicializa com base no router.asPath (funciona no SSR)
   const [paginaAtiva, setPaginaAtiva] = useState<PaginaAtiva>(() => getPaginaFromPath(router.asPath));
   
-  // Carregar sidebar collapsed do localStorage de forma síncrona durante a inicialização no client
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('sidebarCollapsed');
-      return saved === 'true';
-    }
-    return false;
-  });
+  // Estado da sidebar - inicializa com false para evitar erro de hidratação
+  // O valor real do localStorage será carregado no useEffect
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   
   // Inicializar filtros com valores padrão (será carregado do localStorage após montagem)
   const [filtros, setFiltros] = useState<FiltrosState>(INITIAL_FILTERS);
   const [tipoGraficoVVR, setTipoGraficoVVR] = useState<'total' | 'vendas' | 'posvendas'>('total');
   const [tipoTabelaDados, setTipoTabelaDados] = useState<'total' | 'vendas' | 'posvendas'>('total');
+
+  // Marcar que estamos no cliente e carregar estado da sidebar do localStorage
+  useEffect(() => {
+    setIsClient(true);
+    const saved = localStorage.getItem('sidebarCollapsed');
+    if (saved === 'true') {
+      setSidebarCollapsed(true);
+    }
+  }, []);
 
   // Carregar filtros do localStorage após montagem (evita erro de hidratação)
   useEffect(() => {
@@ -1929,6 +1935,7 @@ export default function Dashboard() {
       return {
         indicadores: [
           { titulo: 'TOTAL DE LEADS CRIADOS', valor: 0 },
+          { titulo: 'LEADS ÚTEIS', valor: 0 },
           { titulo: 'QUALIFICAÇÃO COMISSÃO', valor: 0 },
           { titulo: 'REUNIÃO REALIZADA', valor: 0 },
           { titulo: 'PROPOSTAS ENVIADAS', valor: 0 },
@@ -2042,9 +2049,13 @@ export default function Dashboard() {
       }
     }
 
+    // Leads Úteis = Total de Leads - Leads Descartados
+    const leadsUteis = totalLeads - leadsDescartados;
+
     return {
       indicadores: [
         { titulo: 'TOTAL DE LEADS CRIADOS', valor: totalLeads },
+        { titulo: 'LEADS ÚTEIS', valor: leadsUteis },
         { titulo: 'QUALIFICAÇÃO COMISSÃO', valor: qualificacaoComissao },
         { titulo: 'REUNIÃO REALIZADA', valor: reuniaoRealizada },
         { titulo: 'PROPOSTAS ENVIADAS', valor: propostasEnviadas },
