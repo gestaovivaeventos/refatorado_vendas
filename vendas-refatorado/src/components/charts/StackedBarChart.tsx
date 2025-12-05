@@ -40,13 +40,16 @@ interface StackedBarChartProps {
   title?: string;
   horizontal?: boolean;
   onBarClick?: (label: string) => void;
+  /** Se true, formata valores como contagem inteira ao invés de moeda (para gráficos de adesões) */
+  isCountChart?: boolean;
 }
 
 export default function StackedBarChart({ 
   data, 
   title, 
   horizontal = false,
-  onBarClick 
+  onBarClick,
+  isCountChart = false
 }: StackedBarChartProps) {
   const chartData = useMemo(() => ({
     labels: data.map(d => d.label),
@@ -144,10 +147,19 @@ export default function StackedBarChart({
         cornerRadius: 6,
         callbacks: {
           label: function(context: any) {
-            return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
+            const value = context.raw;
+            if (isCountChart) {
+              // Para gráficos de contagem (adesões), mostrar número inteiro
+              return `${context.dataset.label}: ${Math.round(value).toLocaleString('pt-BR')}`;
+            }
+            return `${context.dataset.label}: ${formatCurrency(value)}`;
           },
           footer: function(tooltipItems: any[]) {
             const sum = tooltipItems.reduce((acc, item) => acc + item.raw, 0);
+            if (isCountChart) {
+              // Para gráficos de contagem (adesões), mostrar número inteiro
+              return `Total: ${Math.round(sum).toLocaleString('pt-BR')}`;
+            }
             return `Total: ${formatCurrency(sum)}`;
           },
         },
@@ -196,7 +208,7 @@ export default function StackedBarChart({
         onBarClick(label);
       }
     },
-  }), [data, horizontal, onBarClick]);
+  }), [data, horizontal, onBarClick, isCountChart]);
 
   if (data.length === 0) {
     return (

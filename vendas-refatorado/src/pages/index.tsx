@@ -2511,6 +2511,7 @@ export default function Dashboard() {
               <StackedBarChart
                 data={dadosAdesoesTipoAnual}
                 horizontal={true}
+                isCountChart={true}
                 onBarClick={(label) => {
                   const ano = parseInt(label);
                   if (!isNaN(ano)) setAnoSelecionadoAdesoesTipo(ano);
@@ -2525,6 +2526,7 @@ export default function Dashboard() {
               <StackedBarChart
                 data={dadosAdesoesTipoMensal}
                 horizontal={false}
+                isCountChart={true}
               />
             </div>
           </Card>
