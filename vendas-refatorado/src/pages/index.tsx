@@ -165,8 +165,10 @@ export default function Dashboard() {
   const { data: fundosData, loading: loadingFundos, error: errorFundos } = useFundosData();
   const { data: funilData, loading: loadingFunil, error: errorFunil } = useFunilData();
 
-  // Loading global
-  const isLoading = loadingSales || loadingMetas || loadingFundos;
+  // Loading global - só mostra loading se ainda não temos dados carregados
+  // Isso evita mostrar loading ao trocar de página quando os dados já existem
+  const hasData = salesData.length > 0 || metasData.length > 0;
+  const isLoading = (loadingSales || loadingMetas || loadingFundos) && !hasData;
   const hasError = errorSales || errorMetas || errorFundos;
 
   // Calcular período ANTES das opções de filtros (para usar na hierarquia)
@@ -2588,20 +2590,25 @@ export default function Dashboard() {
   };
 
   // Página de Funil de Vendas
-  const renderFunilPage = () => (
-    <div className="space-y-6">
-      {loadingFunil ? (
-        <Loading mensagem="Carregando..." />
-      ) : (
-        <>
-          {/* Seção 1: Funil Horizontal com Indicadores Operacionais */}
-          <div className="bg-dark-secondary rounded-xl p-5">
-            <FunilHorizontal
-              indicadores={indicadoresFunilHorizontal.indicadores}
-              leadsPerdidos={indicadoresFunilHorizontal.leadsPerdidos}
-              leadsDescartados={indicadoresFunilHorizontal.leadsDescartados}
-            />
-          </div>
+  const renderFunilPage = () => {
+    // Só mostra loading se ainda não temos dados do funil
+    const hasFunilData = funilData.length > 0;
+    const showFunilLoading = loadingFunil && !hasFunilData;
+    
+    return (
+      <div className="space-y-6">
+        {showFunilLoading ? (
+          <Loading mensagem="Carregando..." />
+        ) : (
+          <>
+            {/* Seção 1: Funil Horizontal com Indicadores Operacionais */}
+            <div className="bg-dark-secondary rounded-xl p-5">
+              <FunilHorizontal
+                indicadores={indicadoresFunilHorizontal.indicadores}
+                leadsPerdidos={indicadoresFunilHorizontal.leadsPerdidos}
+                leadsDescartados={indicadoresFunilHorizontal.leadsDescartados}
+              />
+            </div>
 
           {/* Seção 2: Captações */}
           <div className="bg-dark-secondary rounded-xl p-5">
@@ -2741,7 +2748,8 @@ export default function Dashboard() {
         </>
       )}
     </div>
-  );
+    );
+  };
 
   return (
     <>
