@@ -20,6 +20,7 @@ type TipoVenda = 'total' | 'vendas' | 'posvendas';
 interface DadosDetalhadosTableProps {
   data: DadosDetalhadosItem[];
   title: string;
+  titleHighlight?: string;
   tipoSelecionado: TipoVenda;
   onTipoChange: (tipo: TipoVenda) => void;
   periodoLabel?: string;
@@ -28,6 +29,7 @@ interface DadosDetalhadosTableProps {
 export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
   data,
   title,
+  titleHighlight,
   tipoSelecionado,
   onTipoChange,
   periodoLabel = '',
@@ -177,6 +179,9 @@ export const DadosDetalhadosTable: React.FC<DadosDetalhadosTableProps> = ({
       {/* Título */}
       <h2 className="section-title">
         {title}
+        {titleHighlight && (
+          <span className="section-title-highlight"> {titleHighlight}</span>
+        )}
       </h2>
 
       {/* Botões de seleção de tipo */}

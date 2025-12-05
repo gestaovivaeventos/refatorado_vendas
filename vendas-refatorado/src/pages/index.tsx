@@ -2269,7 +2269,8 @@ export default function Dashboard() {
 
   // Página de Metas e Resultados (Primeira página original)
   const renderMetasPage = () => {
-    const indicadorMeta = filtros.isMetaInterna ? '(Meta Interna)' : '(Super Meta)';
+    // Só exibe indicador quando for Meta Interna
+    const indicadorMeta = filtros.isMetaInterna ? '(META INTERNA)' : '';
     
     return (
       <div className="space-y-6">
@@ -2367,7 +2368,8 @@ export default function Dashboard() {
         <Card>
           <DadosDetalhadosTable 
             data={rankingUnidades}
-            title={`DADOS DETALHADOS POR MÊS/UNIDADE (PERÍODO SELECIONADO) ${indicadorMeta}`}
+            title="DADOS DETALHADOS POR MÊS/UNIDADE (PERÍODO SELECIONADO)"
+            titleHighlight={indicadorMeta || undefined}
             tipoSelecionado={tipoTabelaDados}
             onTipoChange={setTipoTabelaDados}
             periodoLabel={periodoLabelTabela}
